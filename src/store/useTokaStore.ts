@@ -13,14 +13,17 @@ interface User {
   streak: number;
   householdId: string | null;
   password?: string; // Only for prototype logic
+  wishlist: string[]; // <-- Added for children's wishlist
 }
 
 interface Task {
   id: string;
   title: string;
   reward: number;
-  status: 'open' | 'pending' | 'completed';
-  assignedTo: string[]; // Supports "Team-Up" logic
+  status: 'open' | 'accepted' | 'pending' | 'completed';
+  type: 'regular' | 'spontaneous';
+  frequency?: 'daily' | 'weekly' | 'monthly';
+  assignedTo: string[]; // empty if spontaneous and not yet accepted
   proofUrl?: string;
 }
 
@@ -67,6 +70,12 @@ interface TokaState {
   applyInterest: () => void;
   login: (email: string, pass: string) => boolean;
   logout: () => void;
+
+  // --- NEW ACTIONS ---
+  addTask: (taskData: Partial<Task>) => void;
+  acceptTask: (taskId: string, userId: string) => void;
+  setWishlistGoal: (itemId: string) => void;
+  addMember: (name: string, role: UserRole) => void;
 }
 
 // --- THE STORE ENGINE ---
@@ -80,11 +89,13 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     tokens: 0,
     streak: 0,
     householdId: null,
+    wishlist: [],
   },
   tasks: [
-    { id: '1', title: 'Wash the Dishes', reward: 20, status: 'open', assignedTo: [] },
-    { id: '2', title: 'Clean the Backyard', reward: 50, status: 'open', assignedTo: [] },
-    { id: '3',  title: 'Clean the Garage (Team-Up)', reward: 100, status: 'open', assignedTo: ['user_01', 'sibling_01'] },
+    { id: '1', title: 'Wash the Dishes', reward: 20, status: 'open', type: 'regular', frequency: 'daily', assignedTo: [] },
+    { id: '2', title: 'Clean the Backyard', reward: 50, status: 'open', type: 'regular', frequency: 'weekly', assignedTo: [] },
+    { id: '3',  title: 'Clean the Garage (Team-Up)', reward: 100, status: 'open', type: 'regular', frequency: 'monthly', assignedTo: ['user_01', 'sibling_01'] },
+    { id: '4',  title: 'Wash the Car', reward: 80, status: 'open', type: 'spontaneous', assignedTo: [] },
   ],
   transactions: [],
   marketItems: [
@@ -103,8 +114,8 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   interestRate: 0.05,
   currentUser: null,
   mockUsers: [
-    { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123' },
-    { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123' },
+    { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123', wishlist: [] },
+    { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123', wishlist: [] },
   ],
 
   // --- ACTIONS ---
@@ -112,7 +123,6 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   setRole: (role) => set((state) => ({ user: { ...state.user, role } })),
 
   generateInviteCode: () => {
-    // Generates a unique 6-character code (CS: Random String Generation)
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   },
 
@@ -167,14 +177,10 @@ export const useTokaStore = create<TokaState>((set, get) => ({
         // TEAM-UP LOGIC: Split the pot
         const splitReward = Math.floor(task.reward / participantCount);
         task.assignedTo.forEach(userId => {
-          // In a real app, you'd call a DB update for each user.
-          // For the prototype, we'll just log the split.
           console.log(`Splitting ${splitReward} to user: ${userId}`);
         });
-        // Add the split reward to the current user (if they were part of it)
         addTokens(splitReward, `Team-Up Completion: ${task.title}`);
       } else {
-        // Solo Reward
         addTokens(task.reward, `Completed: ${task.title}`);
       }
   
@@ -269,10 +275,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     }
 
     if (user.tokens < amount) {
-      Alert.alert(
-        'Insufficient Funds',
-        "You don't have enough tokens for this bid!"
-      );
+      Alert.alert('Insufficient Funds', "You don't have enough tokens for this bid!");
       return;
     }
 
@@ -297,10 +300,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     }));
 
     if (auction.timeLeft === 1) {
-      Alert.alert(
-        'AUCTION ENDED!',
-        `${auction.highestBidder ?? 'No one'} won the ${auction.itemName}!`
-      );
+      Alert.alert('AUCTION ENDED!', `${auction.highestBidder ?? 'No one'} won the ${auction.itemName}!`);
     }
   },
 
@@ -385,5 +385,69 @@ export const useTokaStore = create<TokaState>((set, get) => ({
 
   logout: () => {
     set({ currentUser: null });
+  },
+
+  // --- NEW LOGIC IMPLEMENTATIONS ---
+
+  addTask: (taskData) => {
+    const newTask: Task = {
+      id: Date.now().toString(),
+      title: taskData.title || 'New Task',
+      reward: taskData.reward || 10,
+      status: taskData.status || 'open',
+      type: taskData.type || 'regular',
+      assignedTo: taskData.assignedTo || [],
+      ...taskData,
+    };
+    
+    set((state) => ({ tasks: [...state.tasks, newTask] }));
+  },
+
+  acceptTask: (taskId, userId) => {
+    set((state) => ({
+      tasks: state.tasks.map((t) =>
+        // Ensure only 'open' spontaneous tasks can be accepted
+        t.id === taskId && t.type === 'spontaneous' && t.status === 'open'
+          ? { ...t, status: 'accepted', assignedTo: [...t.assignedTo, userId] }
+          : t
+      ),
+    }));
+  },
+
+  setWishlistGoal: (itemId) => {
+    set((state) => {
+      const isAlreadyInWishlist = state.user.wishlist.includes(itemId);
+      return {
+        user: {
+          ...state.user,
+          // If it's already there, keep it (or you could filter it out here if you want a toggle feature)
+          wishlist: isAlreadyInWishlist ? state.user.wishlist : [...state.user.wishlist, itemId],
+        }
+      };
+    });
+  },
+
+  addMember: (name, role) => {
+    const { user, mockUsers } = get();
+
+    // Logic for parents: only admins can add new members
+    if (user.role !== 'admin') {
+      Alert.alert('Permission Denied', 'Only parents/admins can add new members.');
+      return;
+    }
+
+    const newUser: User = {
+      id: `u_${Date.now()}`,
+      name,
+      role,
+      tokens: 0,
+      streak: 0,
+      householdId: user.householdId,
+      password: '123', // Default for prototype
+      wishlist: [],
+    };
+
+    set({ mockUsers: [...mockUsers, newUser] });
+    Alert.alert('Success', `${name} has been added as a ${role}!`);
   },
 }));
