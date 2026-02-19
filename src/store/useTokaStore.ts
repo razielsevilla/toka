@@ -12,6 +12,7 @@ interface User {
   tokens: number;
   streak: number;
   householdId: string | null;
+  password?: string; // Only for prototype logic
 }
 
 interface Task {
@@ -46,6 +47,8 @@ interface TokaState {
   };
   vaultBalance: number;
   interestRate: number;
+  currentUser: User | null;
+  mockUsers: User[];
 
   // Actions
   setRole: (role: UserRole) => void;
@@ -62,6 +65,8 @@ interface TokaState {
   depositToVault: (amount: number) => void;
   withdrawFromVault: (amount: number) => void;
   applyInterest: () => void;
+  login: (email: string, pass: string) => boolean;
+  logout: () => void;
 }
 
 // --- THE STORE ENGINE ---
@@ -96,6 +101,11 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   },
   vaultBalance: 0,
   interestRate: 0.05,
+  currentUser: null,
+  mockUsers: [
+    { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123' },
+    { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123' },
+  ],
 
   // --- ACTIONS ---
 
@@ -356,5 +366,24 @@ export const useTokaStore = create<TokaState>((set, get) => ({
         ...state.transactions,
       ],
     }));
+  },
+
+  login: (email, pass) => {
+    const { mockUsers } = get();
+    const user = mockUsers.find(
+      (u) =>
+        u.name.toLowerCase().includes(email.toLowerCase()) &&
+        u.password === pass
+    );
+
+    if (user) {
+      set({ user, currentUser: user });
+      return true;
+    }
+    return false;
+  },
+
+  logout: () => {
+    set({ currentUser: null });
   },
 }));

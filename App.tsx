@@ -5,39 +5,49 @@ import * as ImagePicker from 'expo-image-picker';
 import { useTokaStore } from './src/store/useTokaStore';
 
 export default function App() {
-  const { 
-    user, 
-    tasks, 
-    transactions, 
+  const {
+    currentUser,
+    login,
+    logout,
+    user,
+    tasks,
+    transactions,
     marketItems,
     auction,
     vaultBalance,
-    approveTask, 
-    setRole, 
-    joinHousehold, 
+    approveTask,
+    setRole,
+    joinHousehold,
     generateInviteCode,
     submitTask,
     purchaseItem,
     openMysteryBox,
     tickAuction,
     placeBid,
-    resetStreak
+    resetStreak,
   } = useTokaStore();
 
-  // --- PHASE 5: AUCTION TIMER TICK ---
+  const [email, setEmail] = React.useState('');
+  const [pass, setPass] = React.useState('');
+
+  // --- ALL HOOKS MUST BE HERE (TOP LEVEL) ---
+
   useEffect(() => {
+    // Only start the timer if a user is actually logged in
+    if (!currentUser) return;
+
     const interval = setInterval(() => {
       tickAuction();
     }, 1000);
     return () => clearInterval(interval);
-  }, [tickAuction]);
+  }, [tickAuction, currentUser]); // Added currentUser to dependencies
 
-  // --- PHASE 2: SNAP-TO-VERIFY ---
+  // --- HELPER FUNCTIONS ---
+
   const handlePickImage = async (taskId: string) => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert("Permission Required", "Toka needs camera access to verify chores!");
+    if (!permissionResult.granted) {
+      Alert.alert("Permission Required", "Toka needs camera access!");
       return;
     }
 
@@ -49,7 +59,7 @@ export default function App() {
 
     if (!result.canceled) {
       submitTask(taskId, result.assets[0].uri);
-      Alert.alert("Success", "Photo submitted! Wait for Admin approval.");
+      Alert.alert("Success", "Photo submitted!");
     }
   };
 
@@ -66,10 +76,48 @@ export default function App() {
     }
   };
 
+  // --- 1. AUTH GUARD (Now it's safe to return early) ---
+  if (!currentUser) {
+    return (
+      <View style={styles.authContainer}>
+        <Text style={styles.authTitle}>Toka Login</Text>
+        <Text style={styles.label}>Try: "Mom" or "Raziel" (Pass: 123)</Text>
+
+        <View style={styles.inputCard}>
+          <Text style={styles.label}>Name/Email</Text>
+          <View style={styles.mockInput}>
+            <TouchableOpacity onPress={() => setEmail('Mom')}>
+              <Text style={email === 'Mom' ? styles.selected : styles.unselected}>Parent Account</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setEmail('Raziel')}>
+              <Text style={email === 'Raziel' ? styles.selected : styles.unselected}>Child Account</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.gachaButton}
+            onPress={() => {
+              if (!login(email, '123')) Alert.alert('Error', 'Invalid Credentials');
+            }}
+          >
+            <Text style={styles.buttonText}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // --- 2. DASHBOARD ---
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      
+      <View style={styles.headerRow}>
+        <Text style={styles.welcomeText}>Hi, {currentUser.name}!</Text>
+        <TouchableOpacity onPress={logout} style={styles.logoutButton}>
+          <Text style={styles.logoutText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Toka: Family Economy</Text>
         
@@ -89,7 +137,7 @@ export default function App() {
           </View>
         </View>
 
-        {/* --- USER STATS & PHASE 4 MULTIPLIERS --- */}
+        {/* --- USER STATS --- */}
         <View style={styles.statsRow}>
           <View style={[styles.statCard, {backgroundColor: '#E3F2FD'}]}>
             <Text style={styles.statEmoji}>💰</Text>
@@ -103,18 +151,7 @@ export default function App() {
           </View>
         </View>
 
-        <View style={styles.multiplierBar}>
-          <Text style={styles.multiplierText}>
-            Current Power: <Text style={styles.boldText}>
-              {user.streak >= 30 ? '2.0x' : user.streak >= 14 ? '1.5x' : user.streak >= 7 ? '1.2x' : '1.0x'}
-            </Text>
-          </Text>
-          <TouchableOpacity onPress={() => resetStreak()}>
-            <Text style={styles.resetText}>Simulate Missed Day</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* --- PHASE 6: THE TOKA VAULT --- */}
+        {/* --- VAULT SECTION --- */}
         <View style={[styles.section, {backgroundColor: '#6C5CE7'}]}>
           <View style={styles.row}>
             <Text style={[styles.subTitle, {color: '#FFF'}]}>🏦 The Toka Vault</Text>
@@ -145,7 +182,7 @@ export default function App() {
           </View>
         </View>
 
-        {/* --- PHASE 5: MONTHLY AUCTION --- */}
+        {/* --- AUCTION SECTION --- */}
         <View style={[styles.section, {backgroundColor: '#2D3436'}]}>
           <View style={styles.row}>
             <Text style={[styles.subTitle, {color: '#FFF'}]}>🔨 Live Auction</Text>
@@ -170,7 +207,7 @@ export default function App() {
           </View>
         </View>
 
-        {/* --- PHASE 3: THE MARKET --- */}
+        {/* --- MARKET SECTION --- */}
         <View style={styles.section}>
           <View style={styles.row}>
             <Text style={styles.subTitle}>🛒 Toka Market</Text>
@@ -201,7 +238,7 @@ export default function App() {
           </TouchableOpacity>
         </View>
 
-        {/* --- PHASE 2: CHORE LIST --- */}
+        {/* --- CHORE LIST --- */}
         <View style={styles.section}>
           <Text style={styles.subTitle}>🧹 Active Chores</Text>
           {tasks.map(task => (
@@ -253,7 +290,19 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   subTitle: { fontSize: 18, fontWeight: 'bold', color: '#2D3436' },
   label: { fontSize: 12, color: '#636E72', marginBottom: 5 },
-  
+
+  // Auth
+  authContainer: { flex: 1, backgroundColor: '#6C5CE7', justifyContent: 'center', padding: 20 },
+  authTitle: { fontSize: 32, fontWeight: '900', color: 'white', textAlign: 'center', marginBottom: 30 },
+  inputCard: { backgroundColor: 'white', padding: 20, borderRadius: 20, elevation: 5 },
+  mockInput: { marginVertical: 20, gap: 10 },
+  selected: { color: '#6C5CE7', fontWeight: 'bold', fontSize: 18 },
+  unselected: { color: '#B2BEC3', fontSize: 16 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: 50 },
+  welcomeText: { fontSize: 20, fontWeight: 'bold' },
+  logoutButton: { backgroundColor: '#FF7675', padding: 8, borderRadius: 8 },
+  logoutText: { color: 'white', fontWeight: 'bold', fontSize: 12 },
+
   // Stats
   statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   statCard: { flex: 0.48, padding: 15, borderRadius: 15, alignItems: 'center' },
