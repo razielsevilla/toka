@@ -91,6 +91,24 @@ export default function App() {
           </View>
         </View>
 
+        {/* --- PHASE 4: STREAK POWER --- */}
+        <View style={styles.section}>
+          <Text style={styles.subTitle}>⚡ Streak Power</Text>
+          <View style={styles.multiplierContainer}>
+            <Text style={styles.multiplierText}>
+              Current Multiplier: <Text style={styles.boldText}>
+                {user.streak >= 30 ? '2.0x' : user.streak >= 14 ? '1.5x' : user.streak >= 7 ? '1.2x' : '1.0x'}
+              </Text>
+            </Text>
+            <TouchableOpacity 
+              style={styles.resetButton} 
+              onPress={() => useTokaStore.getState().resetStreak()}
+            >
+              <Text style={styles.resetText}>Simulate Missed Day (Reset)</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* --- THE MARKET (Phase 3) --- */}
         <View style={styles.section}>
           <View style={styles.row}>
@@ -205,6 +223,20 @@ const styles = StyleSheet.create({
   itemText: { fontSize: 16, fontWeight: '600', color: '#2D3436' },
   itemType: { fontSize: 12, color: '#B2BEC3' },
   buyButton: { backgroundColor: '#FDCB6E', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 },
+
+  // Streak / Multiplier
+  multiplierContainer: {
+    backgroundColor: '#F1F2F6',
+    padding: 12,
+    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  multiplierText: { fontSize: 14, color: '#2D3436' },
+  boldText: { fontWeight: '800', color: '#6C5CE7' },
+  resetButton: { backgroundColor: '#FF7675', padding: 6, borderRadius: 5 },
+  resetText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
 
   // Gacha
   gachaButton: { backgroundColor: '#D63031', padding: 18, borderRadius: 12, alignItems: 'center', marginTop: 15, shadowColor: '#D63031', shadowOpacity: 0.3, shadowRadius: 10 },

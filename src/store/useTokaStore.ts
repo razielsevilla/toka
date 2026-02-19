@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import { create } from 'zustand';
 
 // --- TYPES & INTERFACES ---
@@ -41,11 +42,12 @@ interface TokaState {
   setRole: (role: UserRole) => void;
   generateInviteCode: () => string;
   joinHousehold: (code: string) => void;
-  addTokens: (amount: number, reason: string) => void;
+  addTokens: (amount: number, reason: string) => number;
   submitTask: (taskId: string, proofUrl: string) => void;
   approveTask: (taskId: string) => void;
   purchaseItem: (itemId: string) => boolean;
   openMysteryBox: () => string;
+  resetStreak: () => void;
 }
 
 // --- THE STORE ENGINE ---
@@ -88,17 +90,29 @@ export const useTokaStore = create<TokaState>((set, get) => ({
 
   addTokens: (amount, reason) => {
     const { user } = get();
-    // Gamification Logic: 1.2x Multiplier if streak >= 7
-    const multiplier = user.streak >= 7 ? 1.2 : 1.0;
+
+    let multiplier = 1.0;
+    if (user.streak >= 7) multiplier = 1.2;
+    if (user.streak >= 14) multiplier = 1.5;
+    if (user.streak >= 30) multiplier = 2.0;
+
     const finalAmount = Math.floor(amount * multiplier);
 
     set((state) => ({
       user: { ...state.user, tokens: state.user.tokens + finalAmount },
       transactions: [
-        { id: Date.now().toString(), amount: finalAmount, type: 'earn', reason, timestamp: Date.now() },
+        {
+          id: Date.now().toString(),
+          amount: finalAmount,
+          type: 'earn',
+          reason: `${reason} (${multiplier}x Streak Bonus)`,
+          timestamp: Date.now(),
+        },
         ...state.transactions,
       ],
     }));
+
+    return finalAmount;
   },
 
   submitTask: (taskId, proofUrl) => {
@@ -198,5 +212,13 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     }
 
     return prize;
+  },
+
+  resetStreak: () => {
+    set((state) => ({ user: { ...state.user, streak: 0 } }));
+    Alert.alert(
+      'Streak Reset',
+      'Oh no! You missed a day. The multiplier is back to 1.0x.'
+    );
   },
 }));
