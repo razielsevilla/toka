@@ -11,6 +11,7 @@ export default function App() {
     transactions, 
     marketItems,
     auction,
+    vaultBalance,
     approveTask, 
     setRole, 
     joinHousehold, 
@@ -111,6 +112,37 @@ export default function App() {
           <TouchableOpacity onPress={() => resetStreak()}>
             <Text style={styles.resetText}>Simulate Missed Day</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* --- PHASE 6: THE TOKA VAULT --- */}
+        <View style={[styles.section, {backgroundColor: '#6C5CE7'}]}>
+          <View style={styles.row}>
+            <Text style={[styles.subTitle, {color: '#FFF'}]}>🏦 The Toka Vault</Text>
+            <TouchableOpacity onPress={() => useTokaStore.getState().applyInterest()}>
+              <Text style={{color: '#A29BFE', fontSize: 10, fontWeight: 'bold'}}>SIMULATE INTEREST</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.vaultDisplay}>
+            <Text style={styles.vaultLabel}>Stored Balance</Text>
+            <Text style={styles.vaultAmount}>💎 {vaultBalance || 0}</Text>
+            <Text style={styles.vaultSub}>Earning 5% Compound Interest</Text>
+          </View>
+
+          <View style={styles.bidActionRow}>
+            <TouchableOpacity 
+              style={[styles.bidButton, {backgroundColor: '#A29BFE'}]} 
+              onPress={() => useTokaStore.getState().depositToVault(50)}
+            >
+              <Text style={styles.buttonText}>Deposit 50</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.bidButton, {backgroundColor: '#4834D4'}]} 
+              onPress={() => useTokaStore.getState().withdrawFromVault(50)}
+            >
+              <Text style={styles.buttonText}>Withdraw 50</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* --- PHASE 5: MONTHLY AUCTION --- */}
@@ -269,5 +301,17 @@ const styles = StyleSheet.create({
   // Shared
   smallButton: { backgroundColor: '#0984E3', padding: 8, borderRadius: 6 },
   buttonText: { color: '#FFF', fontWeight: 'bold', fontSize: 12 },
-  ledgerText: { fontSize: 12, color: '#636E72', marginVertical: 2 }
+  ledgerText: { fontSize: 12, color: '#636E72', marginVertical: 2 },
+
+  // Vault
+  vaultDisplay: { 
+    alignItems: 'center', 
+    marginVertical: 15, 
+    padding: 15, 
+    backgroundColor: 'rgba(255,255,255,0.1)', 
+    borderRadius: 12 
+  },
+  vaultLabel: { color: '#DCDDE1', fontSize: 12, fontWeight: '600' },
+  vaultAmount: { color: '#FFF', fontSize: 32, fontWeight: 'bold' },
+  vaultSub: { color: '#A29BFE', fontSize: 10, marginTop: 5, fontWeight: 'bold' }
 });

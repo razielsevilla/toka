@@ -44,6 +44,8 @@ interface TokaState {
     timeLeft: number; // in seconds
     isActive: boolean;
   };
+  vaultBalance: number;
+  interestRate: number;
 
   // Actions
   setRole: (role: UserRole) => void;
@@ -57,6 +59,9 @@ interface TokaState {
   resetStreak: () => void;
   placeBid: (amount: number) => void;
   tickAuction: () => void;
+  depositToVault: (amount: number) => void;
+  withdrawFromVault: (amount: number) => void;
+  applyInterest: () => void;
 }
 
 // --- THE STORE ENGINE ---
@@ -89,6 +94,8 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     timeLeft: 300,
     isActive: true,
   },
+  vaultBalance: 0,
+  interestRate: 0.05,
 
   // --- ACTIONS ---
 
@@ -285,5 +292,69 @@ export const useTokaStore = create<TokaState>((set, get) => ({
         `${auction.highestBidder ?? 'No one'} won the ${auction.itemName}!`
       );
     }
+  },
+
+  depositToVault: (amount) => {
+    const { user } = get();
+    if (amount <= 0) return;
+
+    if (user.tokens >= amount) {
+      set((state) => ({
+        user: { ...state.user, tokens: state.user.tokens - amount },
+        vaultBalance: state.vaultBalance + amount,
+        transactions: [
+          {
+            id: Date.now().toString(),
+            amount,
+            type: 'spend',
+            reason: 'Vault Deposit',
+            timestamp: Date.now(),
+          },
+          ...state.transactions,
+        ],
+      }));
+    }
+  },
+
+  withdrawFromVault: (amount) => {
+    const { vaultBalance } = get();
+    if (amount <= 0 || vaultBalance < amount) return;
+
+    set((state) => ({
+      user: { ...state.user, tokens: state.user.tokens + amount },
+      vaultBalance: state.vaultBalance - amount,
+      transactions: [
+        {
+          id: Date.now().toString(),
+          amount,
+          type: 'earn',
+          reason: 'Vault Withdrawal',
+          timestamp: Date.now(),
+        },
+        ...state.transactions,
+      ],
+    }));
+  },
+
+  applyInterest: () => {
+    const { vaultBalance, interestRate } = get();
+    if (vaultBalance <= 0) return;
+
+    const interestEarned = Math.floor(vaultBalance * interestRate);
+    if (interestEarned <= 0) return;
+
+    set((state) => ({
+      vaultBalance: state.vaultBalance + interestEarned,
+      transactions: [
+        {
+          id: Date.now().toString(),
+          amount: interestEarned,
+          type: 'earn',
+          reason: 'Vault Interest Earned',
+          timestamp: Date.now(),
+        },
+        ...state.transactions,
+      ],
+    }));
   },
 }));
