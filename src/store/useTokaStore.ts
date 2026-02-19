@@ -60,6 +60,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   tasks: [
     { id: '1', title: 'Wash the Dishes', reward: 20, status: 'open', assignedTo: [] },
     { id: '2', title: 'Clean the Backyard', reward: 50, status: 'open', assignedTo: [] },
+    { id: '3',  title: 'Clean the Garage (Team-Up)', reward: 100, status: 'open', assignedTo: ['user_01', 'sibling_01'] },
   ],
   transactions: [],
 
@@ -103,20 +104,31 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   approveTask: (taskId) => {
     const { tasks, user, addTokens } = get();
     const task = tasks.find((t) => t.id === taskId);
-
+  
     if (task && user.role === 'admin') {
-      // If "Team-Up", logic would split tokens here. For now, full reward.
-      addTokens(task.reward, `Completed: ${task.title}`);
+      const participantCount = task.assignedTo.length;
       
+      if (participantCount > 1) {
+        // TEAM-UP LOGIC: Split the pot
+        const splitReward = Math.floor(task.reward / participantCount);
+        task.assignedTo.forEach(userId => {
+          // In a real app, you'd call a DB update for each user.
+          // For the prototype, we'll just log the split.
+          console.log(`Splitting ${splitReward} to user: ${userId}`);
+        });
+        // Add the split reward to the current user (if they were part of it)
+        addTokens(splitReward, `Team-Up Completion: ${task.title}`);
+      } else {
+        // Solo Reward
+        addTokens(task.reward, `Completed: ${task.title}`);
+      }
+  
       set((state) => ({
         tasks: state.tasks.map((t) =>
           t.id === taskId ? { ...t, status: 'completed' } : t
         ),
-        // Increment streak on approval
         user: { ...state.user, streak: state.user.streak + 1 }
       }));
-    } else {
-      console.error("Only Admins can approve tasks.");
     }
   },
 }));
