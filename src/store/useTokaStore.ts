@@ -37,6 +37,13 @@ interface TokaState {
   tasks: Task[];
   transactions: Transaction[];
   marketItems: { id: string; name: string; cost: number; type: string }[];
+  auction: {
+    itemName: string;
+    highestBid: number;
+    highestBidder: string | null;
+    timeLeft: number; // in seconds
+    isActive: boolean;
+  };
 
   // Actions
   setRole: (role: UserRole) => void;
@@ -48,6 +55,8 @@ interface TokaState {
   purchaseItem: (itemId: string) => boolean;
   openMysteryBox: () => string;
   resetStreak: () => void;
+  placeBid: (amount: number) => void;
+  tickAuction: () => void;
 }
 
 // --- THE STORE ENGINE ---
@@ -73,6 +82,13 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     { id: 'm2', name: 'Pizza Night', cost: 200, type: 'real-world' },
     { id: 'm3', name: 'Cool Avatar Hat', cost: 30, type: 'in-app' },
   ],
+  auction: {
+    itemName: 'Family Trip to the Theme Park',
+    highestBid: 100,
+    highestBidder: null,
+    timeLeft: 300,
+    isActive: true,
+  },
 
   // --- ACTIONS ---
 
@@ -220,5 +236,54 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       'Streak Reset',
       'Oh no! You missed a day. The multiplier is back to 1.0x.'
     );
+  },
+
+  placeBid: (amount) => {
+    const { auction, user } = get();
+
+    if (!auction.isActive) {
+      Alert.alert('Auction Inactive', 'The auction is not currently active.');
+      return;
+    }
+
+    if (amount <= auction.highestBid) {
+      Alert.alert('Low Bid', 'You must bid higher than the current price!');
+      return;
+    }
+
+    if (user.tokens < amount) {
+      Alert.alert(
+        'Insufficient Funds',
+        "You don't have enough tokens for this bid!"
+      );
+      return;
+    }
+
+    const newTime = auction.timeLeft < 60 ? 60 : auction.timeLeft;
+
+    set((state) => ({
+      auction: {
+        ...state.auction,
+        highestBid: amount,
+        highestBidder: state.user.name,
+        timeLeft: newTime,
+      },
+    }));
+  },
+
+  tickAuction: () => {
+    const { auction } = get();
+    if (!auction.isActive || auction.timeLeft <= 0) return;
+
+    set((state) => ({
+      auction: { ...state.auction, timeLeft: state.auction.timeLeft - 1 },
+    }));
+
+    if (auction.timeLeft === 1) {
+      Alert.alert(
+        'AUCTION ENDED!',
+        `${auction.highestBidder ?? 'No one'} won the ${auction.itemName}!`
+      );
+    }
   },
 }));

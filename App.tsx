@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
@@ -10,14 +10,26 @@ export default function App() {
     tasks, 
     transactions, 
     marketItems,
+    auction,
     approveTask, 
     setRole, 
     joinHousehold, 
     generateInviteCode,
     submitTask,
     purchaseItem,
-    openMysteryBox
+    openMysteryBox,
+    tickAuction,
+    placeBid,
+    resetStreak
   } = useTokaStore();
+
+  // --- PHASE 5: AUCTION TIMER TICK ---
+  useEffect(() => {
+    const interval = setInterval(() => {
+      tickAuction();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [tickAuction]);
 
   // --- PHASE 2: SNAP-TO-VERIFY ---
   const handlePickImage = async (taskId: string) => {
@@ -45,12 +57,11 @@ export default function App() {
     joinHousehold(code);
   };
 
-  // Helper for Status Colors
   const getStatusColor = (status: string) => {
     switch(status) {
-      case 'completed': return '#4CAF50';
-      case 'pending': return '#FF9800';
-      default: return '#2196F3';
+      case 'completed': return '#00B894';
+      case 'pending': return '#F39C12';
+      default: return '#0984E3';
     }
   };
 
@@ -59,25 +70,25 @@ export default function App() {
       <StatusBar style="auto" />
       
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Toka Economy Prototype</Text>
+        <Text style={styles.title}>Toka: Family Economy</Text>
         
         {/* --- HOUSEHOLD & ROLE --- */}
         <View style={styles.section}>
-          <Text style={styles.label}>Household ID: {user.householdId || "Not Joined"}</Text>
+          <Text style={styles.label}>Household: {user.householdId || "Not Joined"}</Text>
           <View style={styles.row}>
             <TouchableOpacity style={styles.smallButton} onPress={handleJoinHouse}>
-              <Text style={styles.buttonText}>Invite & Join</Text>
+              <Text style={styles.buttonText}>Invite Code</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              style={[styles.smallButton, {backgroundColor: user.role === 'admin' ? '#FF5722' : '#9E9E9E'}]} 
+              style={[styles.smallButton, {backgroundColor: user.role === 'admin' ? '#D63031' : '#636E72'}]} 
               onPress={() => setRole(user.role === 'admin' ? 'member' : 'admin')}
             >
-              <Text style={styles.buttonText}>Role: {user.role.toUpperCase()}</Text>
+              <Text style={styles.buttonText}>Mode: {user.role.toUpperCase()}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* --- USER STATS --- */}
+        {/* --- USER STATS & PHASE 4 MULTIPLIERS --- */}
         <View style={styles.statsRow}>
           <View style={[styles.statCard, {backgroundColor: '#E3F2FD'}]}>
             <Text style={styles.statEmoji}>💰</Text>
@@ -91,35 +102,50 @@ export default function App() {
           </View>
         </View>
 
-        {/* --- PHASE 4: STREAK POWER --- */}
-        <View style={styles.section}>
-          <Text style={styles.subTitle}>⚡ Streak Power</Text>
-          <View style={styles.multiplierContainer}>
-            <Text style={styles.multiplierText}>
-              Current Multiplier: <Text style={styles.boldText}>
-                {user.streak >= 30 ? '2.0x' : user.streak >= 14 ? '1.5x' : user.streak >= 7 ? '1.2x' : '1.0x'}
-              </Text>
+        <View style={styles.multiplierBar}>
+          <Text style={styles.multiplierText}>
+            Current Power: <Text style={styles.boldText}>
+              {user.streak >= 30 ? '2.0x' : user.streak >= 14 ? '1.5x' : user.streak >= 7 ? '1.2x' : '1.0x'}
             </Text>
-            <TouchableOpacity 
-              style={styles.resetButton} 
-              onPress={() => useTokaStore.getState().resetStreak()}
-            >
-              <Text style={styles.resetText}>Simulate Missed Day (Reset)</Text>
+          </Text>
+          <TouchableOpacity onPress={() => resetStreak()}>
+            <Text style={styles.resetText}>Simulate Missed Day</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* --- PHASE 5: MONTHLY AUCTION --- */}
+        <View style={[styles.section, {backgroundColor: '#2D3436'}]}>
+          <View style={styles.row}>
+            <Text style={[styles.subTitle, {color: '#FFF'}]}>🔨 Live Auction</Text>
+            <View style={styles.timerBadge}>
+              <Text style={styles.timerText}>
+                {Math.floor(auction.timeLeft / 60)}:{(auction.timeLeft % 60).toString().padStart(2, '0')}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.auctionItem}>{auction.itemName}</Text>
+          <View style={styles.bidInfo}>
+            <Text style={styles.bidLabel}>High Bid: <Text style={styles.bidVal}>💰 {auction.highestBid}</Text></Text>
+            <Text style={styles.bidLabel}>Leader: <Text style={styles.bidVal}>{auction.highestBidder || 'None'}</Text></Text>
+          </View>
+          <View style={styles.bidActionRow}>
+            <TouchableOpacity style={styles.bidButton} onPress={() => placeBid(auction.highestBid + 10)}>
+              <Text style={styles.buttonText}>+10 Tokens</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.bidButton, {backgroundColor: '#E17055'}]} onPress={() => placeBid(auction.highestBid + 50)}>
+              <Text style={styles.buttonText}>+50 Tokens</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* --- THE MARKET (Phase 3) --- */}
+        {/* --- PHASE 3: THE MARKET --- */}
         <View style={styles.section}>
           <View style={styles.row}>
             <Text style={styles.subTitle}>🛒 Toka Market</Text>
-            {user.streak >= 7 && <Text style={styles.discountTag}>10% STREAK DISCOUNT ACTIVE!</Text>}
+            {user.streak >= 7 && <Text style={styles.discountTag}>STREAK DISCOUNT ACTIVE!</Text>}
           </View>
-          
           {marketItems.map(item => {
-            const discount = user.streak >= 7 ? 0.9 : 1.0;
-            const price = Math.floor(item.cost * discount);
-            
+            const price = user.streak >= 7 ? Math.floor(item.cost * 0.9) : item.cost;
             return (
               <View key={item.id} style={styles.marketItem}>
                 <View>
@@ -128,58 +154,46 @@ export default function App() {
                 </View>
                 <TouchableOpacity 
                   style={[styles.buyButton, { opacity: user.tokens < price ? 0.5 : 1 }]} 
-                  onPress={() => {
-                    if (purchaseItem(item.id)) Alert.alert("Success!", `Bought ${item.name}`);
-                    else Alert.alert("Oops", "Not enough tokens!");
-                  }}
+                  onPress={() => purchaseItem(item.id)}
                 >
                   <Text style={styles.buttonText}>💰 {price}</Text>
                 </TouchableOpacity>
               </View>
             );
           })}
-
-          <TouchableOpacity 
-            style={styles.gachaButton}
-            onPress={() => {
-              const result = openMysteryBox();
-              Alert.alert("🎁 Mystery Box", result);
-            }}
-          >
+          <TouchableOpacity style={styles.gachaButton} onPress={() => {
+            const res = openMysteryBox();
+            Alert.alert("Mystery Box", res);
+          }}>
             <Text style={styles.gachaText}>🎁 OPEN MYSTERY BOX (40 TOKENS)</Text>
-            <Text style={styles.gachaSubText}>Win big rewards or bonus tokens!</Text>
           </TouchableOpacity>
         </View>
 
-        {/* --- CHORE LIST --- */}
+        {/* --- PHASE 2: CHORE LIST --- */}
         <View style={styles.section}>
-          <Text style={styles.subTitle}>🧹 Available Chores</Text>
+          <Text style={styles.subTitle}>🧹 Active Chores</Text>
           {tasks.map(task => (
             <View key={task.id} style={styles.taskCard}>
               <View style={styles.taskInfo}>
                 <Text style={styles.taskTitle}>{task.title}</Text>
                 <Text style={styles.taskReward}>💎 {task.reward} Tokens</Text>
-                {task.assignedTo.length > 1 && <Text style={styles.teamTag}>👥 Team-Up Splitting</Text>}
+                {task.assignedTo.length > 1 && <Text style={styles.teamTag}>👥 Team-Up (Split Reward)</Text>}
               </View>
-
               <View style={styles.actionRow}>
                 <Text style={[styles.statusText, {color: getStatusColor(task.status)}]}>
                   {task.status.toUpperCase()}
                 </Text>
-
                 {task.status === 'open' && (
                   <TouchableOpacity style={styles.verifyButton} onPress={() => handlePickImage(task.id)}>
-                    <Text style={styles.buttonText}>Submit Proof</Text>
+                    <Text style={styles.buttonText}>Verify</Text>
                   </TouchableOpacity>
                 )}
-
                 {task.status === 'pending' && user.role === 'admin' && (
                   <TouchableOpacity style={styles.approveButton} onPress={() => approveTask(task.id)}>
                     <Text style={styles.buttonText}>Admin Approve</Text>
                   </TouchableOpacity>
                 )}
               </View>
-              
               {task.proofUrl && <Image source={{ uri: task.proofUrl }} style={styles.previewImage} />}
             </View>
           ))}
@@ -187,14 +201,11 @@ export default function App() {
 
         {/* --- TRANSACTION HISTORY --- */}
         <View style={styles.section}>
-          <Text style={styles.subTitle}>📜 Ledger</Text>
-          {transactions.map(tx => (
-            <View key={tx.id} style={styles.ledgerRow}>
-              <Text style={styles.ledgerEmoji}>{tx.type === 'earn' ? '✅' : '🛒'}</Text>
-              <Text style={styles.ledgerText}>
-                {tx.type === 'earn' ? '+' : '-'}{tx.amount} | {tx.reason}
-              </Text>
-            </View>
+          <Text style={styles.subTitle}>📜 History</Text>
+          {transactions.slice(0, 5).map(tx => (
+            <Text key={tx.id} style={styles.ledgerText}>
+              {tx.type === 'earn' ? '✅' : '🛒'} {tx.amount} | {tx.reason}
+            </Text>
           ))}
         </View>
       </ScrollView>
@@ -203,63 +214,60 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FD', paddingTop: 60 },
+  container: { flex: 1, backgroundColor: '#F0F2F5', paddingTop: 60 },
   scrollContent: { padding: 15 },
-  title: { fontSize: 28, fontWeight: '800', marginBottom: 20, textAlign: 'center', color: '#2D3436' },
-  section: { backgroundColor: '#FFF', padding: 18, borderRadius: 15, marginBottom: 15, elevation: 3 },
+  title: { fontSize: 28, fontWeight: '800', textAlign: 'center', marginBottom: 20, color: '#2D3436' },
+  section: { backgroundColor: '#FFF', padding: 15, borderRadius: 15, marginBottom: 15, elevation: 3 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  subTitle: { fontSize: 18, fontWeight: 'bold', color: '#2D3436' },
+  label: { fontSize: 12, color: '#636E72', marginBottom: 5 },
   
   // Stats
-  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-  statCard: { flex: 0.48, padding: 15, borderRadius: 15, alignItems: 'center', elevation: 2 },
-  statEmoji: { fontSize: 24, marginBottom: 5 },
-  statVal: { fontSize: 22, fontWeight: 'bold', color: '#2D3436' },
-  statLabel: { fontSize: 12, color: '#636E72', fontWeight: '600' },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  statCard: { flex: 0.48, padding: 15, borderRadius: 15, alignItems: 'center' },
+  statVal: { fontSize: 22, fontWeight: 'bold' },
+  statLabel: { fontSize: 10, fontWeight: '600', color: '#636E72' },
+  statEmoji: { fontSize: 20 },
+  
+  // Multiplier
+  multiplierBar: { backgroundColor: '#DFE6E9', padding: 10, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
+  multiplierText: { fontSize: 12, fontWeight: '600' },
+  boldText: { color: '#6C5CE7', fontWeight: '800' },
+  resetText: { fontSize: 10, color: '#D63031', textDecorationLine: 'underline' },
+
+  // Auction
+  timerBadge: { backgroundColor: '#D63031', padding: 4, borderRadius: 4 },
+  timerText: { color: '#FFF', fontWeight: 'bold', fontSize: 12, fontFamily: 'monospace' },
+  auctionItem: { color: '#FDCB6E', fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
+  bidInfo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
+  bidLabel: { color: '#B2BEC3', fontSize: 12 },
+  bidVal: { color: '#FFF', fontWeight: 'bold' },
+  bidActionRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  bidButton: { backgroundColor: '#0984E3', padding: 10, borderRadius: 8, flex: 0.48, alignItems: 'center' },
 
   // Market
-  subTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: '#2D3436' },
-  discountTag: { fontSize: 10, backgroundColor: '#4CAF50', color: 'white', padding: 4, borderRadius: 4, fontWeight: 'bold' },
-  marketItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F1F2F6' },
-  itemText: { fontSize: 16, fontWeight: '600', color: '#2D3436' },
-  itemType: { fontSize: 12, color: '#B2BEC3' },
-  buyButton: { backgroundColor: '#FDCB6E', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 },
+  marketItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F2F6' },
+  itemText: { fontSize: 15, fontWeight: '600' },
+  itemType: { fontSize: 10, color: '#B2BEC3' },
+  buyButton: { backgroundColor: '#FDCB6E', padding: 8, borderRadius: 6 },
+  discountTag: { backgroundColor: '#00B894', color: '#FFF', fontSize: 8, padding: 3, borderRadius: 4, fontWeight: 'bold' },
+  gachaButton: { backgroundColor: '#D63031', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 10 },
+  gachaText: { color: '#FFF', fontWeight: 'bold', fontSize: 12 },
 
-  // Streak / Multiplier
-  multiplierContainer: {
-    backgroundColor: '#F1F2F6',
-    padding: 12,
-    borderRadius: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  multiplierText: { fontSize: 14, color: '#2D3436' },
-  boldText: { fontWeight: '800', color: '#6C5CE7' },
-  resetButton: { backgroundColor: '#FF7675', padding: 6, borderRadius: 5 },
-  resetText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
-
-  // Gacha
-  gachaButton: { backgroundColor: '#D63031', padding: 18, borderRadius: 12, alignItems: 'center', marginTop: 15, shadowColor: '#D63031', shadowOpacity: 0.3, shadowRadius: 10 },
-  gachaText: { color: '#FFF', fontWeight: '900', fontSize: 14 },
-  gachaSubText: { color: '#FF7675', fontSize: 10, marginTop: 4, fontWeight: 'bold' },
-
-  // Chores
-  taskCard: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F1F2F6' },
-  taskInfo: { marginBottom: 10 },
-  taskTitle: { fontSize: 17, fontWeight: '700', color: '#2D3436' },
+  // Task
+  taskCard: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F1F2F6' },
+  taskInfo: { marginBottom: 8 },
+  taskTitle: { fontSize: 16, fontWeight: '700' },
   taskReward: { fontSize: 14, color: '#636E72', marginTop: 2 },
-  teamTag: { fontSize: 11, color: '#6C5CE7', fontWeight: 'bold', marginTop: 4 },
-  actionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  statusText: { fontSize: 11, fontWeight: '900' },
-  verifyButton: { backgroundColor: '#6C5CE7', padding: 10, borderRadius: 8 },
-  approveButton: { backgroundColor: '#00B894', padding: 10, borderRadius: 8 },
-  previewImage: { width: '100%', height: 120, borderRadius: 10, marginTop: 12 },
+  teamTag: { fontSize: 10, color: '#6C5CE7', fontWeight: 'bold' },
+  actionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
+  verifyButton: { backgroundColor: '#6C5CE7', padding: 8, borderRadius: 6 },
+  approveButton: { backgroundColor: '#00B894', padding: 8, borderRadius: 6 },
+  statusText: { fontSize: 10, fontWeight: '800' },
+  previewImage: { width: '100%', height: 100, borderRadius: 10, marginTop: 10 },
 
   // Shared
-  smallButton: { backgroundColor: '#0984E3', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8 },
-  buttonText: { color: '#FFF', fontWeight: 'bold', fontSize: 13 },
-  label: { fontSize: 12, color: '#B2BEC3', marginBottom: 10 },
-  ledgerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
-  ledgerEmoji: { fontSize: 16, marginRight: 10 },
-  ledgerText: { fontSize: 13, color: '#636E72', fontWeight: '500' }
+  smallButton: { backgroundColor: '#0984E3', padding: 8, borderRadius: 6 },
+  buttonText: { color: '#FFF', fontWeight: 'bold', fontSize: 12 },
+  ledgerText: { fontSize: 12, color: '#636E72', marginVertical: 2 }
 });
