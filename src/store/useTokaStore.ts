@@ -35,6 +35,7 @@ interface TokaState {
   user: User;
   tasks: Task[];
   transactions: Transaction[];
+  marketItems: { id: string; name: string; cost: number; type: string }[];
 
   // Actions
   setRole: (role: UserRole) => void;
@@ -43,6 +44,8 @@ interface TokaState {
   addTokens: (amount: number, reason: string) => void;
   submitTask: (taskId: string, proofUrl: string) => void;
   approveTask: (taskId: string) => void;
+  purchaseItem: (itemId: string) => boolean;
+  openMysteryBox: () => string;
 }
 
 // --- THE STORE ENGINE ---
@@ -63,6 +66,11 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     { id: '3',  title: 'Clean the Garage (Team-Up)', reward: 100, status: 'open', assignedTo: ['user_01', 'sibling_01'] },
   ],
   transactions: [],
+  marketItems: [
+    { id: 'm1', name: '30 Mins Screen Time', cost: 50, type: 'voucher' },
+    { id: 'm2', name: 'Pizza Night', cost: 200, type: 'real-world' },
+    { id: 'm3', name: 'Cool Avatar Hat', cost: 30, type: 'in-app' },
+  ],
 
   // --- ACTIONS ---
 
@@ -130,5 +138,65 @@ export const useTokaStore = create<TokaState>((set, get) => ({
         user: { ...state.user, streak: state.user.streak + 1 }
       }));
     }
+  },
+
+  purchaseItem: (itemId) => {
+    const { marketItems, user } = get();
+    const item = marketItems.find((i) => i.id === itemId);
+    if (!item) return false;
+
+    const discount = user.streak >= 7 ? 0.9 : 1.0;
+    const finalCost = Math.floor(item.cost * discount);
+
+    if (user.tokens >= finalCost) {
+      set((state) => ({
+        user: { ...state.user, tokens: state.user.tokens - finalCost },
+        transactions: [
+          {
+            id: Date.now().toString(),
+            amount: finalCost,
+            type: 'spend',
+            reason: `Bought: ${item.name}`,
+            timestamp: Date.now(),
+          },
+          ...state.transactions,
+        ],
+      }));
+      return true;
+    }
+    return false;
+  },
+
+  openMysteryBox: () => {
+    const { user, addTokens } = get();
+    const cost = 40;
+
+    if (user.tokens < cost) return 'Insufficient Tokens';
+
+    const roll = Math.random() * 100;
+    let prize = '';
+    if (roll <= 5) prize = '🌟 LEGENDARY: $10 Allowance!';
+    else if (roll <= 25) prize = '💎 RARE: No Chores for 1 Day!';
+    else prize = '📦 COMMON: 10 Bonus Tokens';
+
+    set((state) => ({
+      user: { ...state.user, tokens: state.user.tokens - cost },
+      transactions: [
+        {
+          id: Date.now().toString(),
+          amount: cost,
+          type: 'spend',
+          reason: `Mystery Box: ${prize}`,
+          timestamp: Date.now(),
+        },
+        ...state.transactions,
+      ],
+    }));
+
+    if (prize.includes('Bonus Tokens')) {
+      addTokens(10, 'Mystery Box Win');
+    }
+
+    return prize;
   },
 }));
