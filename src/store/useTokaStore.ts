@@ -184,14 +184,17 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   },
 
   approveTask: (taskId) => {
-    const { tasks, user, addTokens } = get();
+    const { tasks, user, mockUsers } = get();
     const task = tasks.find((t) => t.id === taskId);
   
-    // --- NEW WITHDRAWAL APPROVAL LOGIC ---
+    // --- WITHDRAWAL APPROVAL LOGIC ---
     if (task && task.isWithdrawal && user.role === 'admin') {
-      addTokens(task.reward, `Vault Withdrawal Approved`);
+      const childId = task.assignedTo[0];
       set((state) => ({
-        tasks: state.tasks.filter(t => t.id !== taskId) // Remove request after approval
+        tasks: state.tasks.filter(t => t.id !== taskId), // Remove request
+        mockUsers: state.mockUsers.map(u => 
+          u.id === childId ? { ...u, tokens: u.tokens + task.reward } : u
+        )
       }));
       return;
     }
@@ -199,23 +202,25 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     // --- STANDARD CHORE APPROVAL LOGIC ---
     if (task && user.role === 'admin') {
       const participantCount = task.assignedTo.length;
+      let updatedMockUsers = [...mockUsers];
       
-      if (participantCount > 1) {
-        // TEAM-UP LOGIC: Split the pot
+      if (participantCount > 0) {
         const splitReward = Math.floor(task.reward / participantCount);
-        task.assignedTo.forEach(userId => {
-          console.log(`Splitting ${splitReward} to user: ${userId}`);
+        
+        // Target the assigned children and update their balances directly
+        updatedMockUsers = updatedMockUsers.map(u => {
+          if (task.assignedTo.includes(u.id)) {
+            return { ...u, tokens: u.tokens + splitReward, streak: u.streak + 1 };
+          }
+          return u;
         });
-        addTokens(splitReward, `Team-Up Completion: ${task.title}`);
-      } else {
-        addTokens(task.reward, `Completed: ${task.title}`);
       }
   
       set((state) => ({
         tasks: state.tasks.map((t) =>
           t.id === taskId ? { ...t, status: 'completed', rejectionReason: undefined } : t
         ),
-        user: { ...state.user, streak: state.user.streak + 1 }
+        mockUsers: updatedMockUsers // Save the updated child balances
       }));
     }
   },
@@ -521,10 +526,37 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   },
 
   rejectTask: (taskId, reason) => {
+    const { tasks } = get();
+    const task = tasks.find(t => t.id === taskId);
+    
+    if (!task) return;
+
+    // 1. Handle Withdrawal Denials (Refund Vault)
+    if (task.isWithdrawal) {
+      set((state) => ({
+        tasks: state.tasks.filter(t => t.id !== taskId), // Delete the request
+        vaultBalance: state.vaultBalance + task.reward, // Refund tokens to vault
+        notifications: [
+          { id: Date.now().toString(), type: 'rejection', message: 'Withdrawal request declined.', read: false },
+          ...state.notifications
+        ]
+      }));
+      Alert.alert("Declined", "The tokens have been safely returned to the vault.");
+      return;
+    }
+
+    // 2. Handle Chore Rejections
     set((state) => ({
       tasks: state.tasks.map((t) =>
         t.id === taskId 
-          ? { ...t, status: 'open', proofUrl: undefined, rejectionReason: reason } 
+          ? { 
+              ...t, 
+              // FIX: Spontaneous tasks go back to 'accepted' so the child keeps ownership.
+              // Regular tasks go back to 'open'.
+              status: t.type === 'spontaneous' ? 'accepted' : 'open', 
+              proofUrl: undefined, 
+              rejectionReason: reason 
+            } 
           : t
       ),
       notifications: [

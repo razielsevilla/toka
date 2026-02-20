@@ -29,15 +29,22 @@ export default function ChildDashboard() {
   const availablePool = tasks.filter(t => t.type === 'spontaneous' && t.status === 'open' && t.assignedTo.length === 0);
   const leaderboard = [...mockUsers].sort((a, b) => b.tokens - a.tokens);
 
-  // Tab Filtering Logic
-  const filteredTasks = myTasks.filter(t => {
-    if (activeTab === 'daily') return t.frequency === 'daily' || t.type === 'spontaneous';
-    return t.frequency === activeTab;
-  });
+  // Tab Filtering & Sorting Logic (Rejected tasks float to top)
+  const filteredTasks = myTasks
+    .filter(t => {
+      if (activeTab === 'daily') return t.frequency === 'daily' || t.type === 'spontaneous';
+      return t.frequency === activeTab;
+    })
+    .sort((a, b) => {
+      if (a.rejectionReason && !b.rejectionReason) return -1;
+      if (!a.rejectionReason && b.rejectionReason) return 1;
+      return 0;
+    });
 
-  // Notification Counts
+  // Notification Counts & Selectors
   const marketNotifs = notifications.filter(n => n.type === 'market' && !n.read).length;
   const choreNotifs = notifications.filter(n => (n.type === 'task' || n.type === 'rejection') && !n.read).length;
+  const rejectionAlerts = notifications.filter(n => n.type === 'rejection' && !n.read);
 
   // Wishlist Progress
   const wishlistId = currentUser?.wishlist[0] || 'm1'; 
@@ -58,8 +65,24 @@ export default function ChildDashboard() {
       style={styles.container} 
       contentContainerStyle={{ paddingBottom: 40 }}
     >
-      
-      {/* 1. THE TOKA BANK (Combined Wallet & Vault) */}
+      {/* 1. REJECTION ALERTS BANNER */}
+      {rejectionAlerts.length > 0 && (
+        <View style={styles.alertBanner}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.alertTitle}>⚠️ Chores Sent Back</Text>
+            <TouchableOpacity onPress={() => clearNotifications('rejection')}>
+              <Text style={styles.dismissText}>Dismiss</Text>
+            </TouchableOpacity>
+          </View>
+          {rejectionAlerts.map(alert => (
+            <View key={alert.id} style={{ marginTop: 5 }}>
+              <Text style={styles.alertText}>• {alert.message} Check the Chore Board.</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* 2. THE TOKA BANK (Combined Wallet & Vault) */}
       <View style={styles.bankCard}>
         <View style={styles.bankHeader}>
           <Text style={styles.bankTitle}>🏦 Toka Bank</Text>
@@ -116,7 +139,7 @@ export default function ChildDashboard() {
         </View>
       </View>
 
-      {/* 2. CHORE BOARD (Tabbed System) */}
+      {/* 3. CHORE BOARD (Tabbed System) */}
       <View style={styles.section}>
         <View style={styles.row}>
           <Text style={styles.sectionTitle}>Chore Board</Text>
@@ -144,7 +167,9 @@ export default function ChildDashboard() {
           <Text style={styles.emptyText}>No {activeTab} tasks for now. Rest up! ✨</Text>
         )}
 
-        {filteredTasks.map(task => (
+        {filteredTasks.map(task => {
+          const isPending = task.status === 'pending';
+          return (
            <View key={task.id} style={[styles.taskCard, task.rejectionReason ? styles.rejectedBorder : null]}>
              <View style={styles.rowBetween}>
                <View>
@@ -158,11 +183,16 @@ export default function ChildDashboard() {
                  <Text style={styles.rejectionText}>💬 Fix: "{task.rejectionReason}"</Text>
                </View>
              )}
-             <TouchableOpacity style={styles.verifyBtn} onPress={() => handleVerify(task.id)}>
-               <Text style={styles.btnText}>{task.status === 'pending' ? 'Reviewing...' : 'Verify 📸'}</Text>
+             <TouchableOpacity 
+                style={[styles.verifyBtn, isPending && styles.verifyBtnDisabled]} 
+                onPress={() => handleVerify(task.id)}
+                disabled={isPending}
+              >
+               <Text style={styles.btnText}>{isPending ? 'Reviewing...' : 'Verify 📸'}</Text>
              </TouchableOpacity>
            </View>
-        ))}
+          );
+        })}
 
         {activeTab === 'daily' && availablePool.map(task => (
           <View key={task.id} style={styles.poolCard}>
@@ -177,7 +207,7 @@ export default function ChildDashboard() {
         ))}
       </View>
 
-      {/* 3. LEADERBOARD */}
+      {/* 4. LEADERBOARD */}
       <View style={styles.leaderboardCard}>
         <Text style={styles.sectionTitleWhite}>🏆 Household Ranking</Text>
         {leaderboard.slice(0, 3).map((u, index) => (
@@ -188,7 +218,7 @@ export default function ChildDashboard() {
         ))}
       </View>
 
-      {/* 4. MARKETPLACE */}
+      {/* 5. MARKETPLACE */}
       <View style={styles.section}>
         <View style={styles.row}>
           <Text style={styles.sectionTitle}>🛒 Marketplace</Text>
@@ -208,6 +238,7 @@ export default function ChildDashboard() {
               <TouchableOpacity 
                 style={[styles.buyBtn, (currentUser?.tokens || 0) < item.cost && styles.disabledBtn]} 
                 onPress={() => purchaseItem(item.id)}
+                disabled={(currentUser?.tokens || 0) < item.cost}
               >
                 <Text style={styles.buyBtnText}>Buy</Text>
               </TouchableOpacity>
@@ -225,6 +256,7 @@ export default function ChildDashboard() {
         </View>
       </View>
 
+      {/* ACTIVITY LEDGER MODAL */}
       <Modal visible={showHistory} animationType="slide">
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Activity Ledger</Text>
@@ -254,6 +286,12 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   
+  // New Rejection Banner
+  alertBanner: { backgroundColor: '#FFF5F5', marginHorizontal: 15, marginTop: 15, padding: 15, borderRadius: 15, borderLeftWidth: 5, borderLeftColor: '#D63031' },
+  alertTitle: { fontWeight: 'bold', color: '#D63031', fontSize: 14 },
+  dismissText: { color: '#D63031', fontWeight: 'bold', fontSize: 11 },
+  alertText: { fontSize: 13, color: '#D63031' },
+
   // Bank Styles
   bankCard: { backgroundColor: '#6C5CE7', margin: 15, borderRadius: 25, paddingVertical: 20, elevation: 8 },
   bankHeader: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, alignItems: 'center', marginBottom: 20 },
@@ -287,6 +325,7 @@ const styles = StyleSheet.create({
   typeTag: { fontSize: 9, fontWeight: '800', color: '#B2BEC3', marginTop: 2 },
   taskReward: { color: '#0984E3', fontWeight: 'bold', fontSize: 16 },
   verifyBtn: { backgroundColor: '#6C5CE7', padding: 12, borderRadius: 12, marginTop: 12, alignItems: 'center' },
+  verifyBtnDisabled: { backgroundColor: '#B2BEC3' },
   rejectedBorder: { borderLeftWidth: 6, borderLeftColor: '#D63031', backgroundColor: '#FFF5F5' },
   rejectionBox: { backgroundColor: '#FFEAEA', padding: 10, borderRadius: 10, marginTop: 10 },
   rejectionText: { color: '#D63031', fontSize: 11, fontWeight: 'bold' },
@@ -303,7 +342,7 @@ const styles = StyleSheet.create({
   itemName: { fontSize: 11, fontWeight: '700', textAlign: 'center', height: 30, marginVertical: 5 },
   itemCost: { color: '#00B894', fontWeight: 'bold', fontSize: 12 },
   buyBtn: { backgroundColor: '#FDCB6E', paddingVertical: 5, paddingHorizontal: 15, borderRadius: 8 },
-  buyBtnText: { fontWeight: 'bold', fontSize: 11 },
+  buyBtnText: { fontWeight: 'bold', fontSize: 11, color: '#2D3436' },
   disabledBtn: { opacity: 0.3 },
   wishlistLink: { fontSize: 8, color: '#6C5CE7', marginTop: 5, fontWeight: 'bold' },
   wishlistProgressArea: { marginTop: 20 },
