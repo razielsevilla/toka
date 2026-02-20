@@ -36,6 +36,14 @@ interface Transaction {
   timestamp: number;
 }
 
+// Added Notification Interface
+interface Notification {
+  id: string;
+  type: 'task' | 'market' | 'rejection';
+  message: string;
+  read: boolean;
+}
+
 interface TokaState {
   // State
   user: User;
@@ -53,6 +61,7 @@ interface TokaState {
   interestRate: number;
   currentUser: User | null;
   mockUsers: User[];
+  notifications: Notification[]; // <-- Added notifications state
 
   // Actions
   setRole: (role: UserRole) => void;
@@ -80,6 +89,7 @@ interface TokaState {
   rejectTask: (taskId: string, reason: string) => void;
   addMarketItem: (item: { name: string; cost: number; type: string }) => void;
   removeMarketItem: (itemId: string) => void;
+  clearNotifications: (type: 'task' | 'market' | 'rejection') => void; // <-- Added action
 }
 
 // --- THE STORE ENGINE ---
@@ -121,6 +131,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123', wishlist: [] },
     { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123', wishlist: [] },
   ],
+  notifications: [], // <-- Initialize empty array
 
   // --- ACTIONS ---
 
@@ -393,6 +404,14 @@ export const useTokaStore = create<TokaState>((set, get) => ({
 
   // --- NEW LOGIC IMPLEMENTATIONS ---
 
+  clearNotifications: (type) => {
+    set((state) => ({
+      notifications: state.notifications.map((n) =>
+        n.type === type ? { ...n, read: true } : n
+      ),
+    }));
+  },
+
   addTask: (taskData) => {
     const newTask: Task = {
       id: Date.now().toString(),
@@ -404,13 +423,22 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       ...taskData,
     };
     
-    set((state) => ({ tasks: [...state.tasks, newTask] }));
+    set((state) => {
+      // Create new notifications array immutably if it's spontaneous
+      const updatedNotifications = newTask.type === 'spontaneous' 
+        ? [...state.notifications, { id: Date.now().toString(), type: 'task' as const, message: 'New instant task available!', read: false }]
+        : state.notifications;
+
+      return {
+        tasks: [...state.tasks, newTask],
+        notifications: updatedNotifications
+      };
+    });
   },
 
   acceptTask: (taskId, userId) => {
     set((state) => ({
       tasks: state.tasks.map((t) =>
-        // Ensure only 'open' spontaneous tasks can be accepted
         t.id === taskId && t.type === 'spontaneous' && t.status === 'open'
           ? { ...t, status: 'accepted', assignedTo: [...t.assignedTo, userId], rejectionReason: undefined }
           : t
@@ -424,7 +452,6 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       return {
         user: {
           ...state.user,
-          // If it's already there, keep it (or you could filter it out here if you want a toggle feature)
           wishlist: isAlreadyInWishlist ? state.user.wishlist : [...state.user.wishlist, itemId],
         }
       };
@@ -434,7 +461,6 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   addMember: (name, role) => {
     const { user, mockUsers } = get();
 
-    // Logic for parents: only admins can add new members
     if (user.role !== 'admin') {
       Alert.alert('Permission Denied', 'Only parents/admins can add new members.');
       return;
@@ -447,7 +473,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       tokens: 0,
       streak: 0,
       householdId: user.householdId,
-      password: '123', // Default for prototype
+      password: '123', 
       wishlist: [],
     };
 
@@ -462,6 +488,10 @@ export const useTokaStore = create<TokaState>((set, get) => ({
           ? { ...t, status: 'open', proofUrl: undefined, rejectionReason: reason } 
           : t
       ),
+      notifications: [
+        ...state.notifications, 
+        { id: Date.now().toString(), type: 'rejection', message: 'A chore was sent back!', read: false }
+      ]
     }));
     Alert.alert("Task Sent Back", "The child has been notified to try again.");
   },
@@ -469,14 +499,18 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   addMarketItem: (item) => {
     const newItem = { ...item, id: `m_${Date.now()}` };
     set((state) => ({
-      marketItems: [...state.marketItems, newItem]
+      marketItems: [...state.marketItems, newItem],
+      notifications: [
+        ...state.notifications,
+        { id: Date.now().toString(), type: 'market', message: 'New reward in the market!', read: false }
+      ]
     }));
     Alert.alert("Market Updated", `${item.name} is now available for the kids!`);
   },
 
   removeMarketItem: (itemId) => {
     set((state) => ({
-      marketItems: state.marketItems.filter(i => i.id !== itemId)
+      marketItems: state.marketItems.filter((i) => i.id !== itemId)
     }));
   },
 }));
