@@ -78,6 +78,8 @@ interface TokaState {
   setWishlistGoal: (itemId: string) => void;
   addMember: (name: string, role: UserRole) => void;
   rejectTask: (taskId: string, reason: string) => void;
+  addMarketItem: (item: { name: string; cost: number; type: string }) => void;
+  removeMarketItem: (itemId: string) => void;
 }
 
 // --- THE STORE ENGINE ---
@@ -462,5 +464,19 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       ),
     }));
     Alert.alert("Task Sent Back", "The child has been notified to try again.");
+  },
+
+  addMarketItem: (item) => {
+    const newItem = { ...item, id: `m_${Date.now()}` };
+    set((state) => ({
+      marketItems: [...state.marketItems, newItem]
+    }));
+    Alert.alert("Market Updated", `${item.name} is now available for the kids!`);
+  },
+
+  removeMarketItem: (itemId) => {
+    set((state) => ({
+      marketItems: state.marketItems.filter(i => i.id !== itemId)
+    }));
   },
 }));

@@ -3,14 +3,26 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Alert,
 import { useTokaStore } from '../store/useTokaStore';
 
 export default function ParentDashboard() {
-  // 1. Added rejectTask to the destructured store hook
-  const { tasks, approveTask, rejectTask, generateInviteCode, mockUsers } = useTokaStore();
+  const { 
+    tasks, 
+    approveTask, 
+    rejectTask, 
+    generateInviteCode, 
+    mockUsers,
+    marketItems, 
+    addMarketItem, 
+    removeMarketItem 
+  } = useTokaStore();
   
   // Local state for Task Creation
   const [taskTitle, setTaskTitle] = useState('');
   const [reward, setReward] = useState('');
   const [taskType, setTaskType] = useState<'regular' | 'spontaneous'>('regular');
   const [frequency, setFrequency] = useState<'Daily' | 'Weekly' | 'Monthly'>('Daily');
+
+  // Local state for Market Management
+  const [itemName, setItemName] = useState('');
+  const [itemCost, setItemCost] = useState('');
 
   const pendingTasks = tasks.filter(t => t.status === 'pending');
   const householdMembers = mockUsers.filter(u => u.role === 'member');
@@ -26,20 +38,26 @@ export default function ParentDashboard() {
     setReward('');
   };
 
-    // 2. Added handleReject function
-    const handleReject = (taskId: string) => {
-        Alert.prompt(
-        "Send Back Chore",
-        "What needs to be fixed?",
-        [
-            { text: "Cancel", style: "cancel" },
-            { 
-            text: "Send Back", 
-            onPress: (reason?: string) => rejectTask(taskId, reason || "Needs more work!") 
-            }
-        ]
-        );
-    };
+  const handleReject = (taskId: string) => {
+    Alert.prompt(
+      "Send Back Chore",
+      "What needs to be fixed?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Send Back", 
+          onPress: (reason?: string) => rejectTask(taskId, reason || "Needs more work!") 
+        }
+      ]
+    );
+  };
+
+  const handleAddReward = () => {
+    if (!itemName || !itemCost) return;
+    addMarketItem({ name: itemName, cost: parseInt(itemCost), type: 'Custom Reward' });
+    setItemName('');
+    setItemCost('');
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -81,7 +99,6 @@ export default function ParentDashboard() {
                 <Image source={{ uri: task.proofUrl }} style={styles.proofPreview} />
               )}
               
-              {/* 3. Updated Action Row */}
               <View style={styles.actionRow}>
                 <TouchableOpacity 
                   style={styles.rejectBtn} 
@@ -97,7 +114,6 @@ export default function ParentDashboard() {
                   <Text style={styles.approveBtnText}>Approve 💎 {task.reward}</Text>
                 </TouchableOpacity>
               </View>
-
             </View>
           ))
         )}
@@ -164,6 +180,46 @@ export default function ParentDashboard() {
         </TouchableOpacity>
       </View>
 
+      {/* 4. MARKET MANAGEMENT */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Manage Market Rewards</Text>
+        
+        {/* Add New Reward Form */}
+        <View style={styles.addRewardForm}>
+          <TextInput 
+            style={[styles.input, { flex: 0.6, marginBottom: 0 }]} 
+            placeholder="Reward Name (e.g. Cinema Trip)" 
+            placeholderTextColor="#999"
+            value={itemName}
+            onChangeText={setItemName}
+          />
+          <TextInput 
+            style={[styles.input, { flex: 0.25, marginBottom: 0 }]} 
+            placeholder="Cost" 
+            placeholderTextColor="#999"
+            keyboardType="numeric"
+            value={itemCost}
+            onChangeText={setItemCost}
+          />
+          <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddReward}>
+            <Text style={styles.addBtnText}>+</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={[styles.miniLabel, {marginTop: 15}]}>Current Offerings</Text>
+        {marketItems.map(item => (
+          <View key={item.id} style={styles.marketEditRow}>
+            <View>
+              <Text style={styles.marketItemName}>{item.name}</Text>
+              <Text style={styles.marketItemCost}>💎 {item.cost}</Text>
+            </View>
+            <TouchableOpacity onPress={() => removeMarketItem(item.id)}>
+              <Text style={styles.removeText}>Remove</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+
     </ScrollView>
   );
 }
@@ -194,33 +250,11 @@ const styles = StyleSheet.create({
   verifyInfo: { marginBottom: 10 },
   proofPreview: { width: '100%', height: 150, borderRadius: 10, marginBottom: 10 },
   
-  // --- NEW STYLES ---
-  actionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  rejectBtn: {
-    flex: 0.35,
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#D63031',
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  rejectBtnText: {
-    color: '#D63031',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-  approveBtn: {
-    flex: 0.6, // Approve button is bigger/primary
-    backgroundColor: '#00B894',
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
+  // Action Row (Approve / Reject)
+  actionRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  rejectBtn: { flex: 0.35, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#D63031', padding: 12, borderRadius: 10, alignItems: 'center' },
+  rejectBtnText: { color: '#D63031', fontWeight: 'bold', fontSize: 12 },
+  approveBtn: { flex: 0.6, backgroundColor: '#00B894', padding: 12, borderRadius: 10, alignItems: 'center' },
   approveBtnText: { color: 'white', fontWeight: 'bold' },
 
   // Creator
@@ -237,5 +271,14 @@ const styles = StyleSheet.create({
   freqBtnText: { fontSize: 12, color: '#999' },
   freqBtnTextActive: { color: '#6C5CE7', fontWeight: 'bold' },
   submitTaskBtn: { backgroundColor: '#6C5CE7', padding: 16, borderRadius: 15, alignItems: 'center', elevation: 3 },
-  submitTaskBtnText: { color: 'white', fontWeight: '800', fontSize: 16 }
+  submitTaskBtnText: { color: 'white', fontWeight: '800', fontSize: 16 },
+
+  // --- MARKET MANAGEMENT STYLES ---
+  addRewardForm: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  addBtnSmall: { backgroundColor: '#6C5CE7', width: 45, height: 45, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  addBtnText: { color: 'white', fontSize: 24, fontWeight: 'bold' },
+  marketEditRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F2F6' },
+  marketItemName: { fontSize: 14, fontWeight: '600', color: '#2D3436' },
+  marketItemCost: { fontSize: 12, color: '#00B894', fontWeight: 'bold' },
+  removeText: { color: '#D63031', fontSize: 12, fontWeight: 'bold' },
 });
