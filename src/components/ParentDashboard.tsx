@@ -5,6 +5,7 @@ import { useTokaStore } from '../store/useTokaStore';
 export default function ParentDashboard() {
   const { 
     tasks, 
+    addTask,
     approveTask, 
     rejectTask, 
     generateInviteCode, 
@@ -14,7 +15,6 @@ export default function ParentDashboard() {
     removeMarketItem,
     notifications,
     clearNotifications,
-    transactions,
     vaultBalance
   } = useTokaStore();
   
@@ -29,45 +29,73 @@ export default function ParentDashboard() {
   const [itemCost, setItemCost] = useState('');
 
   // Data Selectors
-  const pendingTasks = tasks.filter(t => t.status === 'pending');
+  const pendingItems = tasks.filter(t => t.status === 'pending');
   const householdMembers = mockUsers.filter(u => u.role === 'member');
   const marketAlerts = notifications.filter(n => n.type === 'market_purchase' && !n.read);
+
+  // --- RESTORED HANDLERS ---
 
   const handleCreateTask = () => {
     if (!taskTitle || !reward) {
       Alert.alert("Missing Info", "Please give the task a title and a reward amount.");
       return;
     }
-    Alert.alert("Success", `${taskType} task "${taskTitle}" created!`);
+
+    addTask({
+      title: taskTitle,
+      reward: parseInt(reward),
+      type: taskType,
+      frequency: taskType === 'regular' ? frequency.toLowerCase() as any : undefined,
+      status: 'open',
+      assignedTo: taskType === 'regular' ? ['u_child'] : [], // Default to Raziel for regular, empty for pool
+    });
+
+    Alert.alert("Success", `${taskType} task "${taskTitle}" is live!`);
     setTaskTitle('');
     setReward('');
   };
 
-  const handleReject = (taskId: string) => {
+  const handleAddReward = () => {
+    if (!itemName || !itemCost) {
+      Alert.alert("Error", "Please enter reward name and cost.");
+      return;
+    }
+    addMarketItem({ 
+      name: itemName, 
+      cost: parseInt(itemCost), 
+      type: 'Custom Reward' 
+    });
+    setItemName('');
+    setItemCost('');
+  };
+
+  const handleReject = (task: any) => {
+    if (task.isWithdrawal) {
+      Alert.alert(
+        "Decline Withdrawal", 
+        "Would you like to return these tokens to the child's vault?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Decline", onPress: () => rejectTask(task.id, "Parent declined withdrawal.") }
+        ]
+      );
+      return;
+    }
+
     Alert.prompt(
       "Send Back Chore",
       "What needs to be fixed?",
       [
         { text: "Cancel", style: "cancel" },
-        { 
-          text: "Send Back", 
-          onPress: (reason?: string) => rejectTask(taskId, reason || "Needs more work!") 
-        }
+        { text: "Send Back", onPress: (reason?: string) => rejectTask(task.id, reason || "Needs more work!") }
       ]
     );
-  };
-
-  const handleAddReward = () => {
-    if (!itemName || !itemCost) return;
-    addMarketItem({ name: itemName, cost: parseInt(itemCost), type: 'Custom Reward' });
-    setItemName('');
-    setItemCost('');
   };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
       
-      {/* --- 1. MARKET ALERTS (Notifications for Parents) --- */}
+      {/* 1. MARKET ALERTS */}
       {marketAlerts.length > 0 && (
         <View style={styles.alertBanner}>
           <View style={styles.rowBetween}>
@@ -84,7 +112,7 @@ export default function ParentDashboard() {
         </View>
       )}
 
-      {/* --- 2. CHILD ACTIVITY TRACKER (Horizontal Oversight) --- */}
+      {/* 2. CHILD ACTIVITY TRACKER */}
       <View style={styles.trackerSection}>
         <Text style={styles.sectionTitle}>Child Activity Tracker</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.trackerScroll}>
@@ -102,7 +130,7 @@ export default function ParentDashboard() {
                 <View style={styles.statsMiniRow}>
                   <View style={styles.statBox}>
                     <Text style={styles.statLabel}>VAULT</Text>
-                    <Text style={styles.statVal}>💎 {vaultBalance}</Text> 
+                    <Text style={[styles.statVal, {color: '#6C5CE7'}]}>💎 {vaultBalance}</Text> 
                   </View>
                   <View style={styles.statBox}>
                     <Text style={styles.statLabel}>STREAK</Text>
@@ -117,39 +145,46 @@ export default function ParentDashboard() {
               </View>
             );
           })}
-          
-          {/* Add Member Shortcut */}
-          <TouchableOpacity style={styles.addMemberCard} onPress={() => Alert.alert("Invite Code", generateInviteCode())}>
-             <Text style={styles.addIcon}>+</Text>
-             <Text style={styles.addText}>Add Member</Text>
-          </TouchableOpacity>
         </ScrollView>
       </View>
 
-      {/* --- 3. VERIFICATION QUEUE --- */}
+      {/* 3. VERIFICATION & APPROVAL QUEUE */}
       <View style={styles.section}>
         <View style={styles.rowBetween}>
-          <Text style={styles.sectionTitle}>Verification Queue</Text>
-          <View style={styles.countBadge}><Text style={styles.countText}>{pendingTasks.length}</Text></View>
+          <Text style={styles.sectionTitle}>Approvals Queue</Text>
+          <View style={styles.countBadge}><Text style={styles.countText}>{pendingItems.length}</Text></View>
         </View>
         
-        {pendingTasks.length === 0 ? (
-          <Text style={styles.emptyText}>All chores are up to date! ✨</Text>
+        {pendingItems.length === 0 ? (
+          <Text style={styles.emptyText}>Nothing to approve right now! ✨</Text>
         ) : (
-          pendingTasks.map(task => (
-            <View key={task.id} style={styles.verifyCard}>
+          pendingItems.map(item => (
+            <View key={item.id} style={[
+              styles.verifyCard, 
+              item.isWithdrawal ? styles.withdrawalCard : styles.choreCard
+            ]}>
               <View style={styles.verifyInfo}>
-                <Text style={styles.verifyTaskName}>{task.title}</Text>
-                <Text style={styles.verifySubtitle}>Submitted by: {task.assignedTo[0] || 'Child'}</Text>
+                <Text style={styles.verifyTaskName}>
+                  {item.isWithdrawal ? "💰 Withdrawal Request" : item.title}
+                </Text>
+                <Text style={styles.verifySubtitle}>
+                  From: {mockUsers.find(u => u.id === item.assignedTo[0])?.name || 'Child'}
+                </Text>
               </View>
-              {task.proofUrl && <Image source={{ uri: task.proofUrl }} style={styles.proofPreview} />}
+
+              {item.proofUrl && <Image source={{ uri: item.proofUrl }} style={styles.proofPreview} />}
               
               <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.rejectBtn} onPress={() => handleReject(task.id)}>
-                  <Text style={styles.rejectBtnText}>Send Back ❌</Text>
+                <TouchableOpacity style={styles.rejectBtn} onPress={() => handleReject(item)}>
+                  <Text style={styles.rejectBtnText}>{item.isWithdrawal ? "Decline" : "Send Back"}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.approveBtn} onPress={() => approveTask(task.id)}>
-                  <Text style={styles.approveBtnText}>Approve 💎 {task.reward}</Text>
+                <TouchableOpacity 
+                  style={[styles.approveBtn, item.isWithdrawal && {backgroundColor: '#6C5CE7'}]} 
+                  onPress={() => approveTask(item.id)}
+                >
+                  <Text style={styles.approveBtnText}>
+                    {item.isWithdrawal ? `Release ${item.reward} 💎` : `Approve & Pay 💎`}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -157,7 +192,7 @@ export default function ParentDashboard() {
         )}
       </View>
 
-      {/* --- 4. TASK CREATOR --- */}
+      {/* 4. TASK CREATOR */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Assign New Chore</Text>
         <TextInput 
@@ -184,18 +219,47 @@ export default function ParentDashboard() {
              </View>
           </View>
         </View>
+
+        {taskType === 'regular' && (
+          <View style={styles.frequencyRow}>
+            {['Daily', 'Weekly', 'Monthly'].map(f => (
+              <TouchableOpacity 
+                key={f} 
+                onPress={() => setFrequency(f as any)}
+                style={[styles.freqBtn, frequency === f && styles.freqBtnActive]}
+              >
+                <Text style={[styles.freqBtnText, frequency === f && styles.freqBtnTextActive]}>{f}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         <TouchableOpacity style={styles.submitTaskBtn} onPress={handleCreateTask}>
           <Text style={styles.submitTaskBtnText}>Launch Chore 🚀</Text>
         </TouchableOpacity>
       </View>
 
-      {/* --- 5. MARKET MANAGEMENT --- */}
+      {/* 5. MARKET MANAGEMENT */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Manage Market Rewards</Text>
         <View style={styles.addRewardForm}>
-          <TextInput style={[styles.input, { flex: 0.6, marginBottom: 0 }]} placeholder="New Reward" placeholderTextColor="#999" value={itemName} onChangeText={setItemName} />
-          <TextInput style={[styles.input, { flex: 0.25, marginBottom: 0 }]} placeholder="Cost" keyboardType="numeric" value={itemCost} onChangeText={setItemCost} />
-          <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddReward}><Text style={styles.addBtnText}>+</Text></TouchableOpacity>
+          <TextInput 
+            style={[styles.input, { flex: 0.6, marginBottom: 0 }]} 
+            placeholder="New Reward" 
+            placeholderTextColor="#999" 
+            value={itemName} 
+            onChangeText={setItemName} 
+          />
+          <TextInput 
+            style={[styles.input, { flex: 0.25, marginBottom: 0 }]} 
+            placeholder="Cost" 
+            keyboardType="numeric" 
+            value={itemCost} 
+            onChangeText={setItemCost} 
+          />
+          <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddReward}>
+            <Text style={styles.addBtnText}>+</Text>
+          </TouchableOpacity>
         </View>
         {marketItems.map(item => (
           <View key={item.id} style={styles.marketEditRow}>
@@ -209,20 +273,17 @@ export default function ParentDashboard() {
   );
 }
 
+// ... styles remain the same as previous version ...
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F0F2F5' },
   section: { backgroundColor: '#FFF', padding: 20, borderRadius: 20, marginHorizontal: 15, marginBottom: 15, elevation: 3 },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: '#2D3436', marginBottom: 15 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  
-  // Alert Banner
   alertBanner: { backgroundColor: '#FFF3CD', margin: 15, padding: 15, borderRadius: 15, borderLeftWidth: 5, borderLeftColor: '#FFC107' },
   alertTitle: { fontWeight: 'bold', color: '#856404', fontSize: 14 },
   dismissText: { color: '#0984E3', fontWeight: 'bold', fontSize: 11 },
   alertRow: { marginTop: 5 },
   alertText: { fontSize: 13, color: '#856404' },
-
-  // Activity Tracker
   trackerSection: { paddingHorizontal: 15, marginBottom: 15 },
   trackerScroll: { paddingVertical: 10 },
   childDetailCard: { backgroundColor: '#FFF', width: 200, padding: 15, borderRadius: 20, marginRight: 15, elevation: 2, borderWidth: 1, borderColor: '#EEE' },
@@ -236,15 +297,12 @@ const styles = StyleSheet.create({
   miniLabel: { fontSize: 10, fontWeight: 'bold', color: '#B2BEC3', marginBottom: 5 },
   progressBarBg: { height: 6, backgroundColor: '#E9ECEF', borderRadius: 3 },
   progressBarFill: { height: '100%', backgroundColor: '#6C5CE7', borderRadius: 3 },
-  addMemberCard: { width: 120, backgroundColor: 'rgba(108, 92, 231, 0.1)', borderRadius: 20, borderStyle: 'dashed', borderWidth: 2, borderColor: '#6C5CE7', justifyContent: 'center', alignItems: 'center', height: 140 },
-  addIcon: { fontSize: 32, color: '#6C5CE7', fontWeight: 'bold' },
-  addText: { fontSize: 12, color: '#6C5CE7', fontWeight: 'bold' },
-
-  // Verification & Other (Re-used from previous)
   countBadge: { backgroundColor: '#D63031', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   countText: { color: 'white', fontWeight: 'bold', fontSize: 12 },
   emptyText: { textAlign: 'center', color: '#B2BEC3', fontStyle: 'italic', marginVertical: 20 },
-  verifyCard: { backgroundColor: '#F8F9FA', borderRadius: 15, padding: 15, marginBottom: 10, borderLeftWidth: 5, borderLeftColor: '#F39C12' },
+  verifyCard: { backgroundColor: '#F8F9FA', borderRadius: 15, padding: 15, marginBottom: 10, borderLeftWidth: 5 },
+  choreCard: { borderLeftColor: '#F39C12' },
+  withdrawalCard: { borderLeftColor: '#6C5CE7' },
   verifyTaskName: { fontSize: 16, fontWeight: '700', color: '#2D3436' },
   verifySubtitle: { fontSize: 12, color: '#636E72', marginBottom: 10 },
   verifyInfo: { marginBottom: 10 },
@@ -260,6 +318,11 @@ const styles = StyleSheet.create({
   typeBtnActive: { backgroundColor: '#FFF', elevation: 2 },
   typeBtnText: { fontSize: 12, fontWeight: '600', color: '#B2BEC3' },
   typeBtnTextActive: { color: '#6C5CE7' },
+  frequencyRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, marginTop: 5 },
+  freqBtn: { flex: 0.3, paddingVertical: 8, alignItems: 'center', borderRadius: 10, borderWidth: 1, borderColor: '#DDD' },
+  freqBtnActive: { borderColor: '#6C5CE7', backgroundColor: '#F4F1FF' },
+  freqBtnText: { fontSize: 12, color: '#999' },
+  freqBtnTextActive: { color: '#6C5CE7', fontWeight: 'bold' },
   submitTaskBtn: { backgroundColor: '#6C5CE7', padding: 16, borderRadius: 15, alignItems: 'center', elevation: 3 },
   submitTaskBtnText: { color: 'white', fontWeight: '800', fontSize: 16 },
   addRewardForm: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },

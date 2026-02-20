@@ -26,6 +26,7 @@ interface Task {
   assignedTo: string[]; // empty if spontaneous and not yet accepted
   proofUrl?: string;
   rejectionReason?: string; // <-- Added to support rejectTask logic
+  isWithdrawal?: boolean; // <-- Added to flag withdrawal pseudo-tasks
 }
 
 interface Transaction {
@@ -62,7 +63,7 @@ interface TokaState {
   interestRate: number;
   currentUser: User | null;
   mockUsers: User[];
-  notifications: Notification[]; // <-- Added notifications state
+  notifications: Notification[];
 
   // Actions
   setRole: (role: UserRole) => void;
@@ -186,6 +187,16 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     const { tasks, user, addTokens } = get();
     const task = tasks.find((t) => t.id === taskId);
   
+    // --- NEW WITHDRAWAL APPROVAL LOGIC ---
+    if (task && task.isWithdrawal && user.role === 'admin') {
+      addTokens(task.reward, `Vault Withdrawal Approved`);
+      set((state) => ({
+        tasks: state.tasks.filter(t => t.id !== taskId) // Remove request after approval
+      }));
+      return;
+    }
+
+    // --- STANDARD CHORE APPROVAL LOGIC ---
     if (task && user.role === 'admin') {
       const participantCount = task.assignedTo.length;
       
@@ -369,21 +380,25 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       return;
     }
 
-    const updatedUser = { 
-      ...activeUser, 
-      tokens: activeUser.tokens + amount 
+    // Create a pseudo-task for the parent to see
+    const withdrawalRequest: Task = {
+      id: `wd_${Date.now()}`,
+      title: `Withdrawal Request: ${amount} Tokens`,
+      reward: amount,
+      status: 'pending',
+      type: 'spontaneous', // We use this to show it in the parent queue
+      assignedTo: [activeUser.id],
+      isWithdrawal: true, // Special flag to distinguish from chores
     };
 
     set((state) => ({
-      user: updatedUser, 
-      currentUser: updatedUser,
-      mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
-      vaultBalance: state.vaultBalance - amount,
-      transactions: [
-        { id: Date.now().toString(), amount, type: 'earn', reason: 'Vault Withdrawal', timestamp: Date.now() },
-        ...state.transactions
-      ]
+      // Add the request to the tasks list so the parent sees it
+      tasks: [...state.tasks, withdrawalRequest],
+      // Temporarily lock these tokens in the vault (optional, but good for CS logic)
+      vaultBalance: state.vaultBalance - amount, 
     }));
+
+    Alert.alert("Request Sent", "Waiting for parent approval to release tokens.");
   },
 
   applyInterest: () => {

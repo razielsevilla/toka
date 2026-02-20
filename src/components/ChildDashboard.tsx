@@ -77,7 +77,9 @@ export default function ChildDashboard() {
           <View style={styles.accountBox}>
             <Text style={styles.accountLabel}>VAULT SAVINGS</Text>
             <Text style={styles.vaultAmountMain}>💎 {vaultBalance}</Text>
-            <Text style={styles.interestTag}>+5% Growth</Text>
+            {tasks.some(t => t.isWithdrawal && t.status === 'pending') && (
+              <Text style={styles.pendingText}>⏳ Withdrawal Pending...</Text>
+            )}
           </View>
         </View>
 
@@ -270,6 +272,7 @@ const styles = StyleSheet.create({
   bankActionRow: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', marginTop: 10 },
   bankActionBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
   bankActionText: { color: '#FFF', fontWeight: 'bold', fontSize: 12 },
+  pendingText: { color: '#F39C12', fontSize: 8, fontWeight: 'bold', marginTop: 5 },
 
   // Tab Styles
   tabContainer: { flexDirection: 'row', backgroundColor: '#F1F2F6', borderRadius: 12, padding: 4, marginBottom: 15, marginTop: 10 },
