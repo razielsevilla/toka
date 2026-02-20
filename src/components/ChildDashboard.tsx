@@ -17,7 +17,7 @@ export default function ChildDashboard() {
   const { 
     currentUser, tasks, marketItems, transactions, mockUsers, notifications,
     acceptTask, submitTask, purchaseItem, setWishlistGoal, clearNotifications,
-    depositToVault, withdrawFromVault, vaultBalance 
+    depositToVault, withdrawFromVault, vaultBalance, openMysteryBox // <-- imported openMysteryBox
   } = useTokaStore();
 
   const [showHistory, setShowHistory] = useState(false);
@@ -29,7 +29,6 @@ export default function ChildDashboard() {
   const availablePool = tasks.filter(t => t.type === 'spontaneous' && t.status === 'open' && t.assignedTo.length === 0);
   const leaderboard = [...mockUsers].sort((a, b) => b.tokens - a.tokens);
 
-  // Tab Filtering & Sorting Logic (Rejected tasks float to top)
   const filteredTasks = myTasks
     .filter(t => {
       if (activeTab === 'daily') return t.frequency === 'daily' || t.type === 'spontaneous';
@@ -41,16 +40,17 @@ export default function ChildDashboard() {
       return 0;
     });
 
-  // Notification Counts & Selectors
   const marketNotifs = notifications.filter(n => n.type === 'market' && !n.read).length;
   const choreNotifs = notifications.filter(n => (n.type === 'task' || n.type === 'rejection') && !n.read).length;
   const rejectionAlerts = notifications.filter(n => n.type === 'rejection' && !n.read);
 
-  // Wishlist Progress
+  // --- WISHLIST LOGIC ---
   const wishlistId = currentUser?.wishlist[0] || 'm1'; 
   const goalItem = marketItems.find(i => i.id === wishlistId) || marketItems[0];
-  const progress = Math.min((currentUser?.tokens || 0) / goalItem.cost, 1);
+  const userTokens = currentUser?.tokens || 0;
+  const progress = Math.min(userTokens / (goalItem?.cost || 1), 1);
 
+  // --- HANDLERS ---
   const handleVerify = async (taskId: string) => {
     const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.5 });
     if (!result.canceled) {
@@ -60,11 +60,39 @@ export default function ChildDashboard() {
     }
   };
 
+  const handleMysteryBox = () => {
+    const result = openMysteryBox();
+    if (result === 'Insufficient Tokens') {
+      Alert.alert("Oops!", "You need 40 tokens to open a Mystery Box!");
+    } else {
+      Alert.alert("🎁 Mystery Box Opened!", `You got:\n\n${result}`);
+    }
+  };
+
+  const handleAllowanceExchange = () => {
+    Alert.alert(
+      "Cash Out Allowance",
+      "Do you want to send a request to Mom/Dad to exchange 100 💎 for $10 real cash?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Send Request", 
+          onPress: () => {
+            // We use the vault withdrawal logic as a cash-out request
+            if (vaultBalance >= 100) {
+              withdrawFromVault(100);
+            } else {
+              Alert.alert("Not enough savings!", "You need at least 100 💎 saved in your Vault to cash out.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
-    <ScrollView 
-      style={styles.container} 
-      contentContainerStyle={{ paddingBottom: 40 }}
-    >
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+      
       {/* 1. REJECTION ALERTS BANNER */}
       {rejectionAlerts.length > 0 && (
         <View style={styles.alertBanner}>
@@ -82,7 +110,7 @@ export default function ChildDashboard() {
         </View>
       )}
 
-      {/* 2. THE TOKA BANK (Combined Wallet & Vault) */}
+      {/* 2. THE TOKA BANK */}
       <View style={styles.bankCard}>
         <View style={styles.bankHeader}>
           <Text style={styles.bankTitle}>🏦 Toka Bank</Text>
@@ -94,7 +122,7 @@ export default function ChildDashboard() {
         <View style={styles.bankMainRow}>
           <View style={styles.accountBox}>
             <Text style={styles.accountLabel}>SPENDABLE</Text>
-            <Text style={styles.accountAmount}>💰 {currentUser?.tokens}</Text>
+            <Text style={styles.accountAmount}>💰 {userTokens}</Text>
           </View>
           <View style={styles.bankDivider} />
           <View style={styles.accountBox}>
@@ -109,7 +137,7 @@ export default function ChildDashboard() {
         <View style={styles.inputWrapper}>
           <TextInput 
             style={styles.bankInput}
-            placeholder="Enter Amount"
+            placeholder="Amount to move"
             placeholderTextColor="rgba(255,255,255,0.4)"
             keyboardType="numeric"
             value={bankAmount}
@@ -120,26 +148,40 @@ export default function ChildDashboard() {
         <View style={styles.bankActionRow}>
           <TouchableOpacity 
             style={[styles.bankActionBtn, { borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }]} 
-            onPress={() => {
-              depositToVault(Number(bankAmount));
-              setBankAmount('');
-            }}
+            onPress={() => { depositToVault(Number(bankAmount)); setBankAmount(''); }}
           >
-            <Text style={styles.bankActionText}>Deposit 📥</Text>
+            <Text style={styles.bankActionText}>Save to Vault 📥</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.bankActionBtn} 
-            onPress={() => {
-              withdrawFromVault(Number(bankAmount));
-              setBankAmount('');
-            }}
+            onPress={() => { withdrawFromVault(Number(bankAmount)); setBankAmount(''); }}
           >
-            <Text style={styles.bankActionText}>Withdraw 📤</Text>
+            <Text style={styles.bankActionText}>Take Out 📤</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* 3. CHORE BOARD (Tabbed System) */}
+      {/* --- NEW: PROMINENT WISHLIST GOAL HERO CARD --- */}
+      {goalItem && (
+        <View style={styles.goalHeroCard}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.goalTitle}>⭐ My Current Goal</Text>
+            {progress >= 1 && <Text style={styles.goalReadyText}>Ready to Buy! 🎉</Text>}
+          </View>
+          <Text style={styles.goalItemName}>{goalItem.name}</Text>
+          
+          <View style={styles.goalStatsRow}>
+            <Text style={styles.goalStatText}>Saved: {userTokens} 💎</Text>
+            <Text style={styles.goalStatText}>Goal: {goalItem.cost} 💎</Text>
+          </View>
+          
+          <View style={styles.goalBarBg}>
+            <View style={[styles.goalBarFill, { width: `${progress * 100}%` }]} />
+          </View>
+        </View>
+      )}
+
+      {/* 3. CHORE BOARD */}
       <View style={styles.section}>
         <View style={styles.row}>
           <Text style={styles.sectionTitle}>Chore Board</Text>
@@ -150,15 +192,10 @@ export default function ChildDashboard() {
           {(['daily', 'weekly', 'monthly'] as const).map((tab) => (
             <TouchableOpacity 
               key={tab}
-              onPress={() => {
-                setActiveTab(tab);
-                clearNotifications('task');
-              }}
+              onPress={() => { setActiveTab(tab); clearNotifications('task'); }}
               style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
             >
-              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-                {tab.toUpperCase()}
-              </Text>
+              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab.toUpperCase()}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -218,27 +255,62 @@ export default function ChildDashboard() {
         ))}
       </View>
 
-      {/* 5. MARKETPLACE */}
+      {/* 5. EXPANDED MARKETPLACE */}
       <View style={styles.section}>
         <View style={styles.row}>
           <Text style={styles.sectionTitle}>🛒 Marketplace</Text>
           <Badge count={marketNotifs} />
         </View>
+        
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false} 
           style={styles.marketScroll}
           onScroll={() => marketNotifs > 0 && clearNotifications('market')}
         >
+          {/* SPECIAL CARD: Mystery Box Gacha */}
+          <View style={[styles.marketItemCard, styles.specialCardGacha]}>
+            <Text style={styles.itemEmoji}>📦</Text>
+            <Text style={styles.itemName}>Mystery Box</Text>
+            <Text style={styles.itemCost}>💎 40</Text>
+            <TouchableOpacity style={styles.buyBtn} onPress={handleMysteryBox}>
+              <Text style={styles.buyBtnText}>Roll Gacha!</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* SPECIAL CARD: Allowance Exchange */}
+          <View style={[styles.marketItemCard, styles.specialCardCash]}>
+            <Text style={styles.itemEmoji}>💵</Text>
+            <Text style={styles.itemName}>$10 Allowance</Text>
+            <Text style={styles.itemCost}>💎 100 Vault</Text>
+            <TouchableOpacity style={styles.buyBtn} onPress={handleAllowanceExchange}>
+              <Text style={styles.buyBtnText}>Cash Out</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* SPECIAL CARD: Toka Merch */}
+          <View style={styles.marketItemCard}>
+            <Text style={styles.itemEmoji}>👕</Text>
+            <Text style={styles.itemName}>Toka T-Shirt</Text>
+            <Text style={styles.itemCost}>💎 500</Text>
+            <TouchableOpacity 
+              style={[styles.buyBtn, userTokens < 500 && styles.disabledBtn]} 
+              onPress={() => Alert.alert("Coming Soon!", "Physical merch store is under construction.")}
+            >
+              <Text style={styles.buyBtnText}>Pre-Order</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* STANDARD DYNAMIC STORE ITEMS */}
           {marketItems.map(item => (
             <View key={item.id} style={styles.marketItemCard}>
               <Text style={styles.itemEmoji}>{item.cost > 100 ? '🎁' : '🎟️'}</Text>
               <Text style={styles.itemName}>{item.name}</Text>
               <Text style={styles.itemCost}>💎 {item.cost}</Text>
               <TouchableOpacity 
-                style={[styles.buyBtn, (currentUser?.tokens || 0) < item.cost && styles.disabledBtn]} 
+                style={[styles.buyBtn, userTokens < item.cost && styles.disabledBtn]} 
                 onPress={() => purchaseItem(item.id)}
-                disabled={(currentUser?.tokens || 0) < item.cost}
+                disabled={userTokens < item.cost}
               >
                 <Text style={styles.buyBtnText}>Buy</Text>
               </TouchableOpacity>
@@ -248,12 +320,6 @@ export default function ChildDashboard() {
             </View>
           ))}
         </ScrollView>
-        <View style={styles.wishlistProgressArea}>
-            <Text style={styles.miniLabel}>WISH LIST GOAL: {goalItem.name}</Text>
-            <View style={styles.progressBg}>
-              <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-            </View>
-        </View>
       </View>
 
       {/* ACTIVITY LEDGER MODAL */}
@@ -286,7 +352,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   
-  // New Rejection Banner
+  // Rejection Banner
   alertBanner: { backgroundColor: '#FFF5F5', marginHorizontal: 15, marginTop: 15, padding: 15, borderRadius: 15, borderLeftWidth: 5, borderLeftColor: '#D63031' },
   alertTitle: { fontWeight: 'bold', color: '#D63031', fontSize: 14 },
   dismissText: { color: '#D63031', fontWeight: 'bold', fontSize: 11 },
@@ -303,7 +369,6 @@ const styles = StyleSheet.create({
   accountLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 9, fontWeight: '900', marginBottom: 5 },
   accountAmount: { color: '#FFF', fontSize: 24, fontWeight: '900' },
   vaultAmountMain: { color: '#FDCB6E', fontSize: 24, fontWeight: '900' },
-  interestTag: { backgroundColor: '#00B894', color: '#FFF', fontSize: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, marginTop: 5, fontWeight: 'bold' },
   bankDivider: { width: 1, height: 40, backgroundColor: 'rgba(255,255,255,0.1)' },
   inputWrapper: { paddingHorizontal: 40, marginBottom: 15 },
   bankInput: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 12, color: '#FFF', textAlign: 'center', fontSize: 18, fontWeight: 'bold', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
@@ -312,14 +377,22 @@ const styles = StyleSheet.create({
   bankActionText: { color: '#FFF', fontWeight: 'bold', fontSize: 12 },
   pendingText: { color: '#F39C12', fontSize: 8, fontWeight: 'bold', marginTop: 5 },
 
-  // Tab Styles
+  // --- NEW: WISHLIST HERO CARD STYLES ---
+  goalHeroCard: { backgroundColor: '#FFF', padding: 20, borderRadius: 25, marginHorizontal: 15, marginBottom: 15, elevation: 4, borderWidth: 2, borderColor: '#FDCB6E' },
+  goalTitle: { fontSize: 12, fontWeight: '800', color: '#B2BEC3', textTransform: 'uppercase' },
+  goalReadyText: { fontSize: 10, fontWeight: 'bold', color: '#FFF', backgroundColor: '#00B894', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  goalItemName: { fontSize: 22, fontWeight: '900', color: '#6C5CE7', marginVertical: 8 },
+  goalStatsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  goalStatText: { fontSize: 12, fontWeight: 'bold', color: '#2D3436' },
+  goalBarBg: { height: 14, backgroundColor: '#F1F2F6', borderRadius: 7, overflow: 'hidden' },
+  goalBarFill: { height: '100%', backgroundColor: '#00B894', borderRadius: 7 },
+
+  // Tab & Task Styles
   tabContainer: { flexDirection: 'row', backgroundColor: '#F1F2F6', borderRadius: 12, padding: 4, marginBottom: 15, marginTop: 10 },
   tabButton: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 10 },
   activeTabButton: { backgroundColor: '#FFF', elevation: 2 },
   tabText: { fontSize: 10, fontWeight: '800', color: '#B2BEC3' },
   activeTabText: { color: '#6C5CE7' },
-
-  // Task Styles
   taskCard: { backgroundColor: '#F8F9FA', padding: 15, borderRadius: 20, marginBottom: 12 },
   taskTitle: { fontSize: 15, fontWeight: '700', color: '#2D3436' },
   typeTag: { fontSize: 9, fontWeight: '800', color: '#B2BEC3', marginTop: 2 },
@@ -329,31 +402,28 @@ const styles = StyleSheet.create({
   rejectedBorder: { borderLeftWidth: 6, borderLeftColor: '#D63031', backgroundColor: '#FFF5F5' },
   rejectionBox: { backgroundColor: '#FFEAEA', padding: 10, borderRadius: 10, marginTop: 10 },
   rejectionText: { color: '#D63031', fontSize: 11, fontWeight: 'bold' },
-
-  // Pool Styles
   poolCard: { backgroundColor: '#E1F5FE', padding: 15, borderRadius: 20, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: '#03A9F4' },
   poolTag: { fontSize: 8, fontWeight: '900', color: '#03A9F4', marginTop: 2 },
   claimBtn: { backgroundColor: '#03A9F4', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10 },
-
-  // Marketplace & Progress
-  marketScroll: { marginTop: 10 },
-  marketItemCard: { backgroundColor: '#F8F9FA', padding: 15, borderRadius: 20, marginRight: 15, width: 120, alignItems: 'center' },
-  itemEmoji: { fontSize: 24 },
-  itemName: { fontSize: 11, fontWeight: '700', textAlign: 'center', height: 30, marginVertical: 5 },
-  itemCost: { color: '#00B894', fontWeight: 'bold', fontSize: 12 },
-  buyBtn: { backgroundColor: '#FDCB6E', paddingVertical: 5, paddingHorizontal: 15, borderRadius: 8 },
-  buyBtnText: { fontWeight: 'bold', fontSize: 11, color: '#2D3436' },
-  disabledBtn: { opacity: 0.3 },
-  wishlistLink: { fontSize: 8, color: '#6C5CE7', marginTop: 5, fontWeight: 'bold' },
-  wishlistProgressArea: { marginTop: 20 },
-  progressBg: { height: 8, backgroundColor: '#F1F2F6', borderRadius: 4, overflow: 'hidden', marginVertical: 5 },
-  progressFill: { height: '100%', backgroundColor: '#00B894' },
 
   // Leaderboard
   leaderboardCard: { backgroundColor: '#FDCB6E', padding: 20, borderRadius: 20, marginHorizontal: 15, marginBottom: 15 },
   leaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
   rankText: { fontWeight: 'bold' },
   rankTokens: { fontWeight: 'bold', color: '#D35400' },
+
+  // Marketplace Styles
+  marketScroll: { marginTop: 10, paddingBottom: 10 },
+  marketItemCard: { backgroundColor: '#F8F9FA', padding: 15, borderRadius: 20, marginRight: 15, width: 130, alignItems: 'center', borderWidth: 1, borderColor: '#EEE' },
+  specialCardGacha: { borderColor: '#A29BFE', backgroundColor: '#F4F1FF', borderWidth: 2 },
+  specialCardCash: { borderColor: '#00B894', backgroundColor: '#E6FCF5', borderWidth: 2 },
+  itemEmoji: { fontSize: 32, marginBottom: 5 },
+  itemName: { fontSize: 12, fontWeight: '800', textAlign: 'center', height: 34, color: '#2D3436' },
+  itemCost: { color: '#0984E3', fontWeight: '900', fontSize: 13, marginBottom: 10 },
+  buyBtn: { backgroundColor: '#FDCB6E', paddingVertical: 8, width: '100%', borderRadius: 10, alignItems: 'center' },
+  buyBtnText: { fontWeight: 'bold', fontSize: 12, color: '#2D3436' },
+  disabledBtn: { opacity: 0.4 },
+  wishlistLink: { fontSize: 10, color: '#6C5CE7', marginTop: 10, fontWeight: 'bold' },
 
   // Shared
   badgeContainer: { backgroundColor: '#D63031', minWidth: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', marginLeft: 8 },
