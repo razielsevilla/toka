@@ -39,10 +39,10 @@ interface Transaction {
 // Added Notification Interface
 interface Notification {
   id: string;
-  type: 'task' | 'market' | 'rejection' | 'market_purchase'; // <-- Added 'market_purchase'
+  type: 'task' | 'market' | 'rejection' | 'market_purchase';
   message: string;
   read: boolean;
-  timestamp?: number; // <-- Added to support your new notification payload
+  timestamp?: number;
 }
 
 interface TokaState {
@@ -90,7 +90,7 @@ interface TokaState {
   rejectTask: (taskId: string, reason: string) => void;
   addMarketItem: (item: { name: string; cost: number; type: string }) => void;
   removeMarketItem: (itemId: string) => void;
-  clearNotifications: (type: 'task' | 'market' | 'rejection' | 'market_purchase') => void; // <-- Updated
+  clearNotifications: (type: 'task' | 'market' | 'rejection' | 'market_purchase') => void;
 }
 
 // --- THE STORE ENGINE ---
@@ -132,7 +132,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123', wishlist: [] },
     { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123', wishlist: [] },
   ],
-  notifications: [], // <-- Initialize empty array
+  notifications: [],
 
   // --- ACTIONS ---
 
@@ -209,7 +209,6 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     }
   },
 
-  // --- UPDATED purchaseItem LOGIC ---
   purchaseItem: (itemId) => {
     const { marketItems, user } = get();
     const item = marketItems.find((i) => i.id === itemId);
@@ -229,7 +228,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
 
       set((state) => ({
         user: { ...state.user, tokens: state.user.tokens - finalCost },
-        notifications: [newNotification, ...state.notifications], // Notify parent
+        notifications: [newNotification, ...state.notifications],
         transactions: [
           {
             id: Date.now().toString(),
@@ -330,45 +329,60 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     }
   },
 
-  depositToVault: (amount) => {
-    const { user } = get();
-    if (amount <= 0) return;
+  // --- VAULT LOGIC UPDATES ---
 
-    if (user.tokens >= amount) {
-      set((state) => ({
-        user: { ...state.user, tokens: state.user.tokens - amount },
-        vaultBalance: state.vaultBalance + amount,
-        transactions: [
-          {
-            id: Date.now().toString(),
-            amount,
-            type: 'spend',
-            reason: 'Vault Deposit',
-            timestamp: Date.now(),
-          },
-          ...state.transactions,
-        ],
-      }));
+  depositToVault: (amount: number) => {
+    const { currentUser, user } = get();
+    
+    // Fallback if currentUser isn't active (for quick prototype testing)
+    const activeUser = currentUser || user;
+
+    if (!activeUser || amount <= 0 || activeUser.tokens < amount) {
+      Alert.alert("Invalid Amount", "You don't have enough spendable tokens!");
+      return;
     }
-  },
 
-  withdrawFromVault: (amount) => {
-    const { vaultBalance } = get();
-    if (amount <= 0 || vaultBalance < amount) return;
+    const updatedUser = { 
+      ...activeUser, 
+      tokens: activeUser.tokens - amount 
+    };
 
     set((state) => ({
-      user: { ...state.user, tokens: state.user.tokens + amount },
+      user: updatedUser, // Sync default user state
+      currentUser: updatedUser, // Sync active logged-in user
+      mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
+      vaultBalance: state.vaultBalance + amount,
+      transactions: [
+        { id: Date.now().toString(), amount, type: 'spend', reason: 'Vault Deposit', timestamp: Date.now() },
+        ...state.transactions
+      ]
+    }));
+  },
+
+  withdrawFromVault: (amount: number) => {
+    const { vaultBalance, currentUser, user } = get();
+    
+    const activeUser = currentUser || user;
+
+    if (!activeUser || amount <= 0 || vaultBalance < amount) {
+      Alert.alert("Invalid Amount", "You don't have enough in the vault!");
+      return;
+    }
+
+    const updatedUser = { 
+      ...activeUser, 
+      tokens: activeUser.tokens + amount 
+    };
+
+    set((state) => ({
+      user: updatedUser, 
+      currentUser: updatedUser,
+      mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
       vaultBalance: state.vaultBalance - amount,
       transactions: [
-        {
-          id: Date.now().toString(),
-          amount,
-          type: 'earn',
-          reason: 'Vault Withdrawal',
-          timestamp: Date.now(),
-        },
-        ...state.transactions,
-      ],
+        { id: Date.now().toString(), amount, type: 'earn', reason: 'Vault Withdrawal', timestamp: Date.now() },
+        ...state.transactions
+      ]
     }));
   },
 
@@ -435,7 +449,6 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     };
     
     set((state) => {
-      // Create new notifications array immutably if it's spontaneous
       const updatedNotifications = newTask.type === 'spontaneous' 
         ? [{ id: Date.now().toString(), type: 'task' as const, message: 'New instant task available!', read: false }, ...state.notifications]
         : state.notifications;
