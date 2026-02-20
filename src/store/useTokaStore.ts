@@ -25,6 +25,7 @@ interface Task {
   frequency?: 'daily' | 'weekly' | 'monthly';
   assignedTo: string[]; // empty if spontaneous and not yet accepted
   proofUrl?: string;
+  rejectionReason?: string; // <-- Added to support rejectTask logic
 }
 
 interface Transaction {
@@ -76,6 +77,7 @@ interface TokaState {
   acceptTask: (taskId: string, userId: string) => void;
   setWishlistGoal: (itemId: string) => void;
   addMember: (name: string, role: UserRole) => void;
+  rejectTask: (taskId: string, reason: string) => void;
 }
 
 // --- THE STORE ENGINE ---
@@ -186,7 +188,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   
       set((state) => ({
         tasks: state.tasks.map((t) =>
-          t.id === taskId ? { ...t, status: 'completed' } : t
+          t.id === taskId ? { ...t, status: 'completed', rejectionReason: undefined } : t
         ),
         user: { ...state.user, streak: state.user.streak + 1 }
       }));
@@ -408,7 +410,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       tasks: state.tasks.map((t) =>
         // Ensure only 'open' spontaneous tasks can be accepted
         t.id === taskId && t.type === 'spontaneous' && t.status === 'open'
-          ? { ...t, status: 'accepted', assignedTo: [...t.assignedTo, userId] }
+          ? { ...t, status: 'accepted', assignedTo: [...t.assignedTo, userId], rejectionReason: undefined }
           : t
       ),
     }));
@@ -449,5 +451,16 @@ export const useTokaStore = create<TokaState>((set, get) => ({
 
     set({ mockUsers: [...mockUsers, newUser] });
     Alert.alert('Success', `${name} has been added as a ${role}!`);
+  },
+
+  rejectTask: (taskId, reason) => {
+    set((state) => ({
+      tasks: state.tasks.map((t) =>
+        t.id === taskId 
+          ? { ...t, status: 'open', proofUrl: undefined, rejectionReason: reason } 
+          : t
+      ),
+    }));
+    Alert.alert("Task Sent Back", "The child has been notified to try again.");
   },
 }));
