@@ -68,60 +68,7 @@ export default function ChildDashboard() {
         </TouchableOpacity>
       </View>
 
-      {/* 2. LEADERBOARD RANKING */}
-      <View style={styles.leaderboardCard}>
-        <Text style={styles.sectionTitleWhite}>🏆 Household Ranking</Text>
-        {leaderboard.slice(0, 3).map((u, index) => (
-          <View key={u.id} style={styles.leaderRow}>
-            <Text style={styles.rankText}>{index + 1}. {u.name.split(' ')[0]} {u.id === currentUser?.id ? '(Me)' : ''}</Text>
-            <Text style={styles.rankTokens}>{u.tokens} 💎</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* 3. WISHLIST PROGRESS */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🎯 Goal: {goalItem.name}</Text>
-        <View style={styles.progressBg}>
-          <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-        </View>
-        <Text style={styles.progressSubtext}>
-          {currentUser?.tokens} / {goalItem.cost} Tokens ({Math.floor(progress * 100)}%)
-        </Text>
-      </View>
-
-      {/* 4. THE MARKETPLACE */}
-      <View style={styles.section}>
-        <View style={styles.row}>
-          <Text style={styles.sectionTitle}>🛒 Marketplace</Text>
-          <Badge count={marketNotifs} />
-        </View>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          style={styles.marketScroll}
-          onScroll={() => marketNotifs > 0 && clearNotifications('market')}
-        >
-          {marketItems.map(item => (
-            <View key={item.id} style={styles.marketItemCard}>
-              <Text style={styles.itemEmoji}>{item.cost > 100 ? '🎁' : '🎟️'}</Text>
-              <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemCost}>💎 {item.cost}</Text>
-              <TouchableOpacity 
-                style={[styles.buyBtn, (currentUser?.tokens || 0) < item.cost && styles.disabledBtn]} 
-                onPress={() => purchaseItem(item.id)}
-              >
-                <Text style={styles.buyBtnText}>Buy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setWishlistGoal(item.id)}>
-                <Text style={styles.wishlistLink}>Set Goal ⭐</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* 5. MY CHORES & POOL */}
+      {/* 2. MY CHORES & POOL */}
       <View style={styles.section}>
         <View style={styles.row}>
           <Text style={styles.sectionTitle}>My Chores</Text>
@@ -162,7 +109,7 @@ export default function ChildDashboard() {
         ))}
       </View>
 
-      {/* 6. VAULT SECTION */}
+      {/* 3. VAULT SECTION */}
       <View style={[styles.section, {backgroundColor: '#6C5CE7'}]}>
         <Text style={styles.sectionTitleWhite}>🏦 Toka Vault</Text>
         <Text style={styles.vaultBalance}>💎 {vaultBalance}</Text>
@@ -174,6 +121,59 @@ export default function ChildDashboard() {
             <Text style={styles.btnText}>Withdraw</Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* 4. LEADERBOARD RANKING */}
+      <View style={styles.leaderboardCard}>
+        <Text style={styles.sectionTitleWhite}>🏆 Household Ranking</Text>
+        {leaderboard.slice(0, 3).map((u, index) => (
+          <View key={u.id} style={styles.leaderRow}>
+            <Text style={styles.rankText}>{index + 1}. {u.name.split(' ')[0]} {u.id === currentUser?.id ? '(Me)' : ''}</Text>
+            <Text style={styles.rankTokens}>{u.tokens} 💎</Text>
+          </View>
+        ))}
+      </View>
+
+      {/* 5. THE MARKETPLACE */}
+      <View style={styles.section}>
+        <View style={styles.row}>
+          <Text style={styles.sectionTitle}>🛒 Marketplace</Text>
+          <Badge count={marketNotifs} />
+        </View>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={styles.marketScroll}
+          onScroll={() => marketNotifs > 0 && clearNotifications('market')}
+        >
+          {marketItems.map(item => (
+            <View key={item.id} style={styles.marketItemCard}>
+              <Text style={styles.itemEmoji}>{item.cost > 100 ? '🎁' : '🎟️'}</Text>
+              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.itemCost}>💎 {item.cost}</Text>
+              <TouchableOpacity 
+                style={[styles.buyBtn, (currentUser?.tokens || 0) < item.cost && styles.disabledBtn]} 
+                onPress={() => purchaseItem(item.id)}
+              >
+                <Text style={styles.buyBtnText}>Buy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setWishlistGoal(item.id)}>
+                <Text style={styles.wishlistLink}>Set Goal ⭐</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* 6. WISHLIST PROGRESS */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🎯 Goal: {goalItem.name}</Text>
+        <View style={styles.progressBg}>
+          <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+        </View>
+        <Text style={styles.progressSubtext}>
+          {currentUser?.tokens} / {goalItem.cost} Tokens ({Math.floor(progress * 100)}%)
+        </Text>
       </View>
 
       {/* 7. ACTIVITY MODAL */}
