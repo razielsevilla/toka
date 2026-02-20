@@ -39,9 +39,10 @@ interface Transaction {
 // Added Notification Interface
 interface Notification {
   id: string;
-  type: 'task' | 'market' | 'rejection';
+  type: 'task' | 'market' | 'rejection' | 'market_purchase'; // <-- Added 'market_purchase'
   message: string;
   read: boolean;
+  timestamp?: number; // <-- Added to support your new notification payload
 }
 
 interface TokaState {
@@ -89,7 +90,7 @@ interface TokaState {
   rejectTask: (taskId: string, reason: string) => void;
   addMarketItem: (item: { name: string; cost: number; type: string }) => void;
   removeMarketItem: (itemId: string) => void;
-  clearNotifications: (type: 'task' | 'market' | 'rejection') => void; // <-- Added action
+  clearNotifications: (type: 'task' | 'market' | 'rejection' | 'market_purchase') => void; // <-- Updated
 }
 
 // --- THE STORE ENGINE ---
@@ -208,6 +209,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     }
   },
 
+  // --- UPDATED purchaseItem LOGIC ---
   purchaseItem: (itemId) => {
     const { marketItems, user } = get();
     const item = marketItems.find((i) => i.id === itemId);
@@ -217,8 +219,17 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     const finalCost = Math.floor(item.cost * discount);
 
     if (user.tokens >= finalCost) {
+      const newNotification: Notification = {
+        id: Date.now().toString(),
+        type: 'market_purchase',
+        message: `${user.name} just claimed: ${item?.name}!`,
+        read: false,
+        timestamp: Date.now(),
+      };
+
       set((state) => ({
         user: { ...state.user, tokens: state.user.tokens - finalCost },
+        notifications: [newNotification, ...state.notifications], // Notify parent
         transactions: [
           {
             id: Date.now().toString(),
@@ -426,7 +437,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     set((state) => {
       // Create new notifications array immutably if it's spontaneous
       const updatedNotifications = newTask.type === 'spontaneous' 
-        ? [...state.notifications, { id: Date.now().toString(), type: 'task' as const, message: 'New instant task available!', read: false }]
+        ? [{ id: Date.now().toString(), type: 'task' as const, message: 'New instant task available!', read: false }, ...state.notifications]
         : state.notifications;
 
       return {
@@ -489,8 +500,8 @@ export const useTokaStore = create<TokaState>((set, get) => ({
           : t
       ),
       notifications: [
-        ...state.notifications, 
-        { id: Date.now().toString(), type: 'rejection', message: 'A chore was sent back!', read: false }
+        { id: Date.now().toString(), type: 'rejection', message: 'A chore was sent back!', read: false },
+        ...state.notifications
       ]
     }));
     Alert.alert("Task Sent Back", "The child has been notified to try again.");
@@ -501,8 +512,8 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     set((state) => ({
       marketItems: [...state.marketItems, newItem],
       notifications: [
-        ...state.notifications,
-        { id: Date.now().toString(), type: 'market', message: 'New reward in the market!', read: false }
+        { id: Date.now().toString(), type: 'market', message: 'New reward in the market!', read: false },
+        ...state.notifications
       ]
     }));
     Alert.alert("Market Updated", `${item.name} is now available for the kids!`);
