@@ -38,12 +38,17 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   interestRate: 0.05,
   interestFrequency: 'weekly',
   lastInterestApplied: Date.now(),
+  conversionRate: 0.01, // 1 token = $0.01
   currentUser: null,
   mockUsers: [
     { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123', wishlist: [] },
     { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123', wishlist: [] },
   ],
+  monthlyBudget: 50.00, // Real-world dollars max allowed
   notifications: [],
+  bills: [
+    { id: 'b1', title: 'WiFi Tax 📶', amount: 10, frequency: 'weekly' }
+  ],
 
   // --- ACTIONS ---
 
@@ -546,5 +551,125 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     set({ interestRate: rate, interestFrequency: frequency });
   },
 
+  setBudgetPolicy: (rate, budget) => {
+    set({ conversionRate: rate, monthlyBudget: budget });
+  },
+
+  addBill: (bill) => {
+    set((state) => ({
+      bills: [...state.bills, { ...bill, id: `bill_${Date.now()}` }]
+    }));
+    Alert.alert("Bill Added", `${bill.title} will now be deducted ${bill.frequency}.`);
+  },
+
+  removeBill: (billId) => {
+    set((state) => ({
+      bills: state.bills.filter(b => b.id !== billId)
+    }));
+  },
+
+  processBills: () => {
+    const { bills, mockUsers, user, currentUser } = get();
+    if (bills.length === 0) return;
+
+    let totalDeductions = 0;
+    const billBreakdown = bills.map(b => {
+      totalDeductions += b.amount;
+      return b.title;
+    }).join(", ");
+
+    const activeUser = currentUser || user;
+
+    // Process for all members
+    const updatedMockUsers = mockUsers.map(u => {
+      if (u.role === 'member') {
+        return { ...u, tokens: Math.max(0, u.tokens - totalDeductions) };
+      }
+      return u;
+    });
+
+    // Update active user if they are a member
+    let updatedActiveUser = activeUser;
+    let newTransactions: Transaction[] = [];
+
+    if (activeUser.role === 'member') {
+      const amountDeducted = Math.min(activeUser.tokens, totalDeductions); // don't go below 0
+      updatedActiveUser = { ...activeUser, tokens: activeUser.tokens - amountDeducted };
+
+      newTransactions = bills.map(b => ({
+        id: `tx_${Date.now()}_${b.id}`,
+        amount: Math.min(updatedActiveUser.tokens + amountDeducted, b.amount), // Approximate the exact bill deduction if they don't have enough
+        type: 'spend' as const,
+        reason: `Bill Paid: ${b.title}`,
+        timestamp: Date.now()
+      }));
+    }
+
+    set((state) => ({
+      mockUsers: updatedMockUsers,
+      user: activeUser.id === updatedActiveUser.id ? updatedActiveUser! : state.user,
+      currentUser: currentUser?.id === updatedActiveUser.id ? updatedActiveUser! : state.currentUser,
+      transactions: [...newTransactions, ...state.transactions],
+      notifications: [
+        { id: `notif_${Date.now()}`, type: 'market' as const, message: `Bills processed: ${billBreakdown}`, read: false },
+        ...state.notifications
+      ]
+    }));
+
+    Alert.alert("Bills Processed 🧾", `Deducted a total of ${totalDeductions} tokens from members for: ${billBreakdown}`);
+  },
+
+  submitCounterOffer: (taskId, userId, amount, reason) => {
+    set((state) => ({
+      tasks: state.tasks.map(t => t.id === taskId ? {
+        ...t,
+        status: 'negotiating',
+        proposedBy: userId,
+        counterOfferAmount: amount,
+        counterOfferReason: reason
+      } : t),
+      notifications: [
+        { id: `notif_${Date.now()}`, type: 'task' as const, message: `Someone is negotiating a chore!`, read: false },
+        ...state.notifications
+      ]
+    }));
+    Alert.alert("Offer Sent", "Your counter-offer has been sent to the parents for review.");
+  },
+
+  acceptCounterOffer: (taskId) => {
+    const { tasks } = get();
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || !task.proposedBy) return;
+
+    set((state) => ({
+      tasks: state.tasks.map(t => t.id === taskId ? {
+        ...t,
+        status: 'accepted',
+        assignedTo: [task.proposedBy!],
+        reward: task.counterOfferAmount || task.reward,
+        counterOfferAmount: undefined,
+        counterOfferReason: undefined,
+        proposedBy: undefined
+      } : t),
+    }));
+    Alert.alert("Offer Accepted", "The chore has been assigned to the child at the new rate!");
+  },
+
+  rejectCounterOffer: (taskId, reason) => {
+    set((state) => ({
+      tasks: state.tasks.map(t => t.id === taskId ? {
+        ...t,
+        status: 'open',
+        counterOfferAmount: undefined,
+        counterOfferReason: undefined,
+        proposedBy: undefined
+      } : t),
+      notifications: [
+        { id: `notif_${Date.now()}`, type: 'rejection' as const, message: `Your counter-offer was declined: ${reason}`, read: false },
+        ...state.notifications
+      ]
+    }));
+    Alert.alert("Offer Declined", "The chore is back on the open market.");
+  }
 
 }));

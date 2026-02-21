@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, TextInput } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function ChoreBoard() {
-  const { currentUser, tasks, acceptTask, submitTask, clearNotifications, notifications } = useTokaStore();
+  const { currentUser, tasks, acceptTask, submitTask, clearNotifications, notifications, submitCounterOffer } = useTokaStore();
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+
+  const [negotiatingTaskId, setNegotiatingTaskId] = useState<string | null>(null);
+  const [counterAmount, setCounterAmount] = useState('');
+  const [counterReason, setCounterReason] = useState('');
 
   const choreNotifs = notifications.filter(n => (n.type === 'task' || n.type === 'rejection') && !n.read).length;
   const myTasks = tasks.filter(t => t.assignedTo.includes(currentUser?.id || '') && t.status !== 'completed');
@@ -24,6 +28,23 @@ export default function ChoreBoard() {
     }
   };
 
+  const handleSendOffer = (taskId: string) => {
+    if (!counterAmount || !counterReason) {
+      Alert.alert("Missing Info", "Please provide how many tokens you want, and why!");
+      return;
+    }
+    const amountNum = parseInt(counterAmount, 10);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      Alert.alert("Invalid Amount", "Tokens must be a positive number.");
+      return;
+    }
+
+    submitCounterOffer(taskId, currentUser?.id || '', amountNum, counterReason);
+    setNegotiatingTaskId(null);
+    setCounterAmount('');
+    setCounterReason('');
+  };
+
   return (
     <View style={styles.section}>
       <View style={styles.row}>
@@ -33,7 +54,7 @@ export default function ChoreBoard() {
 
       <View style={styles.tabContainer}>
         {(['daily', 'weekly', 'monthly'] as const).map((tab) => (
-          <TouchableOpacity 
+          <TouchableOpacity
             key={tab}
             onPress={() => { setActiveTab(tab); clearNotifications('task'); }}
             style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
@@ -53,8 +74,8 @@ export default function ChoreBoard() {
             <Text style={styles.taskReward}>💎 {task.reward}</Text>
           </View>
           {task.rejectionReason && <View style={styles.rejectionBox}><Text style={styles.rejectionText}>💬 Fix: "{task.rejectionReason}"</Text></View>}
-          <TouchableOpacity 
-            style={[styles.verifyBtn, task.status === 'pending' && styles.disabledBtn]} 
+          <TouchableOpacity
+            style={[styles.verifyBtn, task.status === 'pending' && styles.disabledBtn]}
             onPress={() => handleVerify(task.id)}
             disabled={task.status === 'pending'}
           >
@@ -65,10 +86,38 @@ export default function ChoreBoard() {
 
       {activeTab === 'daily' && availablePool.map(task => (
         <View key={task.id} style={styles.poolCard}>
-          <Text style={styles.taskTitle}>{task.title}</Text>
-          <TouchableOpacity style={styles.claimBtn} onPress={() => acceptTask(task.id, currentUser?.id || '')}>
-            <Text style={styles.btnText}>Claim 💎</Text>
-          </TouchableOpacity>
+          {negotiatingTaskId === task.id ? (
+            <View style={styles.negotiateForm}>
+              <Text style={styles.formLabel}>Negotiating: {task.title} (Current: {task.reward}💎)</Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginVertical: 10 }}>
+                <TextInput style={[styles.input, { flex: 0.3 }]} placeholder="Amount" keyboardType="numeric" value={counterAmount} onChangeText={setCounterAmount} />
+                <TextInput style={[styles.input, { flex: 0.7 }]} placeholder="Reason? (e.g. Too hard)" value={counterReason} onChangeText={setCounterReason} />
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => setNegotiatingTaskId(null)}>
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.submitOfferBtn} onPress={() => handleSendOffer(task.id)}>
+                  <Text style={styles.btnText}>Send Offer ✨</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <>
+              <View>
+                <Text style={styles.taskTitle}>{task.title}</Text>
+                <Text style={styles.taskReward}>💎 {task.reward}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity style={styles.negotiateBtn} onPress={() => setNegotiatingTaskId(task.id)}>
+                  <Text style={styles.negotiateBtnText}>Negotiate</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.claimBtn} onPress={() => acceptTask(task.id, currentUser?.id || '')}>
+                  <Text style={styles.btnText}>Claim</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
       ))}
     </View>
@@ -96,7 +145,15 @@ const styles = StyleSheet.create({
   rejectionText: { color: '#D63031', fontSize: 11, fontWeight: 'bold' },
   rejectedCard: { borderLeftWidth: 6, borderLeftColor: '#D63031' },
   poolCard: { backgroundColor: '#E1F5FE', padding: 15, borderRadius: 20, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: '#03A9F4' },
-  claimBtn: { backgroundColor: '#03A9F4', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10 },
+  claimBtn: { backgroundColor: '#03A9F4', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10 },
   badge: { backgroundColor: '#D63031', minWidth: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', marginLeft: 8 },
   badgeText: { color: 'white', fontSize: 10, fontWeight: '900' },
+  negotiateBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#03A9F4', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10 },
+  negotiateBtnText: { color: '#03A9F4', fontWeight: 'bold', fontSize: 12 },
+  negotiateForm: { width: '100%' },
+  formLabel: { fontSize: 13, fontWeight: '700', color: '#2D3436' },
+  input: { backgroundColor: '#FFF', borderRadius: 8, padding: 10, fontSize: 13, color: '#2D3436', borderWidth: 1, borderColor: '#B2BEC3' },
+  cancelBtn: { paddingVertical: 10, paddingHorizontal: 15 },
+  cancelBtnText: { color: '#B2BEC3', fontWeight: '700', fontSize: 12 },
+  submitOfferBtn: { backgroundColor: '#6C5CE7', paddingVertical: 10, paddingHorizontal: 15, borderRadius: 10 },
 });

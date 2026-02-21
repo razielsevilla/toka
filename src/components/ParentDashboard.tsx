@@ -1,13 +1,15 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 
-// Subcomponents
 import MarketAlerts from './parent/MarketAlerts';
+import BudgetOverview from './parent/BudgetOverview';
+import AnalyticsReport from './parent/AnalyticsReport';
 import ChildTracker from './parent/ChildTracker';
 import ApprovalQueue from './parent/ApprovalQueue';
 import TaskCreator from './parent/TaskCreator';
 import MarketManager from './parent/MarketManager';
-import BankingPolicy from './parent/BankingPolicy'; // <-- New Policy Component
+import BankingPolicy from './parent/BankingPolicy';
+import RecurringBills from './parent/RecurringBills';
 
 export default function ParentDashboard() {
   return (
@@ -17,16 +19,24 @@ export default function ParentDashboard() {
         {/* 1. Notifications & Alerts */}
         <MarketAlerts />
 
-        {/* 2. Oversight: How the kids are doing */}
+        {/* 2. Economy Oversight */}
+        <BudgetOverview />
+
+        <AnalyticsReport />
+
+        {/* 4. Child Progress Tracker */}
         <ChildTracker />
 
-        {/* 3. Action Center: Approving work & withdrawals */}
+        {/* 5. Action Center: Approving work & withdrawals */}
         <ApprovalQueue />
 
-        {/* 4. Household Rules: Banking & Interest Policies */}
+        {/* 6. Household Rules: Banking & Interest Policies */}
         <BankingPolicy />
 
-        {/* 5. Management: Creating work & rewards */}
+        {/* 7. Deductions & Taxes */}
+        <RecurringBills />
+
+        {/* 8. Management: Creating work & rewards */}
         <TaskCreator />
         <MarketManager />
 

@@ -3,13 +3,25 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-na
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function ApprovalQueue() {
-  const { tasks, mockUsers, approveTask, rejectTask } = useTokaStore();
-  const pendingItems = tasks.filter(t => t.status === 'pending');
+  const { tasks, mockUsers, approveTask, rejectTask, acceptCounterOffer, rejectCounterOffer } = useTokaStore();
+  const pendingItems = tasks.filter(t => t.status === 'pending' || t.status === 'negotiating');
 
   const handleReject = (task: any) => {
+    if (task.status === 'negotiating') {
+      Alert.prompt(
+        "Decline Offer",
+        "Why are you declining this counter-offer?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Decline Offer", onPress: (reason?: string) => rejectCounterOffer(task.id, reason || "Offer declined.") }
+        ]
+      );
+      return;
+    }
+
     if (task.isWithdrawal) {
       Alert.alert(
-        "Decline Withdrawal", 
+        "Decline Withdrawal",
         "Would you like to return these tokens to the child's vault?",
         [
           { text: "Cancel", style: "cancel" },
@@ -35,41 +47,59 @@ export default function ApprovalQueue() {
         <Text style={styles.sectionTitle}>Approvals Queue</Text>
         <View style={styles.countBadge}><Text style={styles.countText}>{pendingItems.length}</Text></View>
       </View>
-      
+
       {pendingItems.length === 0 ? (
         <Text style={styles.emptyText}>Nothing to approve right now! ✨</Text>
       ) : (
-        pendingItems.map(item => (
-          <View key={item.id} style={[
-            styles.verifyCard, 
-            item.isWithdrawal ? styles.withdrawalCard : styles.choreCard
-          ]}>
-            <View style={styles.verifyInfo}>
-              <Text style={styles.verifyTaskName}>
-                {item.isWithdrawal ? "💰 Withdrawal Request" : item.title}
-              </Text>
-              <Text style={styles.verifySubtitle}>
-                From: {mockUsers.find(u => u.id === item.assignedTo[0])?.name || 'Child'}
-              </Text>
-            </View>
+        pendingItems.map(item => {
+          const isNegotiation = item.status === 'negotiating';
+          const childName = mockUsers.find(u => u.id === (isNegotiation ? item.proposedBy : item.assignedTo[0]))?.name || 'Child';
 
-            {item.proofUrl && <Image source={{ uri: item.proofUrl }} style={styles.proofPreview} />}
-            
-            <View style={styles.actionRow}>
-              <TouchableOpacity style={styles.rejectBtn} onPress={() => handleReject(item)}>
-                <Text style={styles.rejectBtnText}>{item.isWithdrawal ? "Decline" : "Send Back"}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.approveBtn, item.isWithdrawal && {backgroundColor: '#6C5CE7'}]} 
-                onPress={() => approveTask(item.id)}
-              >
-                <Text style={styles.approveBtnText}>
-                  {item.isWithdrawal ? `Release ${item.reward} 💎` : `Approve & Pay 💎`}
+          return (
+            <View key={item.id} style={[
+              styles.verifyCard,
+              item.isWithdrawal ? styles.withdrawalCard : isNegotiation ? styles.negotiationCard : styles.choreCard
+            ]}>
+              <View style={styles.verifyInfo}>
+                <Text style={styles.verifyTaskName}>
+                  {item.isWithdrawal ? "💰 Withdrawal Request" : isNegotiation ? "🤝 Counter Offer" : item.title}
                 </Text>
-              </TouchableOpacity>
+
+                {isNegotiation ? (
+                  <View style={{ marginTop: 5 }}>
+                    <Text style={styles.verifySubtitle}>From: {childName}</Text>
+                    <Text style={{ fontWeight: 'bold', color: '#6C5CE7', marginVertical: 3 }}>
+                      Asks for: {item.counterOfferAmount} 💎 (Original: {item.reward})
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#636E72', fontStyle: 'italic' }}>
+                      "{item.counterOfferReason}"
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.verifySubtitle}>From: {childName}</Text>
+                )}
+              </View>
+
+              {item.proofUrl && !isNegotiation && <Image source={{ uri: item.proofUrl }} style={styles.proofPreview} />}
+
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={styles.rejectBtn} onPress={() => handleReject(item)}>
+                  <Text style={styles.rejectBtnText}>
+                    {item.isWithdrawal ? "Decline" : isNegotiation ? "Decline Offer" : "Send Back"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.approveBtn, (item.isWithdrawal || isNegotiation) && { backgroundColor: '#6C5CE7' }]}
+                  onPress={() => isNegotiation ? acceptCounterOffer(item.id) : approveTask(item.id)}
+                >
+                  <Text style={styles.approveBtnText}>
+                    {item.isWithdrawal ? `Release ${item.reward} 💎` : isNegotiation ? 'Accept Offer ✨' : `Approve & Pay 💎`}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        ))
+          );
+        })
       )}
     </View>
   );
@@ -85,6 +115,7 @@ const styles = StyleSheet.create({
   verifyCard: { backgroundColor: '#F8F9FA', borderRadius: 15, padding: 15, marginBottom: 10, borderLeftWidth: 5 },
   choreCard: { borderLeftColor: '#F39C12' },
   withdrawalCard: { borderLeftColor: '#6C5CE7' },
+  negotiationCard: { borderLeftColor: '#E17055' },
   verifyTaskName: { fontSize: 16, fontWeight: '700', color: '#2D3436' },
   verifySubtitle: { fontSize: 12, color: '#636E72', marginBottom: 10 },
   verifyInfo: { marginBottom: 10 },

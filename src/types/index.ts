@@ -17,13 +17,16 @@ export interface Task {
   id: string;
   title: string;
   reward: number;
-  status: 'open' | 'accepted' | 'pending' | 'completed';
+  status: 'open' | 'accepted' | 'pending' | 'completed' | 'negotiating';
   type: 'regular' | 'spontaneous';
   frequency?: 'daily' | 'weekly' | 'monthly';
   assignedTo: string[]; // empty if spontaneous and not yet accepted
   proofUrl?: string;
   rejectionReason?: string; // Support rejectTask logic
   isWithdrawal?: boolean; // Flag withdrawal pseudo-tasks
+  counterOfferAmount?: number;
+  counterOfferReason?: string;
+  proposedBy?: string;
 }
 
 export interface Transaction {
@@ -60,8 +63,11 @@ export interface TokaState {
   currentUser: User | null;
   mockUsers: User[];
   notifications: Notification[];
+  bills: { id: string; title: string; amount: number; frequency: 'daily' | 'weekly' | 'monthly' }[];
   interestFrequency: 'daily' | 'weekly' | 'monthly';
   lastInterestApplied: number;
+  conversionRate: number; // Real-world value of 1 token (e.g., 0.01 = 1 cent)
+  monthlyBudget: number; // Maximum dollars allowed to distribute per month
 
   // Actions
   setRole: (role: UserRole) => void;
@@ -89,4 +95,11 @@ export interface TokaState {
   removeMarketItem: (itemId: string) => void;
   clearNotifications: (type: 'task' | 'market' | 'rejection' | 'market_purchase') => void;
   setInterestPolicy: (rate: number, frequency: 'daily' | 'weekly' | 'monthly') => void;
+  setBudgetPolicy: (rate: number, budget: number) => void;
+  addBill: (bill: { title: string; amount: number; frequency: 'daily' | 'weekly' | 'monthly' }) => void;
+  removeBill: (billId: string) => void;
+  processBills: () => void;
+  submitCounterOffer: (taskId: string, userId: string, amount: number, reason: string) => void;
+  acceptCounterOffer: (taskId: string) => void;
+  rejectCounterOffer: (taskId: string, reason: string) => void;
 }
