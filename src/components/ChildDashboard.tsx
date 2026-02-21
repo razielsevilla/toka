@@ -24,13 +24,13 @@ export default function ChildDashboard() {
           <>
             <WishlistHero />
             <ChoreBoard />
-            <PeerTransfer />
           </>
         );
       case 'economy':
         return (
           <>
             <TokaBank />
+            <PeerTransfer />
             <Marketplace />
           </>
         );

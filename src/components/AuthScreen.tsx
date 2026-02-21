@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { useTokaStore } from '../store/useTokaStore';
 
 export default function AuthScreen() {
-  const { login } = useTokaStore();
+  const { login, mockUsers } = useTokaStore();
   const [email, setEmail] = useState('');
 
   return (
@@ -11,15 +11,15 @@ export default function AuthScreen() {
       <Text style={styles.authTitle}>Toka</Text>
       <View style={styles.inputCard}>
         <Text style={styles.label}>Choose Account to Sign In</Text>
-        
-        <TouchableOpacity onPress={() => setEmail('Mom')}>
-          <Text style={email === 'Mom' ? styles.selected : styles.unselected}>👩 Parent (Admin)</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity onPress={() => setEmail('Raziel')}>
-          <Text style={email === 'Raziel' ? styles.selected : styles.unselected}>🧒 Child (Member)</Text>
-        </TouchableOpacity>
-        
+
+        {mockUsers.map(user => (
+          <TouchableOpacity key={user.id} onPress={() => setEmail(user.name.split(' ')[0])}>
+            <Text style={email === user.name.split(' ')[0] ? styles.selected : styles.unselected}>
+              {user.role === 'admin' ? '👩 Parent (Admin)' : `🧒 ${user.name.split(' ')[0]} (Member)`}
+            </Text>
+          </TouchableOpacity>
+        ))}
+
         <TouchableOpacity style={styles.loginBtn} onPress={() => login(email, '123')}>
           <Text style={styles.btnText}>Log In</Text>
         </TouchableOpacity>
