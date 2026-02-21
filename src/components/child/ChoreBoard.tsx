@@ -3,6 +3,15 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, TextInput } from 'reac
 import * as ImagePicker from 'expo-image-picker';
 import { useTokaStore } from '../../store/useTokaStore';
 
+function getRemainingTime(deadline?: number) {
+  if (!deadline) return null;
+  const diff = deadline - Date.now();
+  if (diff <= 0) return 'Expired';
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m`;
+}
+
 export default function ChoreBoard() {
   const { currentUser, tasks, acceptTask, submitTask, clearNotifications, notifications, submitCounterOffer } = useTokaStore();
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
@@ -12,8 +21,10 @@ export default function ChoreBoard() {
   const [counterReason, setCounterReason] = useState('');
 
   const choreNotifs = notifications.filter(n => (n.type === 'task' || n.type === 'rejection') && !n.read).length;
-  const myTasks = tasks.filter(t => t.assignedTo.includes(currentUser?.id || '') && t.status !== 'completed');
-  const availablePool = tasks.filter(t => t.type === 'spontaneous' && t.status === 'open' && t.assignedTo.length === 0);
+
+  const now = Date.now();
+  const myTasks = tasks.filter(t => t.assignedTo.includes(currentUser?.id || '') && t.status !== 'completed' && (!t.deadline || t.deadline > now));
+  const availablePool = tasks.filter(t => t.type === 'spontaneous' && t.status === 'open' && t.assignedTo.length === 0 && (!t.deadline || t.deadline > now));
 
   const filteredTasks = myTasks
     .filter(t => activeTab === 'daily' ? (t.frequency === 'daily' || t.type === 'spontaneous') : t.frequency === activeTab)
@@ -69,7 +80,10 @@ export default function ChoreBoard() {
           <View style={styles.rowBetween}>
             <View>
               <Text style={styles.taskTitle}>{task.title}</Text>
-              <Text style={styles.typeTag}>{task.type === 'spontaneous' ? '⚡ INSTANT' : task.frequency?.toUpperCase()}</Text>
+              <View style={styles.tagsRow}>
+                <Text style={styles.typeTag}>{task.type === 'spontaneous' ? '⚡ INSTANT' : task.frequency?.toUpperCase()}</Text>
+                {task.deadline && <Text style={styles.deadlineTag}>⏳ {getRemainingTime(task.deadline)} left</Text>}
+              </View>
             </View>
             <Text style={styles.taskReward}>💎 {task.reward}</Text>
           </View>
@@ -106,7 +120,10 @@ export default function ChoreBoard() {
             <>
               <View>
                 <Text style={styles.taskTitle}>{task.title}</Text>
-                <Text style={styles.taskReward}>💎 {task.reward}</Text>
+                <View style={styles.tagsRow}>
+                  <Text style={styles.taskReward}>💎 {task.reward}</Text>
+                  {task.deadline && <Text style={styles.deadlineTag}>⏳ {getRemainingTime(task.deadline)} left</Text>}
+                </View>
               </View>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <TouchableOpacity style={styles.negotiateBtn} onPress={() => setNegotiatingTaskId(task.id)}>
@@ -137,7 +154,9 @@ const styles = StyleSheet.create({
   taskCard: { backgroundColor: '#F8F9FA', padding: 15, borderRadius: 20, marginBottom: 12 },
   taskTitle: { fontSize: 15, fontWeight: '700', color: '#2D3436' },
   taskReward: { color: '#0984E3', fontWeight: 'bold', fontSize: 16 },
-  typeTag: { fontSize: 9, fontWeight: '800', color: '#B2BEC3', marginTop: 2 },
+  tagsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2, gap: 5 },
+  typeTag: { fontSize: 9, fontWeight: '800', color: '#B2BEC3' },
+  deadlineTag: { fontSize: 9, fontWeight: '800', color: '#E17055', backgroundColor: '#FFEAA7', paddingHorizontal: 4, paddingVertical: 1, borderRadius: 4 },
   verifyBtn: { backgroundColor: '#6C5CE7', padding: 12, borderRadius: 12, marginTop: 12, alignItems: 'center' },
   disabledBtn: { backgroundColor: '#B2BEC3' },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 12 },

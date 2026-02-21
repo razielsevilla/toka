@@ -14,18 +14,21 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     streak: 0,
     householdId: null,
     wishlist: [],
+    xp: 0,
+    level: 1,
+    badges: ['Seedling'],
   },
   tasks: [
     { id: '1', title: 'Wash the Dishes', reward: 20, status: 'open', type: 'regular', frequency: 'daily', assignedTo: [] },
     { id: '2', title: 'Clean the Backyard', reward: 50, status: 'open', type: 'regular', frequency: 'weekly', assignedTo: [] },
     { id: '3', title: 'Clean the Garage (Team-Up)', reward: 100, status: 'open', type: 'regular', frequency: 'monthly', assignedTo: ['user_01', 'sibling_01'] },
-    { id: '4', title: 'Wash the Car', reward: 80, status: 'open', type: 'spontaneous', assignedTo: [] },
+    { id: '4', title: 'Wash the Car', reward: 80, status: 'open', type: 'spontaneous', assignedTo: [], deadline: Date.now() + 3600000 },
   ],
   transactions: [],
   marketItems: [
     { id: 'm1', name: '30 Mins Screen Time', cost: 50, type: 'voucher' },
     { id: 'm2', name: 'Pizza Night', cost: 200, type: 'real-world' },
-    { id: 'm3', name: 'Cool Avatar Hat', cost: 30, type: 'in-app' },
+    { id: 'm3', name: 'Cool Avatar Hat', cost: 15, originalCost: 30, saleUntil: Date.now() + 86400000, type: 'in-app' },
   ],
   auction: {
     itemName: 'Family Trip to the Theme Park',
@@ -42,7 +45,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   currentUser: null,
   mockUsers: [
     { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123', wishlist: [] },
-    { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123', wishlist: [] },
+    { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123', wishlist: [], xp: 450, level: 1, badges: ['Seedling', 'First Chore!'] },
   ],
   monthlyBudget: 50.00, // Real-world dollars max allowed
   notifications: [],
@@ -81,7 +84,24 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     if (activeUser.streak >= 30) multiplier = 2.0;
 
     const finalAmount = Math.floor(amount * multiplier);
-    const updatedUser = { ...activeUser, tokens: activeUser.tokens + finalAmount };
+
+    // XP Calculation
+    const xpGained = finalAmount * 10;
+    const newXp = (activeUser.xp || 0) + xpGained;
+    const newLevel = Math.floor(newXp / 500) + 1;
+    let newBadges = activeUser.badges || ['Seedling'];
+
+    // Auto-award badges at milestones
+    if (newLevel >= 2 && !newBadges.includes('Rising Star')) newBadges = [...newBadges, 'Rising Star'];
+    if (newLevel >= 5 && !newBadges.includes('Chore Master')) newBadges = [...newBadges, 'Chore Master'];
+
+    const updatedUser = {
+      ...activeUser,
+      tokens: activeUser.tokens + finalAmount,
+      xp: newXp,
+      level: newLevel,
+      badges: newBadges
+    };
 
     set((state) => ({
       user: updatedUser,
@@ -137,7 +157,22 @@ export const useTokaStore = create<TokaState>((set, get) => ({
         // Target the assigned children and update their balances directly
         updatedMockUsers = updatedMockUsers.map(u => {
           if (task.assignedTo.includes(u.id)) {
-            return { ...u, tokens: u.tokens + splitReward, streak: u.streak + 1 };
+            const xpGained = splitReward * 10;
+            const newXp = (u.xp || 0) + xpGained;
+            const newLevel = Math.floor(newXp / 500) + 1;
+            let newBadges = u.badges || ['Seedling'];
+
+            if (newLevel >= 2 && !newBadges.includes('Rising Star')) newBadges = [...newBadges, 'Rising Star'];
+            if (newLevel >= 5 && !newBadges.includes('Chore Master')) newBadges = [...newBadges, 'Chore Master'];
+
+            return {
+              ...u,
+              tokens: u.tokens + splitReward,
+              streak: u.streak + 1,
+              xp: newXp,
+              level: newLevel,
+              badges: newBadges
+            };
           }
           return u;
         });
@@ -153,7 +188,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   },
 
   purchaseItem: (itemId) => {
-    const { marketItems, currentUser, user, mockUsers } = get();
+    const { marketItems, currentUser, user } = get();
 
     // Grab the active logged-in child
     const activeUser = currentUser || user;
@@ -165,7 +200,10 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     const discount = activeUser.streak >= 7 ? 0.9 : 1.0;
     const finalCost = Math.floor(item.cost * discount);
 
-    if (activeUser.tokens >= finalCost) {
+    const isGoal = activeUser.activeGoal?.itemId === itemId;
+    const goalSavedTokens = isGoal && activeUser.activeGoal ? activeUser.activeGoal.savedTokens : 0;
+
+    if ((activeUser.tokens + goalSavedTokens) >= finalCost) {
       const newNotification: Notification = {
         id: Date.now().toString(),
         type: 'market_purchase',
@@ -174,15 +212,35 @@ export const useTokaStore = create<TokaState>((set, get) => ({
         timestamp: Date.now(),
       };
 
+      let newTokensCount = activeUser.tokens;
+      let newGoal = activeUser.activeGoal;
+
+      // Handle payment routing based on whether they used goal tokens or regular tokens
+      if (isGoal) {
+        if (goalSavedTokens >= finalCost) {
+          // Paid purely out of goal savings, pocket the difference if any (though we clear the goal)
+          newTokensCount = newTokensCount + (goalSavedTokens - finalCost);
+        } else {
+          // Goal didn't cover it all, dip into regular tokens
+          const remainderToPay = finalCost - goalSavedTokens;
+          newTokensCount -= remainderToPay;
+        }
+        // Clear goal upon purchase
+        newGoal = undefined;
+      } else {
+        newTokensCount -= finalCost;
+      }
+
       // Create the updated user object with deducted tokens
       const updatedUser = {
         ...activeUser,
-        tokens: activeUser.tokens - finalCost
+        tokens: newTokensCount,
+        activeGoal: newGoal
       };
 
       set((state) => ({
-        user: updatedUser,
-        currentUser: updatedUser,
+        user: state.user.id === activeUser.id ? updatedUser : state.user,
+        currentUser: state.currentUser?.id === activeUser.id ? updatedUser : state.currentUser,
         mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
         notifications: [newNotification, ...state.notifications],
         transactions: [
@@ -197,11 +255,11 @@ export const useTokaStore = create<TokaState>((set, get) => ({
         ],
       }));
 
-      Alert.alert("Reward Claimed! 🎉", `You successfully exchanged ${finalCost} tokens for ${item.name}.`);
+      Alert.alert("Reward Claimed! 🎉", `You successfully exchanged ${finalCost} 💎 for ${item.name}.`);
       return true;
     }
 
-    Alert.alert("Insufficient Tokens", `You need ${finalCost} tokens for this reward. Keep doing those chores!`);
+    Alert.alert("Insufficient Tokens", `You need ${finalCost} 💎 for this reward. Keep doing those chores!`);
     return false;
   },
 
@@ -454,15 +512,60 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     const { currentUser, user } = get();
     const activeUser = currentUser || user;
 
+    if (activeUser.activeGoal?.itemId === itemId) return; // Already the goal
+
+    // Return any previously saved tokens to their main wallet if they abandon their previous goal
+    const refundedTokens = activeUser.activeGoal ? activeUser.activeGoal.savedTokens : 0;
+
     const isAlreadyInWishlist = activeUser.wishlist.includes(itemId);
     const newWishlist = isAlreadyInWishlist ? activeUser.wishlist : [...activeUser.wishlist, itemId];
 
-    const updatedUser = { ...activeUser, wishlist: newWishlist };
+    const updatedUser = {
+      ...activeUser,
+      wishlist: newWishlist,
+      tokens: activeUser.tokens + refundedTokens,
+      activeGoal: { itemId, savedTokens: 0 }
+    };
 
     set((state) => ({
-      user: updatedUser,
-      currentUser: updatedUser,
-      mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u)
+      user: state.user.id === activeUser.id ? updatedUser : state.user,
+      currentUser: state.currentUser?.id === activeUser.id ? updatedUser : state.currentUser,
+      mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
+      ...(refundedTokens > 0 ? {
+        transactions: [
+          { id: `refund_${Date.now()}`, amount: refundedTokens, type: 'earn', reason: 'Goal Refunded', timestamp: Date.now() },
+          ...state.transactions
+        ]
+      } : {})
+    }));
+  },
+
+  fundGoal: (amount) => {
+    const { currentUser, user } = get();
+    const activeUser = currentUser || user;
+
+    if (!activeUser.activeGoal || amount <= 0 || activeUser.tokens < amount) {
+      Alert.alert("Invalid Amount", "You don't have enough tokens!");
+      return;
+    }
+
+    const updatedUser = {
+      ...activeUser,
+      tokens: activeUser.tokens - amount,
+      activeGoal: {
+        ...activeUser.activeGoal,
+        savedTokens: activeUser.activeGoal.savedTokens + amount
+      }
+    };
+
+    set((state) => ({
+      user: state.user.id === activeUser.id ? updatedUser : state.user,
+      currentUser: state.currentUser?.id === activeUser.id ? updatedUser : state.currentUser,
+      mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
+      transactions: [
+        { id: `goal_${Date.now()}`, amount, type: 'spend', reason: 'Deposited to Goal', timestamp: Date.now() },
+        ...state.transactions
+      ]
     }));
   },
 
@@ -670,6 +773,102 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       ]
     }));
     Alert.alert("Offer Declined", "The chore is back on the open market.");
+  },
+
+  transferTokens: (toUserId, amount, memo) => {
+    const { currentUser, user, mockUsers } = get();
+    const activeUser = currentUser || user;
+
+    if (amount <= 0 || activeUser.tokens < amount) {
+      Alert.alert("Transfer Failed", "Invalid amount or insufficient tokens.");
+      return;
+    }
+
+    const receiver = mockUsers.find(u => u.id === toUserId);
+    if (!receiver) {
+      Alert.alert("Transfer Failed", "Could not find the recipient.");
+      return;
+    }
+
+    const updatedActiveUser = { ...activeUser, tokens: activeUser.tokens - amount };
+    const updatedMockUsers = mockUsers.map(u => {
+      if (u.id === activeUser.id) return updatedActiveUser;
+      if (u.id === toUserId) return { ...u, tokens: u.tokens + amount };
+      return u;
+    });
+
+    set((state) => ({
+      user: state.user.id === activeUser.id ? updatedActiveUser : state.user,
+      currentUser: state.currentUser?.id === activeUser.id ? updatedActiveUser : state.currentUser,
+      mockUsers: updatedMockUsers,
+      transactions: [
+        {
+          id: `tx_${Date.now()}`,
+          amount,
+          type: 'spend',
+          reason: `Transfer to ${receiver.name}: ${memo}`,
+          timestamp: Date.now()
+        },
+        ...state.transactions
+      ],
+      notifications: [
+        {
+          id: `notif_${Date.now()}`,
+          type: 'market',
+          message: `${activeUser.name.split(' ')[0]} sent ${amount} 💎 to ${receiver.name.split(' ')[0]}!`,
+          read: false
+        },
+        ...state.notifications
+      ]
+    }));
+
+    Alert.alert("Transfer Complete! 💸", `Successfully sent ${amount} 💎 to ${receiver.name}.`);
+  },
+
+  playDoubleOrNothing: (wager) => {
+    const { currentUser, user, mockUsers } = get();
+    const activeUser = currentUser || user;
+
+    if (activeUser.tokens < wager || wager <= 0) {
+      return 'lose'; // Handled in UI
+    }
+
+    const isWin = Math.random() >= 0.5;
+
+    let tokenChange = 0;
+    let reason = '';
+    let transactionType: 'earn' | 'spend' = 'spend'; // default
+
+    if (isWin) {
+      tokenChange = wager; // we gain the wager amount
+      reason = `Mini-game Win: Doubled!`;
+      transactionType = 'earn';
+    } else {
+      tokenChange = -wager; // we lose the wager
+      reason = `Mini-game Loss`;
+      transactionType = 'spend';
+    }
+
+    const updatedActiveUser = { ...activeUser, tokens: activeUser.tokens + tokenChange };
+    const updatedMockUsers = mockUsers.map(u => u.id === activeUser.id ? updatedActiveUser : u);
+
+    set((state) => ({
+      user: state.user.id === activeUser.id ? updatedActiveUser : state.user,
+      currentUser: state.currentUser?.id === activeUser.id ? updatedActiveUser : state.currentUser,
+      mockUsers: updatedMockUsers,
+      transactions: [
+        {
+          id: `tx_minigame_${Date.now()}`,
+          amount: Math.abs(tokenChange),
+          type: transactionType,
+          reason,
+          timestamp: Date.now()
+        },
+        ...state.transactions
+      ]
+    }));
+
+    return isWin ? 'win' : 'lose';
   }
 
 }));

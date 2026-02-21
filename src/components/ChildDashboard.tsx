@@ -5,14 +5,17 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import WishlistHero from './child/WishlistHero';
 import TokaBank from './child/TokaBank';
 import ChoreBoard from './child/ChoreBoard';
+import PeerTransfer from './child/PeerTransfer';
+import RpgProfile from './child/RpgProfile';
 import Leaderboard from './child/Leaderboard';
 import Marketplace from './child/Marketplace';
+import MiniGames from './child/MiniGames';
 
 export default function ChildDashboard() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        
+
         {/* We start with the goal for motivation */}
         <WishlistHero />
 
@@ -22,8 +25,17 @@ export default function ChildDashboard() {
         {/* The core gameplay/work loop */}
         <ChoreBoard />
 
+        {/* Peer-to-Peer Transactions */}
+        <PeerTransfer />
+
+        {/* Leveling & Badges system */}
+        <RpgProfile />
+
         {/* Social competition */}
         <Leaderboard />
+
+        {/* Fun minigames */}
+        <MiniGames />
 
         {/* The spending/rewards shop */}
         <Marketplace />
