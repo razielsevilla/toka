@@ -3,42 +3,61 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function MarketManager() {
-  const { marketItems, addMarketItem, removeMarketItem } = useTokaStore();
-  
+  const { marketItems, addMarketItem, removeMarketItem, auction, startAuction } = useTokaStore();
+
   const [itemName, setItemName] = useState('');
   const [itemCost, setItemCost] = useState('');
+
+  // Auction State
+  const [auctionName, setAuctionName] = useState('');
+  const [auctionBid, setAuctionBid] = useState('');
 
   const handleAddReward = () => {
     if (!itemName || !itemCost) {
       Alert.alert("Error", "Please enter reward name and cost.");
       return;
     }
-    addMarketItem({ 
-      name: itemName, 
-      cost: parseInt(itemCost), 
-      type: 'Custom Reward' 
+    addMarketItem({
+      name: itemName,
+      cost: parseInt(itemCost),
+      type: 'Custom Reward'
     });
     setItemName('');
     setItemCost('');
+  };
+
+  const handleStartAuction = () => {
+    if (!auctionName || !auctionBid) {
+      Alert.alert("Error", "Please enter auction item name and starting bid.");
+      return;
+    }
+    if (auction.isActive) {
+      Alert.alert("Error", "An auction is already running!");
+      return;
+    }
+    // Default duration to 300 seconds (5 mins) for now
+    startAuction(auctionName, 300, parseInt(auctionBid));
+    setAuctionName('');
+    setAuctionBid('');
   };
 
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Manage Market Rewards</Text>
       <View style={styles.addRewardForm}>
-        <TextInput 
-          style={[styles.input, { flex: 0.6, marginBottom: 0 }]} 
-          placeholder="New Reward" 
-          placeholderTextColor="#999" 
-          value={itemName} 
-          onChangeText={setItemName} 
+        <TextInput
+          style={[styles.input, { flex: 0.6, marginBottom: 0 }]}
+          placeholder="New Reward"
+          placeholderTextColor="#999"
+          value={itemName}
+          onChangeText={setItemName}
         />
-        <TextInput 
-          style={[styles.input, { flex: 0.25, marginBottom: 0 }]} 
-          placeholder="Cost" 
-          keyboardType="numeric" 
-          value={itemCost} 
-          onChangeText={setItemCost} 
+        <TextInput
+          style={[styles.input, { flex: 0.25, marginBottom: 0 }]}
+          placeholder="Cost"
+          keyboardType="numeric"
+          value={itemCost}
+          onChangeText={setItemCost}
         />
         <TouchableOpacity style={styles.addBtnSmall} onPress={handleAddReward}>
           <Text style={styles.addBtnText}>+</Text>
@@ -55,6 +74,37 @@ export default function MarketManager() {
           </TouchableOpacity>
         </View>
       ))}
+
+      {/* Auction Section */}
+      <Text style={[styles.sectionTitle, { marginTop: 25 }]}>Start an Auction 🔨</Text>
+
+      {auction.isActive ? (
+        <View style={styles.activeAuctionBox}>
+          <Text style={styles.auctionTitle}>Currently Auctioning: {auction.itemName}</Text>
+          <Text style={styles.auctionDetails}>Highest Bid: 💎 {auction.highestBid} by {auction.highestBidder || 'No one'}</Text>
+          <Text style={styles.auctionDetails}>Time Left: {Math.floor(auction.timeLeft / 60)}m {auction.timeLeft % 60}s</Text>
+        </View>
+      ) : (
+        <View style={styles.addRewardForm}>
+          <TextInput
+            style={[styles.input, { flex: 0.6, marginBottom: 0 }]}
+            placeholder="Auction Item"
+            placeholderTextColor="#999"
+            value={auctionName}
+            onChangeText={setAuctionName}
+          />
+          <TextInput
+            style={[styles.input, { flex: 0.25, marginBottom: 0 }]}
+            placeholder="Start Bid"
+            keyboardType="numeric"
+            value={auctionBid}
+            onChangeText={setAuctionBid}
+          />
+          <TouchableOpacity style={[styles.addBtnSmall, { backgroundColor: '#FF7675' }]} onPress={handleStartAuction}>
+            <Text style={styles.addBtnText}>🚀</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -70,4 +120,7 @@ const styles = StyleSheet.create({
   marketItemName: { fontSize: 14, fontWeight: '600', color: '#2D3436' },
   marketItemCost: { fontSize: 12, color: '#00B894', fontWeight: 'bold' },
   removeText: { color: '#D63031', fontSize: 12, fontWeight: 'bold' },
+  activeAuctionBox: { backgroundColor: '#FFEAA7', padding: 15, borderRadius: 10, borderWidth: 1, borderColor: '#FDCB6E' },
+  auctionTitle: { fontSize: 14, fontWeight: '800', color: '#2D3436', marginBottom: 5 },
+  auctionDetails: { fontSize: 12, color: '#636E72', fontWeight: '600' }
 });

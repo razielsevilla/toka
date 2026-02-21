@@ -36,7 +36,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     highestBid: 100,
     highestBidder: null,
     timeLeft: 300,
-    isActive: true,
+    isActive: false,
   },
   vaultBalance: 0,
   interestRate: 0.05,
@@ -316,6 +316,19 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     Alert.alert('Streak Reset', 'Oh no! You missed a day. The multiplier is back to 1.0x.');
   },
 
+  startAuction: (itemName: string, durationSeconds: number, startingBid: number) => {
+    set({
+      auction: {
+        itemName,
+        highestBid: startingBid,
+        highestBidder: null,
+        timeLeft: durationSeconds,
+        isActive: true
+      }
+    });
+    Alert.alert("Auction Started", `${itemName} is now up for auction!`);
+  },
+
   placeBid: (amount) => {
     const { auction, currentUser, user } = get();
     const activeUser = currentUser || user;
@@ -351,11 +364,17 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     const { auction } = get();
     if (!auction.isActive || auction.timeLeft <= 0) return;
 
+    const newTimeLeft = auction.timeLeft - 1;
+
     set((state) => ({
-      auction: { ...state.auction, timeLeft: state.auction.timeLeft - 1 },
+      auction: {
+        ...state.auction,
+        timeLeft: newTimeLeft,
+        isActive: newTimeLeft > 0
+      },
     }));
 
-    if (auction.timeLeft === 1) {
+    if (newTimeLeft === 0) {
       Alert.alert('AUCTION ENDED!', `${auction.highestBidder ?? 'No one'} won the ${auction.itemName}!`);
     }
   },

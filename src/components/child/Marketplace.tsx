@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useTokaStore } from '../../store/useTokaStore';
 
@@ -12,7 +12,9 @@ function getRemainingTime(deadline?: number) {
 }
 
 export default function Marketplace() {
-  const { currentUser, marketItems, purchaseItem, setWishlistGoal, openMysteryBox, withdrawFromVault, vaultBalance, notifications, clearNotifications } = useTokaStore();
+  const { currentUser, marketItems, purchaseItem, setWishlistGoal, openMysteryBox, withdrawFromVault, vaultBalance, notifications, clearNotifications, auction, placeBid } = useTokaStore();
+
+  const [bidAmount, setBidAmount] = useState('');
 
   const userTokens = currentUser?.tokens || 0;
   const marketNotifs = notifications.filter(n => n.type === 'market' && !n.read).length;
@@ -38,6 +40,31 @@ export default function Marketplace() {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} onScroll={() => marketNotifs > 0 && clearNotifications('market')}>
+
+        {auction.isActive && (
+          <View style={[styles.marketItemCard, styles.auctionCard]}>
+            <Text style={styles.itemEmoji}>🔨</Text>
+            <Text style={styles.itemName} numberOfLines={2}>{auction.itemName}</Text>
+            <Text style={styles.itemCostSale}>💎 {auction.highestBid}</Text>
+            <Text style={styles.saleTag}>Bid by: {auction.highestBidder || 'No one'}</Text>
+            <Text style={styles.saleTag}>Time Left: {Math.floor(auction.timeLeft / 60)}m {auction.timeLeft % 60}s</Text>
+            <View style={{ flexDirection: 'row', gap: 5, marginTop: 10 }}>
+              <TouchableOpacity
+                style={[styles.buyBtn, { flex: 1 }]}
+                onPress={() => placeBid(auction.highestBid + 10)}
+              >
+                <Text style={styles.buyBtnText}>Bid +10</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.buyBtn, { flex: 1 }]}
+                onPress={() => placeBid(auction.highestBid + 50)}
+              >
+                <Text style={styles.buyBtnText}>Bid +50</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         <View style={[styles.marketItemCard, styles.specialCardGacha]}>
           <Text style={styles.itemEmoji}>📦</Text>
           <Text style={styles.itemName}>Mystery Box</Text>
@@ -101,6 +128,7 @@ const styles = StyleSheet.create({
   marketItemCard: { backgroundColor: '#F8F9FA', padding: 15, borderRadius: 20, marginRight: 15, width: 130, alignItems: 'center', borderWidth: 1, borderColor: '#EEE' },
   specialCardGacha: { borderColor: '#A29BFE', backgroundColor: '#F4F1FF', borderWidth: 2 },
   specialCardCash: { borderColor: '#00B894', backgroundColor: '#E6FCF5', borderWidth: 2 },
+  auctionCard: { borderColor: '#FF7675', backgroundColor: '#FFEAA7', borderWidth: 2, width: 160 },
   itemEmoji: { fontSize: 32, marginBottom: 5 },
   itemName: { fontSize: 12, fontWeight: '800', textAlign: 'center', height: 34, color: '#2D3436' },
   itemCost: { color: '#0984E3', fontWeight: '900', fontSize: 13, marginBottom: 10 },

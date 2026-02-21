@@ -86,6 +86,7 @@ export interface TokaState {
   openMysteryBox: () => string;
   resetStreak: () => void;
   placeBid: (amount: number) => void;
+  startAuction: (itemName: string, durationSeconds: number, startingBid: number) => void;
   tickAuction: () => void;
   depositToVault: (amount: number) => void;
   withdrawFromVault: (amount: number) => void;
