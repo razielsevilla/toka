@@ -6,6 +6,7 @@ import WishlistHero from './child/WishlistHero';
 import TokaBank from './child/TokaBank';
 import ChoreBoard from './child/ChoreBoard';
 import PeerTransfer from './child/PeerTransfer';
+import AchievementBoard from './child/AchievementBoard';
 import RpgProfile from './child/RpgProfile';
 import Leaderboard from './child/Leaderboard';
 import Marketplace from './child/Marketplace';
@@ -27,6 +28,9 @@ export default function ChildDashboard() {
 
         {/* Peer-to-Peer Transactions */}
         <PeerTransfer />
+
+        {/* Gamified Objectives */}
+        <AchievementBoard />
 
         {/* Leveling & Badges system */}
         <RpgProfile />

@@ -15,6 +15,7 @@ export interface User {
   xp?: number;
   level?: number;
   badges?: string[];
+  unlockedAchievements?: string[];
 }
 
 export interface Task {
@@ -110,4 +111,5 @@ export interface TokaState {
   rejectCounterOffer: (taskId: string, reason: string) => void;
   transferTokens: (toUserId: string, amount: number, memo: string) => void;
   playDoubleOrNothing: (wager: number) => 'win' | 'lose';
+  claimAchievement: (achievementId: string, rewardTokens: number, badgeName?: string) => void;
 }

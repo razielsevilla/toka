@@ -17,6 +17,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     xp: 0,
     level: 1,
     badges: ['Seedling'],
+    unlockedAchievements: [],
   },
   tasks: [
     { id: '1', title: 'Wash the Dishes', reward: 20, status: 'open', type: 'regular', frequency: 'daily', assignedTo: [] },
@@ -44,8 +45,8 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   conversionRate: 0.01, // 1 token = $0.01
   currentUser: null,
   mockUsers: [
-    { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123', wishlist: [] },
-    { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123', wishlist: [], xp: 450, level: 1, badges: ['Seedling', 'First Chore!'] },
+    { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123', wishlist: [], unlockedAchievements: [] },
+    { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123', wishlist: [], xp: 450, level: 1, badges: ['Seedling', 'First Chore!'], unlockedAchievements: [] },
   ],
   monthlyBudget: 50.00, // Real-world dollars max allowed
   notifications: [],
@@ -869,6 +870,49 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     }));
 
     return isWin ? 'win' : 'lose';
+  },
+
+  claimAchievement: (achievementId, rewardTokens, badgeName) => {
+    const { currentUser, user, mockUsers } = get();
+    const activeUser = currentUser || user;
+
+    const alreadyUnlocked = activeUser.unlockedAchievements?.includes(achievementId);
+    if (alreadyUnlocked) return;
+
+    const newUnlocked = [...(activeUser.unlockedAchievements || []), achievementId];
+    const newBadges = badgeName && !activeUser.badges?.includes(badgeName)
+      ? [...(activeUser.badges || []), badgeName]
+      : activeUser.badges;
+
+    const updatedActiveUser = {
+      ...activeUser,
+      tokens: activeUser.tokens + rewardTokens,
+      unlockedAchievements: newUnlocked,
+      badges: newBadges
+    };
+
+    const updatedMockUsers = mockUsers.map(u => u.id === activeUser.id ? updatedActiveUser : u);
+
+    set((state) => ({
+      user: state.user.id === activeUser.id ? updatedActiveUser : state.user,
+      currentUser: state.currentUser?.id === activeUser.id ? updatedActiveUser : state.currentUser,
+      mockUsers: updatedMockUsers,
+      transactions: [
+        {
+          id: `tx_achievement_${Date.now()}`,
+          amount: rewardTokens,
+          type: 'earn',
+          reason: `Achievement Unlocked! 🏆`,
+          timestamp: Date.now()
+        },
+        ...state.transactions
+      ]
+    }));
+
+    Alert.alert(
+      "Achievement Unlocked! 🏅",
+      `You earned ${rewardTokens} 💎${badgeName ? ` and the '${badgeName}' badge!` : '!'}`
+    );
   }
 
 }));
