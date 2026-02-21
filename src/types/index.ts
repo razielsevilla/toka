@@ -60,6 +60,8 @@ export interface TokaState {
   currentUser: User | null;
   mockUsers: User[];
   notifications: Notification[];
+  interestFrequency: 'daily' | 'weekly' | 'monthly';
+  lastInterestApplied: number;
 
   // Actions
   setRole: (role: UserRole) => void;
@@ -86,4 +88,5 @@ export interface TokaState {
   addMarketItem: (item: { name: string; cost: number; type: string }) => void;
   removeMarketItem: (itemId: string) => void;
   clearNotifications: (type: 'task' | 'market' | 'rejection' | 'market_purchase') => void;
+  setInterestPolicy: (rate: number, frequency: 'daily' | 'weekly' | 'monthly') => void;
 }

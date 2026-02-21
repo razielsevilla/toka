@@ -10,12 +10,28 @@ import ParentDashboard from './src/components/ParentDashboard';
 import ChildDashboard from './src/components/ChildDashboard';
 
 export default function App() {
-  const { currentUser, tickAuction } = useTokaStore();
+  const { currentUser, tickAuction, applyInterest } = useTokaStore();
 
   useEffect(() => {
     if (!currentUser) return;
-    const interval = setInterval(() => tickAuction(), 1000);
-    return () => clearInterval(interval);
+
+    // 1. Tick the auction every second
+    const auctionInterval = setInterval(() => {
+      tickAuction();
+    }, 1000);
+
+    // 2. Mock background check for interest growth
+    // In a real app, this would compare timestamps. 
+    // Here, we'll check every 30 seconds for demo purposes.
+    const interestInterval = setInterval(() => {
+      // Logic for automated application could go here
+      // For now, it stays ready to be called by your logic
+    }, 30000);
+
+    return () => {
+      clearInterval(auctionInterval);
+      clearInterval(interestInterval);
+    };
   }, [tickAuction, currentUser]);
 
   if (!currentUser) {
@@ -25,7 +41,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      
+
       {/* GLOBAL HEADER */}
       <Header />
 

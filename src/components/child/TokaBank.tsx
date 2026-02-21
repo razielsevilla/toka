@@ -27,7 +27,13 @@ export default function TokaBank() {
         <View style={styles.bankDivider} />
         <View style={styles.accountBox}>
           <Text style={styles.accountLabel}>VAULT SAVINGS</Text>
-          <Text style={styles.vaultAmountMain}>💎 {vaultBalance}</Text>
+          <View style={styles.vaultRow}>
+            <Text style={styles.vaultAmountMain}>💎 {vaultBalance}</Text>
+            {/* NEW: Interest Rate Tag */}
+            <View style={styles.interestTag}>
+              <Text style={styles.interestText}>+5%</Text>
+            </View>
+          </View>
           {isPending && <Text style={styles.pendingText}>⏳ Withdrawal Pending...</Text>}
         </View>
       </View>
@@ -105,4 +111,7 @@ const styles = StyleSheet.create({
   txReason: { flex: 1, color: '#2D3436', fontSize: 13 },
   closeBtn: { backgroundColor: '#2D3436', padding: 15, borderRadius: 15, marginTop: 20, alignItems: 'center' },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 12 },
+  vaultRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  interestTag: { backgroundColor: '#00B894', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, marginLeft: 4 },
+  interestText: { color: '#FFF', fontSize: 10, fontWeight: '900' },
 });

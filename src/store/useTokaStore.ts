@@ -18,8 +18,8 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   tasks: [
     { id: '1', title: 'Wash the Dishes', reward: 20, status: 'open', type: 'regular', frequency: 'daily', assignedTo: [] },
     { id: '2', title: 'Clean the Backyard', reward: 50, status: 'open', type: 'regular', frequency: 'weekly', assignedTo: [] },
-    { id: '3',  title: 'Clean the Garage (Team-Up)', reward: 100, status: 'open', type: 'regular', frequency: 'monthly', assignedTo: ['user_01', 'sibling_01'] },
-    { id: '4',  title: 'Wash the Car', reward: 80, status: 'open', type: 'spontaneous', assignedTo: [] },
+    { id: '3', title: 'Clean the Garage (Team-Up)', reward: 100, status: 'open', type: 'regular', frequency: 'monthly', assignedTo: ['user_01', 'sibling_01'] },
+    { id: '4', title: 'Wash the Car', reward: 80, status: 'open', type: 'spontaneous', assignedTo: [] },
   ],
   transactions: [],
   marketItems: [
@@ -36,6 +36,8 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   },
   vaultBalance: 0,
   interestRate: 0.05,
+  interestFrequency: 'weekly',
+  lastInterestApplied: Date.now(),
   currentUser: null,
   mockUsers: [
     { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123', wishlist: [] },
@@ -106,13 +108,13 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   approveTask: (taskId) => {
     const { tasks, user, mockUsers } = get();
     const task = tasks.find((t) => t.id === taskId);
-  
+
     // --- WITHDRAWAL APPROVAL LOGIC ---
     if (task && task.isWithdrawal && user.role === 'admin') {
       const childId = task.assignedTo[0];
       set((state) => ({
         tasks: state.tasks.filter(t => t.id !== taskId), // Remove request
-        mockUsers: state.mockUsers.map(u => 
+        mockUsers: state.mockUsers.map(u =>
           u.id === childId ? { ...u, tokens: u.tokens + task.reward } : u
         )
       }));
@@ -123,10 +125,10 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     if (task && user.role === 'admin') {
       const participantCount = task.assignedTo.length;
       let updatedMockUsers = [...mockUsers];
-      
+
       if (participantCount > 0) {
         const splitReward = Math.floor(task.reward / participantCount);
-        
+
         // Target the assigned children and update their balances directly
         updatedMockUsers = updatedMockUsers.map(u => {
           if (task.assignedTo.includes(u.id)) {
@@ -135,7 +137,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
           return u;
         });
       }
-  
+
       set((state) => ({
         tasks: state.tasks.map((t) =>
           t.id === taskId ? { ...t, status: 'completed', rejectionReason: undefined } : t
@@ -147,10 +149,10 @@ export const useTokaStore = create<TokaState>((set, get) => ({
 
   purchaseItem: (itemId) => {
     const { marketItems, currentUser, user, mockUsers } = get();
-    
+
     // Grab the active logged-in child
-    const activeUser = currentUser || user; 
-    
+    const activeUser = currentUser || user;
+
     const item = marketItems.find((i) => i.id === itemId);
     if (!item) return false;
 
@@ -174,10 +176,10 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       };
 
       set((state) => ({
-        user: updatedUser, 
-        currentUser: updatedUser, 
-        mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u), 
-        notifications: [newNotification, ...state.notifications], 
+        user: updatedUser,
+        currentUser: updatedUser,
+        mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
+        notifications: [newNotification, ...state.notifications],
         transactions: [
           {
             id: Date.now().toString(),
@@ -189,11 +191,11 @@ export const useTokaStore = create<TokaState>((set, get) => ({
           ...state.transactions,
         ],
       }));
-      
+
       Alert.alert("Reward Claimed! 🎉", `You successfully exchanged ${finalCost} tokens for ${item.name}.`);
       return true;
     }
-    
+
     Alert.alert("Insufficient Tokens", `You need ${finalCost} tokens for this reward. Keep doing those chores!`);
     return false;
   },
@@ -241,7 +243,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     const activeUser = currentUser || user;
     const updatedUser = { ...activeUser, streak: 0 };
 
-    set((state) => ({ 
+    set((state) => ({
       user: updatedUser,
       currentUser: updatedUser,
       mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u)
@@ -305,14 +307,14 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       return;
     }
 
-    const updatedUser = { 
-      ...activeUser, 
-      tokens: activeUser.tokens - amount 
+    const updatedUser = {
+      ...activeUser,
+      tokens: activeUser.tokens - amount
     };
 
     set((state) => ({
-      user: updatedUser, 
-      currentUser: updatedUser, 
+      user: updatedUser,
+      currentUser: updatedUser,
       mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
       vaultBalance: state.vaultBalance + amount,
       transactions: [
@@ -344,32 +346,41 @@ export const useTokaStore = create<TokaState>((set, get) => ({
 
     set((state) => ({
       tasks: [...state.tasks, withdrawalRequest],
-      vaultBalance: state.vaultBalance - amount, 
+      vaultBalance: state.vaultBalance - amount,
     }));
 
     Alert.alert("Request Sent", "Waiting for parent approval to release tokens.");
   },
 
   applyInterest: () => {
-    const { vaultBalance, interestRate } = get();
+    const { vaultBalance, interestRate, currentUser, user } = get();
     if (vaultBalance <= 0) return;
 
+    // Calculate interest (e.g., 5% of vault balance)
     const interestEarned = Math.floor(vaultBalance * interestRate);
-    if (interestEarned <= 0) return;
 
-    set((state) => ({
-      vaultBalance: state.vaultBalance + interestEarned,
-      transactions: [
-        {
-          id: Date.now().toString(),
-          amount: interestEarned,
-          type: 'earn',
-          reason: 'Vault Interest Earned',
-          timestamp: Date.now(),
-        },
-        ...state.transactions,
-      ],
-    }));
+    if (interestEarned > 0) {
+      const activeUser = currentUser || user;
+
+      set((state) => ({
+        vaultBalance: state.vaultBalance + interestEarned,
+        transactions: [
+          {
+            id: `int_${Date.now()}`,
+            amount: interestEarned,
+            type: 'earn',
+            reason: `Vault Interest (${(interestRate * 100).toFixed(0)}% APY) 📈`,
+            timestamp: Date.now(),
+          },
+          ...state.transactions,
+        ],
+      }));
+
+      Alert.alert(
+        "Interest Paid! 💰",
+        `Your savings grew by ${interestEarned} 💎 just by sitting in the vault!`
+      );
+    }
   },
 
   login: (email, pass) => {
@@ -411,9 +422,9 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       assignedTo: taskData.assignedTo || [],
       ...taskData,
     };
-    
+
     set((state) => {
-      const updatedNotifications = newTask.type === 'spontaneous' 
+      const updatedNotifications = newTask.type === 'spontaneous'
         ? [{ id: Date.now().toString(), type: 'task' as const, message: 'New instant task available!', read: false }, ...state.notifications]
         : state.notifications;
 
@@ -437,10 +448,10 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   setWishlistGoal: (itemId) => {
     const { currentUser, user } = get();
     const activeUser = currentUser || user;
-    
+
     const isAlreadyInWishlist = activeUser.wishlist.includes(itemId);
     const newWishlist = isAlreadyInWishlist ? activeUser.wishlist : [...activeUser.wishlist, itemId];
-    
+
     const updatedUser = { ...activeUser, wishlist: newWishlist };
 
     set((state) => ({
@@ -465,7 +476,7 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       tokens: 0,
       streak: 0,
       householdId: user.householdId,
-      password: '123', 
+      password: '123',
       wishlist: [],
     };
 
@@ -476,14 +487,14 @@ export const useTokaStore = create<TokaState>((set, get) => ({
   rejectTask: (taskId, reason) => {
     const { tasks } = get();
     const task = tasks.find(t => t.id === taskId);
-    
+
     if (!task) return;
 
     // 1. Handle Withdrawal Denials (Refund Vault)
     if (task.isWithdrawal) {
       set((state) => ({
-        tasks: state.tasks.filter(t => t.id !== taskId), 
-        vaultBalance: state.vaultBalance + task.reward, 
+        tasks: state.tasks.filter(t => t.id !== taskId),
+        vaultBalance: state.vaultBalance + task.reward,
         notifications: [
           { id: Date.now().toString(), type: 'rejection', message: 'Withdrawal request declined.', read: false },
           ...state.notifications
@@ -496,13 +507,13 @@ export const useTokaStore = create<TokaState>((set, get) => ({
     // 2. Handle Chore Rejections
     set((state) => ({
       tasks: state.tasks.map((t) =>
-        t.id === taskId 
-          ? { 
-              ...t, 
-              status: t.type === 'spontaneous' ? 'accepted' : 'open', 
-              proofUrl: undefined, 
-              rejectionReason: reason 
-            } 
+        t.id === taskId
+          ? {
+            ...t,
+            status: t.type === 'spontaneous' ? 'accepted' : 'open',
+            proofUrl: undefined,
+            rejectionReason: reason
+          }
           : t
       ),
       notifications: [
@@ -530,4 +541,10 @@ export const useTokaStore = create<TokaState>((set, get) => ({
       marketItems: state.marketItems.filter((i) => i.id !== itemId)
     }));
   },
+
+  setInterestPolicy: (rate, frequency) => {
+    set({ interestRate: rate, interestFrequency: frequency });
+  },
+
+
 }));
