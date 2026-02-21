@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import MarketAlerts from './parent/MarketAlerts';
 import BudgetOverview from './parent/BudgetOverview';
@@ -57,7 +58,7 @@ export default function ParentDashboard() {
           style={[styles.navItem, activeTab === 'home' && styles.navItemActive]}
           onPress={() => setActiveTab('home')}
         >
-          <Text style={styles.navIcon}>🏠</Text>
+          <Ionicons name="home-outline" size={22} color={activeTab === 'home' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'home' && styles.navTextActive]}>Home</Text>
         </TouchableOpacity>
 
@@ -65,7 +66,7 @@ export default function ParentDashboard() {
           style={[styles.navItem, activeTab === 'review' && styles.navItemActive]}
           onPress={() => setActiveTab('review')}
         >
-          <Text style={styles.navIcon}>✅</Text>
+          <Ionicons name="checkmark-circle-outline" size={22} color={activeTab === 'review' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'review' && styles.navTextActive]}>Review</Text>
         </TouchableOpacity>
 
@@ -73,7 +74,7 @@ export default function ParentDashboard() {
           style={[styles.navItem, activeTab === 'manage' && styles.navItemActive]}
           onPress={() => setActiveTab('manage')}
         >
-          <Text style={styles.navIcon}>⚙️</Text>
+          <Ionicons name="settings-outline" size={22} color={activeTab === 'manage' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'manage' && styles.navTextActive]}>Manage</Text>
         </TouchableOpacity>
       </View>
@@ -114,7 +115,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F1FF',
   },
   navIcon: {
-    fontSize: 22,
     marginBottom: 4,
   },
   navText: {

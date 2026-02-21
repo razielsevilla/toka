@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Alert, TextInput } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function ChildTracker() {
@@ -41,17 +42,26 @@ export default function ChildTracker() {
             <View key={child.id} style={styles.childDetailCard}>
               <View style={styles.childHeader}>
                 <Text style={styles.detailName}>{child.name.split(' ')[0]}</Text>
-                <Text style={styles.detailTokens}>💰 {child.tokens}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Ionicons name="diamond" size={14} color="#00B894" />
+                  <Text style={styles.detailTokens}>{child.tokens}</Text>
+                </View>
               </View>
 
               <View style={styles.statsMiniRow}>
                 <View style={styles.statBox}>
                   <Text style={styles.statLabel}>VAULT</Text>
-                  <Text style={[styles.statVal, { color: '#6C5CE7' }]}>💎 {vaultBalance}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Ionicons name="diamond" size={12} color="#6C5CE7" />
+                    <Text style={[styles.statVal, { color: '#6C5CE7' }]}>{vaultBalance}</Text>
+                  </View>
                 </View>
                 <View style={styles.statBox}>
                   <Text style={styles.statLabel}>STREAK</Text>
-                  <Text style={styles.statVal}>🔥 {child.streak}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Ionicons name="flame" size={12} color="#E17055" />
+                    <Text style={styles.statVal}>{child.streak}</Text>
+                  </View>
                 </View>
               </View>
 
@@ -80,7 +90,7 @@ export default function ChildTracker() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Add a Member</Text>
               <TouchableOpacity onPress={() => setIsInviteModalVisible(false)}>
-                <View style={styles.closeBtnIcon}><Text style={styles.closeBtnText}>✕</Text></View>
+                <View style={styles.closeBtnIcon}><Ionicons name="close" size={18} color="#2D3436" /></View>
               </TouchableOpacity>
             </View>
 

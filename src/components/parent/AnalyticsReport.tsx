@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function AnalyticsReport() {
@@ -30,7 +31,10 @@ export default function AnalyticsReport() {
 
     return (
         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📊 Household Analytics</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 15 }}>
+                <Ionicons name="bar-chart" size={20} color="#2D3436" />
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Household Analytics</Text>
+            </View>
 
             <View style={styles.metricsGrid}>
                 {/* Metric 1: Chore Completion */}
@@ -46,16 +50,19 @@ export default function AnalyticsReport() {
                 <View style={styles.metricCard}>
                     <Text style={[styles.metricValue, { color: '#E17055' }]}>{spendingRatio.toFixed(0)}%</Text>
                     <Text style={styles.metricLabel}>Earnings Spent</Text>
-                    <Text style={styles.helperText}>
-                        {spendingRatio > 80 ? "High Spenders 💸" : "Great Savers 🏦"}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                        <Text style={styles.helperText}>
+                            {spendingRatio > 80 ? "High Spenders" : "Great Savers"}
+                        </Text>
+                        <Ionicons name={spendingRatio > 80 ? "cash-outline" : "business-outline"} size={12} color="#B2BEC3" />
+                    </View>
                 </View>
             </View>
 
             {/* Top Performer Ribbon */}
             <View style={styles.ribbonCard}>
                 <View style={styles.ribbonIcon}>
-                    <Text style={{ fontSize: 24 }}>🏆</Text>
+                    <Ionicons name="trophy" size={24} color="#D97706" />
                 </View>
                 <View style={styles.ribbonContent}>
                     <Text style={styles.ribbonTitle}>Top Earner</Text>

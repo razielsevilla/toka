@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function BudgetOverview() {
@@ -31,7 +32,10 @@ export default function BudgetOverview() {
 
     return (
         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>💰 Budget & Economy</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 15 }}>
+                <Ionicons name="wallet" size={20} color="#2D3436" />
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Budget & Economy</Text>
+            </View>
 
             {/* Summary View */}
             <View style={styles.summaryCard}>

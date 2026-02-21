@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function MarketManager() {
@@ -67,7 +68,10 @@ export default function MarketManager() {
         <View key={item.id} style={styles.marketEditRow}>
           <View>
             <Text style={styles.marketItemName}>{item.name}</Text>
-            <Text style={styles.marketItemCost}>💎 {item.cost}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Ionicons name="diamond" size={12} color="#00B894" />
+              <Text style={styles.marketItemCost}>{item.cost}</Text>
+            </View>
           </View>
           <TouchableOpacity onPress={() => removeMarketItem(item.id)}>
             <Text style={styles.removeText}>Remove</Text>
@@ -76,12 +80,19 @@ export default function MarketManager() {
       ))}
 
       {/* Auction Section */}
-      <Text style={[styles.sectionTitle, { marginTop: 25 }]}>Start an Auction 🔨</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 25, marginBottom: 15 }}>
+        <Ionicons name="hammer" size={20} color="#2D3436" />
+        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Start an Auction</Text>
+      </View>
 
       {auction.isActive ? (
         <View style={styles.activeAuctionBox}>
           <Text style={styles.auctionTitle}>Currently Auctioning: {auction.itemName}</Text>
-          <Text style={styles.auctionDetails}>Highest Bid: 💎 {auction.highestBid} by {auction.highestBidder || 'No one'}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginVertical: 3 }}>
+            <Text style={styles.auctionDetails}>Highest Bid:</Text>
+            <Ionicons name="diamond" size={12} color="#636E72" />
+            <Text style={styles.auctionDetails}>{auction.highestBid} by {auction.highestBidder || 'No one'}</Text>
+          </View>
           <Text style={styles.auctionDetails}>Time Left: {Math.floor(auction.timeLeft / 60)}m {auction.timeLeft % 60}s</Text>
         </View>
       ) : (
@@ -101,7 +112,7 @@ export default function MarketManager() {
             onChangeText={setAuctionBid}
           />
           <TouchableOpacity style={[styles.addBtnSmall, { backgroundColor: '#FF7675' }]} onPress={handleStartAuction}>
-            <Text style={styles.addBtnText}>🚀</Text>
+            <Ionicons name="rocket" size={20} color="white" />
           </TouchableOpacity>
         </View>
       )}

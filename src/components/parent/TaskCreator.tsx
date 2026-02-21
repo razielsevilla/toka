@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 type AgeGroup = '4-7' | '8-12' | '13+';
@@ -96,7 +97,10 @@ export default function TaskCreator() {
             >
               <Text style={styles.templateTitle}>{item.title}</Text>
               <View style={styles.templateFooter}>
-                <Text style={styles.templateReward}>💎 {item.reward}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Ionicons name="diamond" size={12} color="#00B894" />
+                  <Text style={styles.templateReward}>{item.reward}</Text>
+                </View>
                 <Text style={styles.templateFreq}>{item.type === 'regular' ? item.freq : 'Instant'}</Text>
               </View>
             </TouchableOpacity>
@@ -146,7 +150,10 @@ export default function TaskCreator() {
       )}
 
       <TouchableOpacity style={styles.submitTaskBtn} onPress={handleCreateTask}>
-        <Text style={styles.submitTaskBtnText}>Launch Chore 🚀</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <Text style={styles.submitTaskBtnText}>Launch Chore</Text>
+          <Ionicons name="rocket" size={18} color="white" />
+        </View>
       </TouchableOpacity>
     </View>
   );

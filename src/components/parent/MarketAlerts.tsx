@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function MarketAlerts() {
@@ -11,7 +12,10 @@ export default function MarketAlerts() {
   return (
     <View style={styles.alertBanner}>
       <View style={styles.rowBetween}>
-        <Text style={styles.alertTitle}>🔔 Market Claims</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Ionicons name="notifications" size={16} color="#856404" />
+          <Text style={styles.alertTitle}>Market Claims</Text>
+        </View>
         <TouchableOpacity onPress={() => clearNotifications('market_purchase')}>
           <Text style={styles.dismissText}>Clear All</Text>
         </TouchableOpacity>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function BankingPolicy() {
@@ -19,7 +20,10 @@ export default function BankingPolicy() {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>🏦 Banking Policy</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 15 }}>
+        <Ionicons name="business" size={20} color="#2D3436" />
+        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Banking Policy</Text>
+      </View>
       <Text style={styles.miniLabel}>Interest Rate (%)</Text>
       <TextInput style={styles.input} keyboardType="numeric" returnKeyType="done" value={localRate} onChangeText={setLocalRate} />
       <Text style={styles.miniLabel}>Growth Frequency</Text>
@@ -32,7 +36,10 @@ export default function BankingPolicy() {
       </View>
       <TouchableOpacity style={styles.saveBtn} onPress={handleSave}><Text style={styles.saveBtnText}>Update Policy</Text></TouchableOpacity>
       <TouchableOpacity style={styles.simulateBtn} onPress={() => Alert.alert("Simulate Growth", "Apply interest immediately?", [{ text: "Cancel" }, { text: "Apply Now", onPress: applyInterest }])}>
-        <Text style={styles.simulateText}>Prototype: Run Interest Payout Now ⚡</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+          <Text style={styles.simulateText}>Prototype: Run Interest Payout Now</Text>
+          <Ionicons name="flash" size={14} color="#6C5CE7" />
+        </View>
       </TouchableOpacity>
     </View>
   );

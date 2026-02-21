@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function ApprovalQueue() {
@@ -49,7 +50,10 @@ export default function ApprovalQueue() {
       </View>
 
       {pendingItems.length === 0 ? (
-        <Text style={styles.emptyText}>Nothing to approve right now! ✨</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 20, gap: 5 }}>
+          <Text style={[styles.emptyText, { marginVertical: 0 }]}>Nothing to approve right now!</Text>
+          <Ionicons name="sparkles" size={16} color="#B2BEC3" />
+        </View>
       ) : (
         pendingItems.map(item => {
           const isNegotiation = item.status === 'negotiating';
@@ -61,16 +65,21 @@ export default function ApprovalQueue() {
               item.isWithdrawal ? styles.withdrawalCard : isNegotiation ? styles.negotiationCard : styles.choreCard
             ]}>
               <View style={styles.verifyInfo}>
-                <Text style={styles.verifyTaskName}>
-                  {item.isWithdrawal ? "💰 Withdrawal Request" : isNegotiation ? "🤝 Counter Offer" : item.title}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                  {item.isWithdrawal ? <Ionicons name="cash" size={18} color="#6C5CE7" /> : isNegotiation ? <Ionicons name="hand-left" size={18} color="#E17055" /> : null}
+                  <Text style={[styles.verifyTaskName, { marginBottom: 0 }]}>
+                    {item.isWithdrawal ? "Withdrawal Request" : isNegotiation ? "Counter Offer" : item.title}
+                  </Text>
+                </View>
 
                 {isNegotiation ? (
                   <View style={{ marginTop: 5 }}>
                     <Text style={styles.verifySubtitle}>From: {childName}</Text>
-                    <Text style={{ fontWeight: 'bold', color: '#6C5CE7', marginVertical: 3 }}>
-                      Asks for: {item.counterOfferAmount} 💎 (Original: {item.reward})
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 3, gap: 4 }}>
+                      <Text style={{ fontWeight: 'bold', color: '#6C5CE7' }}>Asks for: {item.counterOfferAmount}</Text>
+                      <Ionicons name="diamond" size={12} color="#6C5CE7" />
+                      <Text style={{ fontWeight: 'bold', color: '#6C5CE7' }}>(Original: {item.reward})</Text>
+                    </View>
                     <Text style={{ fontSize: 12, color: '#636E72', fontStyle: 'italic' }}>
                       "{item.counterOfferReason}"
                     </Text>
@@ -92,9 +101,12 @@ export default function ApprovalQueue() {
                   style={[styles.approveBtn, (item.isWithdrawal || isNegotiation) && { backgroundColor: '#6C5CE7' }]}
                   onPress={() => isNegotiation ? acceptCounterOffer(item.id) : approveTask(item.id)}
                 >
-                  <Text style={styles.approveBtnText}>
-                    {item.isWithdrawal ? `Release ${item.reward} 💎` : isNegotiation ? 'Accept Offer ✨' : `Approve & Pay 💎`}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text style={styles.approveBtnText}>
+                      {item.isWithdrawal ? `Release ${item.reward}` : isNegotiation ? 'Accept Offer' : `Approve & Pay`}
+                    </Text>
+                    {item.isWithdrawal ? <Ionicons name="diamond" size={14} color="white" /> : isNegotiation ? <Ionicons name="sparkles" size={14} color="white" /> : <Ionicons name="diamond" size={14} color="white" />}
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>

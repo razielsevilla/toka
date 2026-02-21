@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function RecurringBills() {
@@ -33,12 +34,18 @@ export default function RecurringBills() {
 
     return (
         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🧾 Taxes & Bills</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 15 }}>
+                <Ionicons name="receipt" size={20} color="#2D3436" />
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Taxes & Bills</Text>
+            </View>
 
             {/* Current Bills List */}
             <View style={styles.billsList}>
                 {bills.length === 0 ? (
-                    <Text style={styles.emptyText}>No active bills. Kids are living rent-free! 🏖️</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 10, gap: 5 }}>
+                        <Text style={[styles.emptyText, { marginVertical: 0 }]}>No active bills. Kids are living rent-free!</Text>
+                        <Ionicons name="partly-sunny" size={16} color="#B2BEC3" />
+                    </View>
                 ) : (
                     bills.map(bill => (
                         <View key={bill.id} style={styles.billCard}>
@@ -99,7 +106,10 @@ export default function RecurringBills() {
 
             {/* Prototype Tool */}
             <TouchableOpacity style={styles.simulateBtn} onPress={processBills}>
-                <Text style={styles.simulateText}>Prototype: Trigger Bills Now ⚡</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    <Text style={styles.simulateText}>Prototype: Trigger Bills Now</Text>
+                    <Ionicons name="flash" size={14} color="#E17055" />
+                </View>
             </TouchableOpacity>
         </View>
     );
