@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import { useTokaStore } from '../../store/useTokaStore';
 import { User } from '../../types';
 
@@ -55,13 +56,25 @@ export default function AchievementBoard() {
     const { currentUser, user, vaultBalance, claimAchievement } = useTokaStore();
     const activeUser = currentUser || user;
     const unlocked = activeUser.unlockedAchievements || [];
+    const animationRef = useRef<LottieView>(null);
 
     const handleClaim = (ach: Achievement) => {
-        claimAchievement(ach.id, ach.rewardTokens, ach.badgeName);
+        animationRef.current?.play();
+        setTimeout(() => {
+            claimAchievement(ach.id, ach.rewardTokens, ach.badgeName);
+        }, 1200);
     };
 
     return (
         <View style={styles.section}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, pointerEvents: 'none', alignItems: 'center', justifyContent: 'center' }}>
+                <LottieView
+                    ref={animationRef}
+                    source={require('../../../assets/lottie/success.json')}
+                    loop={false}
+                    style={{ width: 250, height: 250 }}
+                />
+            </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 5 }}>
                 <Ionicons name="trophy" size={20} color="#D35400" />
                 <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Achievement Board</Text>

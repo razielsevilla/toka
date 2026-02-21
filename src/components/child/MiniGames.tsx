@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function MiniGames() {
     const { playDoubleOrNothing, currentUser, user } = useTokaStore();
     const [wager, setWager] = useState('');
+    const animationRef = useRef<LottieView>(null);
 
     const activeUser = currentUser || user;
     const tokens = activeUser.tokens || 0;
@@ -33,7 +35,10 @@ export default function MiniGames() {
                     onPress: () => {
                         const result = playDoubleOrNothing(wagerAmount);
                         if (result === 'win') {
-                            Alert.alert("🎉 YOU WON! 🎉", `Awesome! You just doubled your wager and earned ${wagerAmount} 💎!`);
+                            animationRef.current?.play();
+                            setTimeout(() => {
+                                Alert.alert("🎉 YOU WON! 🎉", `Awesome! You just doubled your wager and earned ${wagerAmount} 💎!`);
+                            }, 1000);
                         } else {
                             Alert.alert("😢 Oh no!", `You lost ${wagerAmount} 💎. Better luck next time!`);
                         }
@@ -46,6 +51,14 @@ export default function MiniGames() {
 
     return (
         <View style={styles.container}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, pointerEvents: 'none', alignItems: 'center', justifyContent: 'center' }}>
+                <LottieView
+                    ref={animationRef}
+                    source={require('../../../assets/lottie/success.json')}
+                    loop={false}
+                    style={{ width: 150, height: 150 }}
+                />
+            </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 5 }}>
                 <Ionicons name="dice" size={20} color="#6C5CE7" />
                 <Text style={[styles.title, { marginBottom: 0 }]}>Double or Nothing</Text>
