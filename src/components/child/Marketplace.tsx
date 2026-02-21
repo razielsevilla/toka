@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 function getRemainingTime(deadline?: number) {
@@ -35,7 +36,10 @@ export default function Marketplace() {
   return (
     <View style={styles.section}>
       <View style={styles.row}>
-        <Text style={styles.sectionTitle}>🛒 Marketplace</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="cart" size={20} color="#2D3436" />
+          <Text style={styles.sectionTitle}>Marketplace</Text>
+        </View>
         {marketNotifs > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{marketNotifs}</Text></View>}
       </View>
 
@@ -43,9 +47,12 @@ export default function Marketplace() {
 
         {auction.isActive && (
           <View style={[styles.marketItemCard, styles.auctionCard]}>
-            <Text style={styles.itemEmoji}>🔨</Text>
+            <Ionicons name="hammer" size={32} color="#FF7675" style={styles.itemEmoji} />
             <Text style={styles.itemName} numberOfLines={2}>{auction.itemName}</Text>
-            <Text style={styles.itemCostSale}>💎 {auction.highestBid}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Ionicons name="diamond" size={14} color="#D63031" />
+              <Text style={styles.itemCostSale}>{auction.highestBid}</Text>
+            </View>
             <Text style={styles.saleTag}>Bid by: {auction.highestBidder || 'No one'}</Text>
             <Text style={styles.saleTag}>Time Left: {Math.floor(auction.timeLeft / 60)}m {auction.timeLeft % 60}s</Text>
             <View style={{ flexDirection: 'row', gap: 5, marginTop: 10 }}>
@@ -66,16 +73,22 @@ export default function Marketplace() {
         )}
 
         <View style={[styles.marketItemCard, styles.specialCardGacha]}>
-          <Text style={styles.itemEmoji}>📦</Text>
+          <Ionicons name="cube" size={32} color="#A29BFE" style={styles.itemEmoji} />
           <Text style={styles.itemName}>Mystery Box</Text>
-          <Text style={styles.itemCost}>💎 40</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 10 }}>
+            <Ionicons name="diamond" size={12} color="#0984E3" />
+            <Text style={[styles.itemCost, { marginBottom: 0 }]}>40</Text>
+          </View>
           <TouchableOpacity style={styles.buyBtn} onPress={handleMysteryBox}><Text style={styles.buyBtnText}>Roll Gacha!</Text></TouchableOpacity>
         </View>
 
         <View style={[styles.marketItemCard, styles.specialCardCash]}>
-          <Text style={styles.itemEmoji}>💵</Text>
+          <Ionicons name="cash" size={32} color="#00B894" style={styles.itemEmoji} />
           <Text style={styles.itemName}>$10 Allowance</Text>
-          <Text style={styles.itemCost}>💎 100 Vault</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 10 }}>
+            <Ionicons name="diamond" size={12} color="#0984E3" />
+            <Text style={[styles.itemCost, { marginBottom: 0 }]}>100 Vault</Text>
+          </View>
           <TouchableOpacity style={styles.buyBtn} onPress={handleAllowanceExchange}><Text style={styles.buyBtnText}>Cash Out</Text></TouchableOpacity>
         </View>
 
@@ -86,19 +99,28 @@ export default function Marketplace() {
 
           return (
             <View key={item.id} style={[styles.marketItemCard, isGoal && styles.activeGoalCard]}>
-              <Text style={styles.itemEmoji}>{item.cost > 100 ? '🎁' : '🎟️'}</Text>
+              <Ionicons name={item.cost > 100 ? 'gift' : 'ticket'} size={32} color="#FDCB6E" style={styles.itemEmoji} />
               <Text style={styles.itemName}>{item.name}</Text>
 
               {item.saleUntil && item.originalCost && item.saleUntil > Date.now() ? (
                 <View style={styles.saleContainer}>
-                  <Text style={styles.saleTag}>🔥 FLASH {getRemainingTime(item.saleUntil)}</Text>
+                  <View style={[styles.saleTag, { flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                    <Ionicons name="flash" size={10} color="#FFF" />
+                    <Text style={{ color: '#FFF', fontSize: 8, fontWeight: '900' }}>FLASH {getRemainingTime(item.saleUntil)}</Text>
+                  </View>
                   <View style={styles.priceRow}>
                     <Text style={styles.originalCost}>{item.originalCost}</Text>
-                    <Text style={styles.itemCostSale}>💎 {item.cost}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Ionicons name="diamond" size={12} color="#D63031" />
+                      <Text style={styles.itemCostSale}>{item.cost}</Text>
+                    </View>
                   </View>
                 </View>
               ) : (
-                <Text style={styles.itemCost}>💎 {item.cost}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 10 }}>
+                  <Ionicons name="diamond" size={12} color="#0984E3" />
+                  <Text style={[styles.itemCost, { marginBottom: 0 }]}>{item.cost}</Text>
+                </View>
               )}
 
               <TouchableOpacity
@@ -109,9 +131,12 @@ export default function Marketplace() {
                 <Text style={styles.buyBtnText}>Buy</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => !isGoal && setWishlistGoal(item.id)} disabled={isGoal}>
-                <Text style={[styles.wishlistLink, isGoal && { color: '#00B894' }]}>
-                  {isGoal ? "Current Goal 🎯" : "Set Goal ⭐"}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 }}>
+                  <Text style={[styles.wishlistLink, isGoal && { color: '#00B894' }, { marginTop: 0 }]}>
+                    {isGoal ? "Current Goal" : "Set Goal"}
+                  </Text>
+                  <Ionicons name={isGoal ? "checkmark-circle" : "star"} size={12} color={isGoal ? "#00B894" : "#6C5CE7"} />
+                </View>
               </TouchableOpacity>
             </View>
           );
@@ -129,7 +154,7 @@ const styles = StyleSheet.create({
   specialCardGacha: { borderColor: '#A29BFE', backgroundColor: '#F4F1FF', borderWidth: 2 },
   specialCardCash: { borderColor: '#00B894', backgroundColor: '#E6FCF5', borderWidth: 2 },
   auctionCard: { borderColor: '#FF7675', backgroundColor: '#FFEAA7', borderWidth: 2, width: 160 },
-  itemEmoji: { fontSize: 32, marginBottom: 5 },
+  itemEmoji: { marginBottom: 5 },
   itemName: { fontSize: 12, fontWeight: '800', textAlign: 'center', height: 34, color: '#2D3436' },
   itemCost: { color: '#0984E3', fontWeight: '900', fontSize: 13, marginBottom: 10 },
   itemCostSale: { color: '#D63031', fontWeight: '900', fontSize: 14 },

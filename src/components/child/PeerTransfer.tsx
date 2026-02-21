@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function PeerTransfer() {
@@ -41,7 +42,10 @@ export default function PeerTransfer() {
 
     return (
         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>💸 Pay a Sibling</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                <Ionicons name="cash" size={20} color="#2D3436" />
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Pay a Sibling</Text>
+            </View>
             <Text style={styles.sectionSubtitle}>Send tokens from your Wallet Balance.</Text>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.siblingScroller}>
@@ -66,7 +70,7 @@ export default function PeerTransfer() {
                     <View style={styles.inputRow}>
                         <TextInput
                             style={[styles.input, { flex: 0.3 }]}
-                            placeholder="Amt 💎"
+                            placeholder="Amt (Tokens)"
                             keyboardType="numeric"
                             value={transferAmount}
                             onChangeText={setTransferAmount}
@@ -79,7 +83,10 @@ export default function PeerTransfer() {
                         />
                     </View>
                     <TouchableOpacity style={styles.sendBtn} onPress={handleTransfer}>
-                        <Text style={styles.sendBtnText}>Send Tokens ✨</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                            <Text style={styles.sendBtnText}>Send Tokens</Text>
+                            <Ionicons name="paper-plane" size={16} color="white" />
+                        </View>
                     </TouchableOpacity>
                 </View>
             )}

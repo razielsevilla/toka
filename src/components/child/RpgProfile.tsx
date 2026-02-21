@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function RpgProfile() {
@@ -17,7 +18,10 @@ export default function RpgProfile() {
     return (
         <View style={styles.section}>
             <View style={styles.headerRow}>
-                <Text style={styles.sectionTitle}>🛡️ RPG Profile</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Ionicons name="shield-checkmark" size={20} color="#2D3436" />
+                    <Text style={styles.sectionTitle}>RPG Profile</Text>
+                </View>
                 <View style={styles.levelBadge}>
                     <Text style={styles.levelText}>Lv. {level}</Text>
                 </View>
@@ -29,11 +33,16 @@ export default function RpgProfile() {
             </View>
             <Text style={styles.xpSubtext}>{currentLevelXp} / 500 XP to Level {level + 1}</Text>
 
-            <Text style={styles.badgesTitle}>🏆 Badges Earned</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                <Ionicons name="trophy" size={16} color="#2D3436" />
+                <Text style={[styles.badgesTitle, { marginBottom: 0 }]}>Badges Earned</Text>
+            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.badgesWrapper}>
                 {badges.map((b, i) => (
                     <View key={i} style={styles.badgeCard}>
-                        <Text style={styles.badgeIcon}>{getBadgeIcon(b)}</Text>
+                        <View style={styles.badgeIconBg}>
+                            {getBadgeIcon(b)}
+                        </View>
                         <Text style={styles.badgeName}>{b}</Text>
                     </View>
                 ))}
@@ -43,11 +52,11 @@ export default function RpgProfile() {
 }
 
 function getBadgeIcon(badge: string) {
-    if (badge === 'Seedling') return '🌱';
-    if (badge === 'First Chore!') return '🎉';
-    if (badge === 'Rising Star') return '⭐';
-    if (badge === 'Chore Master') return '👑';
-    return '🏅';
+    if (badge === 'Seedling') return <Ionicons name="leaf" size={24} color="#00B894" />;
+    if (badge === 'First Chore!') return <Ionicons name="gift" size={24} color="#E17055" />;
+    if (badge === 'Rising Star') return <Ionicons name="star" size={24} color="#FDCB6E" />;
+    if (badge === 'Chore Master') return <Ionicons name="medal" size={24} color="#6C5CE7" />;
+    return <Ionicons name="ribbon" size={24} color="#D63031" />;
 }
 
 const styles = StyleSheet.create({
@@ -63,6 +72,6 @@ const styles = StyleSheet.create({
     badgesTitle: { fontSize: 14, fontWeight: '800', color: '#2D3436', marginBottom: 10 },
     badgesWrapper: { flexDirection: 'row' },
     badgeCard: { backgroundColor: '#FDCB6E', padding: 15, borderRadius: 15, marginRight: 10, alignItems: 'center', minWidth: 85, elevation: 2 },
-    badgeIcon: { fontSize: 26, marginBottom: 5 },
+    badgeIconBg: { marginBottom: 8, backgroundColor: 'rgba(255,255,255,0.8)', width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
     badgeName: { fontSize: 11, fontWeight: '900', color: '#D35400', textAlign: 'center' },
 });

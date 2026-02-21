@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, TextInput } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 function getRemainingTime(deadline?: number) {
@@ -81,19 +82,40 @@ export default function ChoreBoard() {
             <View>
               <Text style={styles.taskTitle}>{task.title}</Text>
               <View style={styles.tagsRow}>
-                <Text style={styles.typeTag}>{task.type === 'spontaneous' ? '⚡ INSTANT' : task.frequency?.toUpperCase()}</Text>
-                {task.deadline && <Text style={styles.deadlineTag}>⏳ {getRemainingTime(task.deadline)} left</Text>}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                  {task.type === 'spontaneous' && <Ionicons name="flash" size={10} color="#B2BEC3" />}
+                  <Text style={styles.typeTag}>{task.type === 'spontaneous' ? 'INSTANT' : task.frequency?.toUpperCase()}</Text>
+                </View>
+                {task.deadline && (
+                  <View style={[styles.deadlineTag, { flexDirection: 'row', alignItems: 'center', gap: 2 }]}>
+                    <Ionicons name="hourglass" size={10} color="#E17055" />
+                    <Text style={{ fontSize: 9, fontWeight: '800', color: '#E17055' }}>{getRemainingTime(task.deadline)} left</Text>
+                  </View>
+                )}
               </View>
             </View>
-            <Text style={styles.taskReward}>💎 {task.reward}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Ionicons name="diamond" size={14} color="#0984E3" />
+              <Text style={styles.taskReward}>{task.reward}</Text>
+            </View>
           </View>
-          {task.rejectionReason && <View style={styles.rejectionBox}><Text style={styles.rejectionText}>💬 Fix: "{task.rejectionReason}"</Text></View>}
+          {task.rejectionReason && (
+            <View style={styles.rejectionBox}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="chatbubble-ellipses" size={12} color="#D63031" />
+                <Text style={styles.rejectionText}>Fix: "{task.rejectionReason}"</Text>
+              </View>
+            </View>
+          )}
           <TouchableOpacity
             style={[styles.verifyBtn, task.status === 'pending' && styles.disabledBtn]}
             onPress={() => handleVerify(task.id)}
             disabled={task.status === 'pending'}
           >
-            <Text style={styles.btnText}>{task.status === 'pending' ? 'Reviewing...' : 'Verify 📸'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <Text style={styles.btnText}>{task.status === 'pending' ? 'Reviewing...' : 'Verify'}</Text>
+              {task.status !== 'pending' && <Ionicons name="camera" size={14} color="white" />}
+            </View>
           </TouchableOpacity>
         </View>
       ))}
@@ -102,7 +124,11 @@ export default function ChoreBoard() {
         <View key={task.id} style={styles.poolCard}>
           {negotiatingTaskId === task.id ? (
             <View style={styles.negotiateForm}>
-              <Text style={styles.formLabel}>Negotiating: {task.title} (Current: {task.reward}💎)</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text style={styles.formLabel}>Negotiating: {task.title} (Current: {task.reward}</Text>
+                <Ionicons name="diamond" size={12} color="#2D3436" />
+                <Text style={styles.formLabel}>)</Text>
+              </View>
               <View style={{ flexDirection: 'row', gap: 10, marginVertical: 10 }}>
                 <TextInput style={[styles.input, { flex: 0.3 }]} placeholder="Amount" keyboardType="numeric" value={counterAmount} onChangeText={setCounterAmount} />
                 <TextInput style={[styles.input, { flex: 0.7 }]} placeholder="Reason? (e.g. Too hard)" value={counterReason} onChangeText={setCounterReason} />
@@ -112,7 +138,10 @@ export default function ChoreBoard() {
                   <Text style={styles.cancelBtnText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.submitOfferBtn} onPress={() => handleSendOffer(task.id)}>
-                  <Text style={styles.btnText}>Send Offer ✨</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    <Text style={styles.btnText}>Send Offer</Text>
+                    <Ionicons name="sparkles" size={12} color="white" />
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -121,8 +150,16 @@ export default function ChoreBoard() {
               <View>
                 <Text style={styles.taskTitle}>{task.title}</Text>
                 <View style={styles.tagsRow}>
-                  <Text style={styles.taskReward}>💎 {task.reward}</Text>
-                  {task.deadline && <Text style={styles.deadlineTag}>⏳ {getRemainingTime(task.deadline)} left</Text>}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Ionicons name="diamond" size={14} color="#0984E3" />
+                    <Text style={styles.taskReward}>{task.reward}</Text>
+                  </View>
+                  {task.deadline && (
+                    <View style={[styles.deadlineTag, { flexDirection: 'row', alignItems: 'center', gap: 2 }]}>
+                      <Ionicons name="hourglass" size={10} color="#E17055" />
+                      <Text style={{ fontSize: 9, fontWeight: '800', color: '#E17055' }}>{getRemainingTime(task.deadline)} left</Text>
+                    </View>
+                  )}
                 </View>
               </View>
               <View style={{ flexDirection: 'row', gap: 8 }}>

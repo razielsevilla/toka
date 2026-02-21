@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 // Subcomponents
 import WishlistHero from './child/WishlistHero';
@@ -58,7 +59,7 @@ export default function ChildDashboard() {
           style={[styles.navItem, activeTab === 'home' && styles.navItemActive]}
           onPress={() => setActiveTab('home')}
         >
-          <Text style={styles.navIcon}>🏠</Text>
+          <Ionicons name="star-outline" size={22} color={activeTab === 'home' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'home' && styles.navTextActive]}>Earn</Text>
         </TouchableOpacity>
 
@@ -66,7 +67,7 @@ export default function ChildDashboard() {
           style={[styles.navItem, activeTab === 'economy' && styles.navItemActive]}
           onPress={() => setActiveTab('economy')}
         >
-          <Text style={styles.navIcon}>🏦</Text>
+          <Ionicons name="wallet-outline" size={22} color={activeTab === 'economy' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'economy' && styles.navTextActive]}>Bank</Text>
         </TouchableOpacity>
 
@@ -74,7 +75,7 @@ export default function ChildDashboard() {
           style={[styles.navItem, activeTab === 'play' && styles.navItemActive]}
           onPress={() => setActiveTab('play')}
         >
-          <Text style={styles.navIcon}>🎮</Text>
+          <Ionicons name="game-controller-outline" size={22} color={activeTab === 'play' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'play' && styles.navTextActive]}>Play</Text>
         </TouchableOpacity>
       </View>
@@ -115,7 +116,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F1FF',
   },
   navIcon: {
-    fontSize: 22,
     marginBottom: 4,
   },
   navText: {

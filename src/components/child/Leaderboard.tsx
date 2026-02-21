@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function Leaderboard() {
@@ -8,13 +9,19 @@ export default function Leaderboard() {
 
   return (
     <View style={styles.leaderboardCard}>
-      <Text style={styles.sectionTitleWhite}>🏆 Household Ranking</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <Ionicons name="trophy" size={20} color="#FFF" />
+        <Text style={[styles.sectionTitleWhite, { marginBottom: 0 }]}>Household Ranking</Text>
+      </View>
       {sortedUsers.slice(0, 3).map((u, index) => (
         <View key={u.id} style={styles.leaderRow}>
           <Text style={styles.rankText}>
             {index + 1}. {u.name.split(' ')[0]} {u.id === currentUser?.id ? '(Me)' : ''}
           </Text>
-          <Text style={styles.rankTokens}>{u.tokens} 💎</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Text style={styles.rankTokens}>{u.tokens}</Text>
+            <Ionicons name="diamond" size={12} color="#D35400" />
+          </View>
         </View>
       ))}
     </View>

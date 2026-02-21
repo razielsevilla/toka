@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Modal, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function TokaBank() {
@@ -13,33 +14,48 @@ export default function TokaBank() {
   return (
     <View style={styles.bankCard}>
       <View style={styles.bankHeader}>
-        <Text style={styles.bankTitle}>🏦 Toka Bank</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="business" size={20} color="#FFF" />
+          <Text style={styles.bankTitle}>Toka Bank</Text>
+        </View>
         <TouchableOpacity style={styles.historyBtnSmall} onPress={() => setShowHistory(true)}>
-          <Text style={styles.historyBtnText}>History 📜</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Text style={styles.historyBtnText}>History</Text>
+            <Ionicons name="receipt" size={12} color="#FFF" />
+          </View>
         </TouchableOpacity>
       </View>
 
       <View style={styles.bankMainRow}>
         <View style={styles.accountBox}>
           <Text style={styles.accountLabel}>SPENDABLE</Text>
-          <Text style={styles.accountAmount}>💰 {userTokens}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Ionicons name="wallet" size={24} color="#FFF" />
+            <Text style={styles.accountAmount}>{userTokens}</Text>
+          </View>
         </View>
         <View style={styles.bankDivider} />
         <View style={styles.accountBox}>
           <Text style={styles.accountLabel}>VAULT SAVINGS</Text>
           <View style={styles.vaultRow}>
-            <Text style={styles.vaultAmountMain}>💎 {vaultBalance}</Text>
+            <Ionicons name="diamond" size={24} color="#FDCB6E" />
+            <Text style={styles.vaultAmountMain}>{vaultBalance}</Text>
             {/* NEW: Interest Rate Tag */}
             <View style={styles.interestTag}>
               <Text style={styles.interestText}>+5%</Text>
             </View>
           </View>
-          {isPending && <Text style={styles.pendingText}>⏳ Withdrawal Pending...</Text>}
+          {isPending && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 5 }}>
+              <Ionicons name="hourglass" size={10} color="#F39C12" />
+              <Text style={styles.pendingText}>Withdrawal Pending...</Text>
+            </View>
+          )}
         </View>
       </View>
 
       <View style={styles.inputWrapper}>
-        <TextInput 
+        <TextInput
           style={styles.bankInput}
           placeholder="Amount"
           placeholderTextColor="rgba(255,255,255,0.4)"
@@ -50,17 +66,23 @@ export default function TokaBank() {
       </View>
 
       <View style={styles.bankActionRow}>
-        <TouchableOpacity 
-          style={[styles.bankActionBtn, { borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }]} 
+        <TouchableOpacity
+          style={[styles.bankActionBtn, { borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }]}
           onPress={() => { depositToVault(Number(bankAmount)); setBankAmount(''); }}
         >
-          <Text style={styles.bankActionText}>Save 📥</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.bankActionText}>Save</Text>
+            <Ionicons name="download" size={14} color="#FFF" />
+          </View>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.bankActionBtn} 
+        <TouchableOpacity
+          style={styles.bankActionBtn}
           onPress={() => { withdrawFromVault(Number(bankAmount)); setBankAmount(''); }}
         >
-          <Text style={styles.bankActionText}>Take Out 📤</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.bankActionText}>Take Out</Text>
+            <Ionicons name="log-out" size={14} color="#FFF" />
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -102,7 +124,7 @@ const styles = StyleSheet.create({
   bankActionRow: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', marginTop: 10 },
   bankActionBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
   bankActionText: { color: '#FFF', fontWeight: 'bold', fontSize: 12 },
-  pendingText: { color: '#F39C12', fontSize: 8, fontWeight: 'bold', marginTop: 5 },
+  pendingText: { color: '#F39C12', fontSize: 8, fontWeight: 'bold' },
   modalContainer: { flex: 1, padding: 30, backgroundColor: '#FFF' },
   modalTitle: { fontSize: 24, fontWeight: '900', marginBottom: 20 },
   txRow: { flexDirection: 'row', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EEE' },

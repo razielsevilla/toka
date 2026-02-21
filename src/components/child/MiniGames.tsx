@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function MiniGames() {
@@ -45,13 +46,16 @@ export default function MiniGames() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>🎲 Double or Nothing</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                <Ionicons name="dice" size={20} color="#6C5CE7" />
+                <Text style={[styles.title, { marginBottom: 0 }]}>Double or Nothing</Text>
+            </View>
             <Text style={styles.subtitle}>Feeling lucky? Risk your tokens for a chance to instantly double them!</Text>
 
             <View style={styles.formRow}>
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter wager (💎)"
+                    placeholder="Enter wager"
                     keyboardType="numeric"
                     value={wager}
                     onChangeText={setWager}

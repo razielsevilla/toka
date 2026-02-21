@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
 export default function WishlistHero() {
@@ -13,7 +14,10 @@ export default function WishlistHero() {
   if (!activeGoal) {
     return (
       <View style={styles.goalHeroCard}>
-        <Text style={styles.emptyGoalText}>No Savings Goal Set! 🎯</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 5 }}>
+          <Text style={[styles.emptyGoalText, { marginBottom: 0 }]}>No Savings Goal Set!</Text>
+          <Ionicons name="flag" size={18} color="#2D3436" />
+        </View>
         <Text style={styles.emptyGoalSub}>Head down to the marketplace and select an item to start working towards.</Text>
       </View>
     );
@@ -50,27 +54,44 @@ export default function WishlistHero() {
   return (
     <View style={styles.goalHeroCard}>
       <View style={styles.rowBetween}>
-        <Text style={styles.goalTitle}>⭐ My Current Goal</Text>
-        {progress >= 1 && <Text style={styles.goalReadyText}>Ready to Buy! 🎉</Text>}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Ionicons name="star" size={12} color="#B2BEC3" />
+          <Text style={styles.goalTitle}>My Current Goal</Text>
+        </View>
+        {progress >= 1 && (
+          <View style={{ backgroundColor: '#00B894', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#FFF' }}>Ready to Buy!</Text>
+            <Ionicons name="partly-sunny" size={12} color="#FFF" />
+          </View>
+        )}
       </View>
       <Text style={styles.goalItemName}>{goalItem.name}</Text>
 
       <View style={styles.goalStatsRow}>
-        <Text style={styles.goalStatText}>Saved: {saved} 💎</Text>
-        <Text style={styles.goalStatText}>Goal: {cost} 💎</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={styles.goalStatText}>Saved: {saved}</Text>
+          <Ionicons name="diamond" size={10} color="#2D3436" />
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={styles.goalStatText}>Goal: {cost}</Text>
+          <Ionicons name="diamond" size={10} color="#2D3436" />
+        </View>
       </View>
 
       <View style={styles.goalBarBg}>
         <View style={[styles.goalBarFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      <Text style={styles.walletBalanceText}>Wallet Balance: {userTokens} 💎</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 10 }}>
+        <Text style={[styles.walletBalanceText, { marginTop: 0 }]}>Wallet Balance: {userTokens}</Text>
+        <Ionicons name="diamond" size={10} color="#B2BEC3" />
+      </View>
 
       {progress < 1 ? (
         <View style={styles.depositRow}>
           <TextInput
             style={styles.depositInput}
-            placeholder="Fund Goal (💎)"
+            placeholder="Fund Goal"
             keyboardType="numeric"
             value={depositAmount}
             onChangeText={setDepositAmount}
@@ -81,7 +102,10 @@ export default function WishlistHero() {
         </View>
       ) : (
         <TouchableOpacity style={styles.purchaseBtn} onPress={handlePurchase}>
-          <Text style={styles.purchaseBtnText}>Buy Now! 🎁</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <Text style={styles.purchaseBtnText}>Buy Now!</Text>
+            <Ionicons name="gift" size={16} color="white" />
+          </View>
         </TouchableOpacity>
       )}
     </View>
