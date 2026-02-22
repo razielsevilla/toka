@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
+import { Colors, Typography } from '../../theme/colors';
 
 function getRemainingTime(deadline?: number) {
   if (!deadline) return null;
@@ -37,7 +38,7 @@ export default function Marketplace() {
     <View style={styles.section}>
       <View style={styles.row}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Ionicons name="cart" size={20} color="#2D3436" />
+          <Ionicons name="cart" size={24} color={Colors.text} />
           <Text style={styles.sectionTitle}>Marketplace</Text>
         </View>
         {marketNotifs > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{marketNotifs}</Text></View>}
@@ -147,26 +148,26 @@ export default function Marketplace() {
 }
 
 const styles = StyleSheet.create({
-  section: { backgroundColor: '#FFF', padding: 20, borderRadius: 25, marginHorizontal: 15, marginBottom: 15, elevation: 2 },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: '#2D3436' },
-  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  marketItemCard: { backgroundColor: '#F8F9FA', padding: 15, borderRadius: 20, marginRight: 15, width: 130, alignItems: 'center', borderWidth: 1, borderColor: '#EEE' },
-  specialCardGacha: { borderColor: '#A29BFE', backgroundColor: '#F4F1FF', borderWidth: 2 },
-  specialCardCash: { borderColor: '#00B894', backgroundColor: '#E6FCF5', borderWidth: 2 },
-  auctionCard: { borderColor: '#FF7675', backgroundColor: '#FFEAA7', borderWidth: 2, width: 160 },
-  itemEmoji: { marginBottom: 5 },
-  itemName: { fontSize: 12, fontWeight: '800', textAlign: 'center', height: 34, color: '#2D3436' },
-  itemCost: { color: '#0984E3', fontWeight: '900', fontSize: 13, marginBottom: 10 },
-  itemCostSale: { color: '#D63031', fontWeight: '900', fontSize: 14 },
+  section: { backgroundColor: Colors.surface, padding: 20, borderRadius: 25, marginHorizontal: 15, marginBottom: 15, elevation: 5, shadowColor: Colors.primary, shadowOpacity: 0.1, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, borderWidth: 1, borderColor: Colors.surfaceLight },
+  sectionTitle: { fontSize: 24, fontFamily: Typography.heading, color: Colors.primary },
+  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  marketItemCard: { backgroundColor: Colors.surfaceLight, padding: 15, borderRadius: 20, marginRight: 15, width: 140, alignItems: 'center', borderWidth: 1, borderColor: Colors.surfaceLight, elevation: 3 },
+  specialCardGacha: { borderColor: Colors.primary, backgroundColor: 'rgba(49, 255, 236, 0.05)', borderWidth: 2 },
+  specialCardCash: { borderColor: Colors.secondary, backgroundColor: 'rgba(255, 193, 7, 0.05)', borderWidth: 2 },
+  auctionCard: { borderColor: Colors.danger, backgroundColor: 'rgba(214, 48, 49, 0.1)', borderWidth: 2, width: 170 },
+  itemEmoji: { marginBottom: 10 },
+  itemName: { fontSize: 13, fontFamily: Typography.subheading, textAlign: 'center', height: 36, color: Colors.text },
+  itemCost: { color: Colors.primary, fontFamily: Typography.subheading, fontSize: 14, marginBottom: 10 },
+  itemCostSale: { color: Colors.danger, fontFamily: Typography.heading, fontSize: 16 },
   saleContainer: { alignItems: 'center', marginBottom: 10 },
-  saleTag: { backgroundColor: '#FF7675', color: '#FFF', fontSize: 8, fontWeight: '900', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, marginBottom: 4 },
+  saleTag: { backgroundColor: Colors.danger, color: Colors.text, fontSize: 9, fontFamily: Typography.bodyBold, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, marginBottom: 4 },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  originalCost: { textDecorationLine: 'line-through', color: '#B2BEC3', fontSize: 11, fontWeight: 'bold' },
-  buyBtn: { backgroundColor: '#FDCB6E', paddingVertical: 8, width: '100%', borderRadius: 10, alignItems: 'center' },
-  buyBtnText: { fontWeight: 'bold', fontSize: 12, color: '#2D3436' },
-  disabledBtn: { opacity: 0.4 },
-  wishlistLink: { fontSize: 10, color: '#6C5CE7', marginTop: 10, fontWeight: 'bold' },
-  activeGoalCard: { borderColor: '#FDCB6E', borderWidth: 2 },
-  badge: { backgroundColor: '#D63031', minWidth: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', marginLeft: 8 },
-  badgeText: { color: 'white', fontSize: 10, fontWeight: '900' },
+  originalCost: { textDecorationLine: 'line-through', color: Colors.textDim, fontSize: 12, fontFamily: Typography.subheading },
+  buyBtn: { backgroundColor: Colors.primary, paddingVertical: 10, width: '100%', borderRadius: 12, alignItems: 'center', elevation: 2 },
+  buyBtnText: { fontFamily: Typography.subheading, fontSize: 13, color: Colors.background },
+  disabledBtn: { backgroundColor: Colors.surfaceLight, opacity: 0.5 },
+  wishlistLink: { fontSize: 11, color: Colors.textDim, fontFamily: Typography.subheading, marginTop: 10 },
+  activeGoalCard: { borderColor: Colors.secondary, borderWidth: 2, backgroundColor: 'rgba(255, 193, 7, 0.1)' },
+  badge: { backgroundColor: Colors.danger, minWidth: 20, height: 20, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginLeft: 10, borderWidth: 2, borderColor: Colors.background },
+  badgeText: { color: Colors.text, fontSize: 11, fontFamily: Typography.bodyBold },
 });

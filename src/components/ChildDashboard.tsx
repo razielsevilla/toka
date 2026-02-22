@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../store/useTokaStore';
+import { Colors, Typography } from '../theme/colors';
 
 // Subcomponents
 import WishlistHero from './child/WishlistHero';
@@ -63,7 +64,7 @@ export default function ChildDashboard() {
           style={[styles.navItem, activeTab === 'home' && styles.navItemActive]}
           onPress={() => setActiveTab('home')}
         >
-          <Ionicons name="star-outline" size={22} color={activeTab === 'home' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
+          <Ionicons name="star-outline" size={22} color={activeTab === 'home' ? Colors.primary : Colors.textDim} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'home' && styles.navTextActive]}>Earn</Text>
         </TouchableOpacity>
 
@@ -71,7 +72,7 @@ export default function ChildDashboard() {
           style={[styles.navItem, activeTab === 'economy' && styles.navItemActive]}
           onPress={() => setActiveTab('economy')}
         >
-          <Ionicons name="wallet-outline" size={22} color={activeTab === 'economy' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
+          <Ionicons name="wallet-outline" size={22} color={activeTab === 'economy' ? Colors.primary : Colors.textDim} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'economy' && styles.navTextActive]}>Bank</Text>
         </TouchableOpacity>
 
@@ -79,7 +80,7 @@ export default function ChildDashboard() {
           style={[styles.navItem, activeTab === 'play' && styles.navItemActive]}
           onPress={() => setActiveTab('play')}
         >
-          <Ionicons name="game-controller-outline" size={22} color={activeTab === 'play' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
+          <Ionicons name="game-controller-outline" size={22} color={activeTab === 'play' ? Colors.primary : Colors.textDim} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'play' && styles.navTextActive]}>Play</Text>
         </TouchableOpacity>
       </View>
@@ -90,7 +91,7 @@ export default function ChildDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FD'
+    backgroundColor: Colors.background
   },
   scrollContent: {
     paddingBottom: 20,
@@ -98,14 +99,14 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: Colors.surfaceLight,
     paddingVertical: 10,
     paddingHorizontal: 20,
     justifyContent: 'space-around',
     elevation: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -117,17 +118,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   navItemActive: {
-    backgroundColor: '#F4F1FF',
+    backgroundColor: 'rgba(49, 255, 236, 0.1)',
   },
   navIcon: {
     marginBottom: 4,
   },
   navText: {
     fontSize: 11,
-    fontWeight: '800',
-    color: '#A0AEC0',
+    fontFamily: Typography.subheading,
+    color: Colors.textDim,
   },
   navTextActive: {
-    color: '#6C5CE7',
+    color: Colors.primary,
   }
 });

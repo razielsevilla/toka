@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../store/useTokaStore';
+import { Colors, Typography } from '../theme/colors';
 
 export default function AuthScreen() {
   const { login, mockUsers } = useTokaStore();
@@ -34,7 +35,7 @@ export default function AuthScreen() {
                 activeOpacity={0.7}
               >
                 <View style={[styles.iconBox, isSelected ? styles.iconBoxActive : styles.iconBoxInactive]}>
-                  <Ionicons name={isAdmin ? "shield-checkmark" : "person"} size={22} color={isSelected ? "#6C5CE7" : "#A0AEC0"} />
+                  <Ionicons name={isAdmin ? "shield-checkmark" : "person"} size={22} color={isSelected ? Colors.background : "#A0AEC0"} />
                 </View>
                 <View style={styles.userInfo}>
                   <Text style={[styles.userName, isSelected && styles.userNameActive]}>
@@ -45,7 +46,7 @@ export default function AuthScreen() {
                   </Text>
                 </View>
                 {isSelected && (
-                  <Ionicons name="checkmark-circle" size={24} color="#6C5CE7" style={styles.checkIcon} />
+                  <Ionicons name="checkmark-circle" size={24} color={Colors.background} style={styles.checkIcon} />
                 )}
               </TouchableOpacity>
             );
@@ -65,25 +66,25 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#6C5CE7' },
+  safeArea: { flex: 1, backgroundColor: Colors.background },
   authContainer: { flex: 1, justifyContent: 'center', padding: 25 },
   header: { alignItems: 'center', marginBottom: 40 },
-  logoCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255, 255, 255, 0.2)', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
-  authTitle: { fontSize: 48, fontWeight: '900', color: 'white', textAlign: 'center', letterSpacing: 1 },
-  authSubtitle: { fontSize: 16, color: 'rgba(255, 255, 255, 0.8)', textAlign: 'center', marginTop: 10, fontWeight: '500' },
-  inputCard: { backgroundColor: 'white', padding: 30, borderRadius: 30, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 10 },
-  label: { fontSize: 13, color: '#A0AEC0', fontWeight: 'bold', marginBottom: 20, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5 },
-  userCard: { flexDirection: 'row', alignItems: 'center', padding: 15, borderRadius: 16, borderWidth: 1.5, borderColor: '#F1F2F6', marginBottom: 15, backgroundColor: '#FFF' },
-  userCardActive: { borderColor: '#6C5CE7', backgroundColor: '#F4F1FF' },
+  logoCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255, 255, 255, 0.1)', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
+  authTitle: { fontSize: 64, fontFamily: Typography.heading, color: Colors.primary, textAlign: 'center', letterSpacing: 2 },
+  authSubtitle: { fontSize: 16, fontFamily: Typography.bodyMedium, color: Colors.text, textAlign: 'center', marginTop: 5 },
+  inputCard: { backgroundColor: Colors.surface, padding: 30, borderRadius: 30, shadowColor: Colors.primary, shadowOpacity: 0.15, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 10, borderWidth: 1, borderColor: Colors.surfaceLight },
+  label: { fontSize: 13, fontFamily: Typography.subheading, color: Colors.textDim, marginBottom: 20, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 1 },
+  userCard: { flexDirection: 'row', alignItems: 'center', padding: 15, borderRadius: 16, borderWidth: 1.5, borderColor: Colors.surfaceLight, marginBottom: 15, backgroundColor: Colors.surface },
+  userCardActive: { borderColor: Colors.primary, backgroundColor: 'rgba(49, 255, 236, 0.1)' },
   iconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-  iconBoxInactive: { backgroundColor: '#F8F9FA' },
-  iconBoxActive: { backgroundColor: '#E0D8FF' },
+  iconBoxInactive: { backgroundColor: Colors.surfaceLight },
+  iconBoxActive: { backgroundColor: Colors.primary },
   userInfo: { flex: 1 },
-  userName: { fontSize: 18, fontWeight: '700', color: '#2D3436' },
-  userNameActive: { color: '#6C5CE7' },
-  userRoleText: { fontSize: 13, color: '#A0AEC0', fontWeight: '500', marginTop: 2 },
-  checkIcon: { marginLeft: 10 },
-  loginBtn: { backgroundColor: '#6C5CE7', paddingVertical: 18, borderRadius: 16, marginTop: 20, shadowColor: '#6C5CE7', shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 5 },
-  loginBtnDisabled: { backgroundColor: '#B2BEC3', shadowOpacity: 0, elevation: 0 },
-  btnText: { color: 'white', textAlign: 'center', fontWeight: 'bold', fontSize: 16 },
+  userName: { fontSize: 18, fontFamily: Typography.subheading, color: Colors.text },
+  userNameActive: { color: Colors.primary },
+  userRoleText: { fontSize: 13, fontFamily: Typography.body, color: Colors.textDim, marginTop: 2 },
+  checkIcon: { marginLeft: 10, color: Colors.primary },
+  loginBtn: { backgroundColor: Colors.primary, paddingVertical: 18, borderRadius: 16, marginTop: 20, shadowColor: Colors.primary, shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 5 },
+  loginBtnDisabled: { backgroundColor: Colors.surfaceLight, shadowOpacity: 0, elevation: 0 },
+  btnText: { color: Colors.background, textAlign: 'center', fontFamily: Typography.subheading, fontSize: 18 },
 });

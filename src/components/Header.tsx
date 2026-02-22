@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../store/useTokaStore';
 import NotificationBoard from './NotificationBoard';
+import { Colors, Typography } from '../theme/colors';
 
 export default function Header() {
   const { currentUser, logout, notifications, setActiveTab } = useTokaStore();
@@ -17,7 +18,7 @@ export default function Header() {
     <View style={styles.header}>
       <TouchableOpacity style={styles.profileSection} onPress={() => setActiveTab('profile')}>
         <View style={styles.avatarBox}>
-          <Ionicons name="person" size={20} color="#6C5CE7" />
+          <Ionicons name="person" size={20} color={Colors.background} />
         </View>
         <View>
           <Text style={styles.welcome}>Hello, {currentUser.name.split(' ')[0]}!</Text>
@@ -26,7 +27,7 @@ export default function Header() {
       </TouchableOpacity>
       <View style={styles.actions}>
         <TouchableOpacity style={styles.bellBtn} onPress={() => setShowNotifications(true)}>
-          <Ionicons name="notifications-outline" size={24} color="#2D3436" />
+          <Ionicons name="notifications-outline" size={24} color={Colors.text} />
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount}</Text>
@@ -47,15 +48,15 @@ export default function Header() {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingTop: 50, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFF', paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#EEE' },
-  welcome: { fontSize: 22, fontWeight: 'bold', color: '#2D3436' },
-  roleTag: { fontSize: 10, color: '#6C5CE7', fontWeight: 'bold' },
-  profileSection: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  avatarBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F4F1FF', justifyContent: 'center', alignItems: 'center' },
+  header: { paddingTop: 60, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: Colors.background, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: Colors.surface },
+  welcome: { fontSize: 24, fontFamily: Typography.heading, color: Colors.primary },
+  roleTag: { fontSize: 10, fontFamily: Typography.bodyBold, color: Colors.secondary, textTransform: 'uppercase', marginTop: -2 },
+  profileSection: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatarBox: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center' },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-  bellBtn: { position: 'relative' },
-  badge: { position: 'absolute', top: -4, right: -4, backgroundColor: '#D63031', width: 16, height: 16, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  badgeText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
-  logoutBtn: { backgroundColor: '#F1F2F6', padding: 8, borderRadius: 8 },
-  logoutText: { color: '#D63031', fontWeight: 'bold', fontSize: 12 }
+  bellBtn: { position: 'relative', width: 40, height: 40, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 20 },
+  badge: { position: 'absolute', top: 0, right: 0, backgroundColor: Colors.danger, width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.background },
+  badgeText: { color: Colors.text, fontSize: 10, fontFamily: Typography.bodyBold },
+  logoutBtn: { backgroundColor: 'transparent', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: Colors.danger },
+  logoutText: { color: Colors.danger, fontFamily: Typography.subheading, fontSize: 12 }
 });

@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts, Chewy_400Regular } from '@expo-google-fonts/chewy';
+import { Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
 import { useTokaStore } from './src/store/useTokaStore';
+import { Colors } from './src/theme/colors';
 
 // Components
 import AuthScreen from './src/components/AuthScreen';
@@ -11,6 +14,13 @@ import ChildDashboard from './src/components/ChildDashboard';
 
 export default function App() {
   const { currentUser, tickAuction, applyInterest } = useTokaStore();
+
+  let [fontsLoaded] = useFonts({
+    Chewy_400Regular,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_700Bold,
+  });
 
   useEffect(() => {
     if (!currentUser) return;
@@ -34,13 +44,17 @@ export default function App() {
     };
   }, [tickAuction, currentUser]);
 
+  if (!fontsLoaded) {
+    return null; // Or a splash screen
+  }
+
   if (!currentUser) {
     return <AuthScreen />;
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
 
       {/* GLOBAL HEADER */}
       <Header />
@@ -56,5 +70,5 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0F2F5' },
+  container: { flex: 1, backgroundColor: Colors.background },
 });

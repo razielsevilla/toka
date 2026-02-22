@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../store/useTokaStore';
+import { Colors, Typography } from '../theme/colors';
 
 import MarketAlerts from './parent/MarketAlerts';
 import BudgetOverview from './parent/BudgetOverview';
@@ -62,7 +63,7 @@ export default function ParentDashboard() {
           style={[styles.navItem, activeTab === 'home' && styles.navItemActive]}
           onPress={() => setActiveTab('home')}
         >
-          <Ionicons name="home-outline" size={22} color={activeTab === 'home' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
+          <Ionicons name="home-outline" size={22} color={activeTab === 'home' ? Colors.primary : Colors.textDim} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'home' && styles.navTextActive]}>Home</Text>
         </TouchableOpacity>
 
@@ -70,7 +71,7 @@ export default function ParentDashboard() {
           style={[styles.navItem, activeTab === 'review' && styles.navItemActive]}
           onPress={() => setActiveTab('review')}
         >
-          <Ionicons name="checkmark-circle-outline" size={22} color={activeTab === 'review' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
+          <Ionicons name="checkmark-circle-outline" size={22} color={activeTab === 'review' ? Colors.primary : Colors.textDim} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'review' && styles.navTextActive]}>Review</Text>
         </TouchableOpacity>
 
@@ -78,7 +79,7 @@ export default function ParentDashboard() {
           style={[styles.navItem, activeTab === 'manage' && styles.navItemActive]}
           onPress={() => setActiveTab('manage')}
         >
-          <Ionicons name="settings-outline" size={22} color={activeTab === 'manage' ? '#6C5CE7' : '#A0AEC0'} style={styles.navIcon} />
+          <Ionicons name="settings-outline" size={22} color={activeTab === 'manage' ? Colors.primary : Colors.textDim} style={styles.navIcon} />
           <Text style={[styles.navText, activeTab === 'manage' && styles.navTextActive]}>Manage</Text>
         </TouchableOpacity>
       </View>
@@ -89,7 +90,7 @@ export default function ParentDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F2F5'
+    backgroundColor: Colors.background
   },
   scrollContent: {
     paddingBottom: 20,
@@ -97,14 +98,14 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: Colors.surfaceLight,
     paddingVertical: 10,
     paddingHorizontal: 20,
     justifyContent: 'space-around',
     elevation: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -116,17 +117,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   navItemActive: {
-    backgroundColor: '#F4F1FF',
+    backgroundColor: 'rgba(49, 255, 236, 0.1)',
   },
   navIcon: {
     marginBottom: 4,
   },
   navText: {
     fontSize: 11,
-    fontWeight: '800',
-    color: '#A0AEC0',
+    fontFamily: Typography.subheading,
+    color: Colors.textDim,
   },
   navTextActive: {
-    color: '#6C5CE7',
+    color: Colors.primary,
   }
 });
