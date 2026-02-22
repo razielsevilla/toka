@@ -1,0 +1,36 @@
+appId: com.toka.app
+name: "Parent Review Flow"
+---
+- launchApp:
+    clearState: true
+
+# Redirects to Login
+- assertVisible: "Toka"
+
+# Select Parent Account
+- tapOn:
+    id: "user-select-dropdown"
+- tapOn: "Mom"
+
+# Enter Pin
+- tapOn: "1"
+- tapOn: "1"
+- tapOn: "1"
+- tapOn: "1"
+
+# Tap Review Nav Tab
+- tapOn: "Review"
+
+# Should load ApprovalQueue Screen
+- assertVisible: "Approvals Queue"
+- assertVisible: "Needs your review"
+
+# Find a task with 'Verify' status and Approve it
+- scrollUntilVisible:
+    element:
+      text: "Approve ✓"
+- tapOn: "Approve ✓"
+
+# Assert visual success
+- assertVisible: "Confirm"
+- tapOn: "Confirm"

@@ -1,0 +1,36 @@
+appId: com.toka.app
+name: "Child Login & Task Claim Flow"
+---
+- launchApp:
+    clearState: true
+
+# The app redirects to the Login screen first
+- assertVisible: "Toka"
+- assertVisible: "Enter Family Code"
+
+# Tap the User Dropdown
+- tapOn:
+    id: "user-select-dropdown"
+
+# Select a Child Account
+- tapOn: "Emma"
+
+# Enter the PIN
+- tapOn: "1"
+- tapOn: "2"
+- tapOn: "3"
+- tapOn: "4"
+
+# Validate that the Child Dashboard loaded successfully
+- assertVisible: "Chore Board"
+- assertVisible: "Set a Goal"
+
+# Scroll and find a task to claim
+- scrollUntilVisible:
+    element:
+      text: "Claim"
+- tapOn: "Claim"
+
+# Verify that the task status changed
+- assertNotVisible: "Claim"
+- assertVisible: "Verify  📷"
