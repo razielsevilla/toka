@@ -27,12 +27,15 @@ const CHORE_TEMPLATES: Record<AgeGroup, { title: string; reward: string; type: '
 };
 
 export default function TaskCreator() {
-  const { addTask } = useTokaStore();
+  const { addTask, mockUsers } = useTokaStore();
+
+  const childrenMembers = mockUsers.filter(u => u.role === 'member');
 
   const [taskTitle, setTaskTitle] = useState('');
   const [reward, setReward] = useState('');
   const [taskType, setTaskType] = useState<'regular' | 'spontaneous'>('regular');
   const [frequency, setFrequency] = useState<'Daily' | 'Weekly' | 'Monthly'>('Daily');
+  const [assignedChild, setAssignedChild] = useState<string | 'anyone'>('anyone');
 
   const [selectedAge, setSelectedAge] = useState<AgeGroup>('8-12');
 
@@ -45,13 +48,13 @@ export default function TaskCreator() {
     addTask({
       title: taskTitle,
       reward: parseInt(reward),
-      type: taskType,
-      frequency: taskType === 'regular' ? frequency.toLowerCase() as any : undefined,
+      type: assignedChild === 'anyone' ? 'spontaneous' : taskType,
+      frequency: assignedChild === 'anyone' ? undefined : (taskType === 'regular' ? frequency.toLowerCase() as any : undefined),
       status: 'open',
-      assignedTo: taskType === 'regular' ? ['u_child'] : [],
+      assignedTo: assignedChild === 'anyone' ? [] : [assignedChild],
     });
 
-    Alert.alert("Success", `${taskType} task "${taskTitle}" is live!`);
+    Alert.alert("Success", assignedChild === 'anyone' ? `Claimable task "${taskTitle}" is live!` : `${taskType} task "${taskTitle}" assigned!`);
     setTaskTitle('');
     setReward('');
   };
@@ -109,6 +112,29 @@ export default function TaskCreator() {
       </View>
 
       {/* Manual Input Section */}
+      <View style={styles.assignRow}>
+        <Text style={styles.miniLabel}>Who is doing this?</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.assignScroll}>
+          <TouchableOpacity
+            style={[styles.assignBtn, assignedChild === 'anyone' && styles.assignBtnActive]}
+            onPress={() => setAssignedChild('anyone')}
+          >
+            <Ionicons name="people" size={14} color={assignedChild === 'anyone' ? '#FFF' : '#B2BEC3'} />
+            <Text style={[styles.assignBtnText, assignedChild === 'anyone' && styles.assignBtnTextActive]}>Anyone (Claimable)</Text>
+          </TouchableOpacity>
+          {childrenMembers.map(child => (
+            <TouchableOpacity
+              key={child.id}
+              style={[styles.assignBtn, assignedChild === child.id && styles.assignBtnActive]}
+              onPress={() => setAssignedChild(child.id)}
+            >
+              <Ionicons name="person" size={14} color={assignedChild === child.id ? '#FFF' : '#B2BEC3'} />
+              <Text style={[styles.assignBtnText, assignedChild === child.id && styles.assignBtnTextActive]}>{child.name.split(' ')[0]}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       <TextInput
         style={styles.input}
         placeholder="e.g., Clean the Playroom"
@@ -135,7 +161,7 @@ export default function TaskCreator() {
         </View>
       </View>
 
-      {taskType === 'regular' && (
+      {taskType === 'regular' && assignedChild !== 'anyone' && (
         <View style={styles.frequencyRow}>
           {['Daily', 'Weekly', 'Monthly'].map(f => (
             <TouchableOpacity
@@ -188,6 +214,12 @@ const styles = StyleSheet.create({
   templateFreq: { fontSize: 10, fontWeight: '600', color: '#B2BEC3', backgroundColor: '#FFF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden' },
 
   input: { backgroundColor: '#F1F2F6', borderRadius: 10, padding: 12, fontSize: 14, color: '#2D3436', marginBottom: 15 },
+  assignRow: { marginBottom: 15 },
+  assignScroll: { flexDirection: 'row', gap: 8 },
+  assignBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F1F2F6', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
+  assignBtnActive: { backgroundColor: '#6C5CE7' },
+  assignBtnText: { fontSize: 12, fontWeight: '700', color: '#B2BEC3' },
+  assignBtnTextActive: { color: '#FFF' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   miniLabel: { fontSize: 10, fontWeight: 'bold', color: '#B2BEC3', marginBottom: 5 },
   typeToggle: { flexDirection: 'row', backgroundColor: '#F1F2F6', borderRadius: 10, padding: 4 },
