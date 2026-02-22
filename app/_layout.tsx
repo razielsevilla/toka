@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../src/lib/queryClient';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -46,16 +48,18 @@ export default function RootLayout() {
     if (!fontsLoaded) return null;
 
     return (
-        <View style={{ flex: 1, backgroundColor: Colors.background }}>
-            <StatusBar style={isDark ? 'light' : 'dark'} />
-            <Header />
-            <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(child)" options={{ headerShown: false }} />
-                <Stack.Screen name="(parent)" options={{ headerShown: false }} />
-                <Stack.Screen name="profile" options={{ presentation: 'modal', headerShown: false }} />
-            </Stack>
-        </View>
+        <QueryClientProvider client={queryClient}>
+            <View style={{ flex: 1, backgroundColor: Colors.background }}>
+                <StatusBar style={isDark ? 'light' : 'dark'} />
+                <Header />
+                <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="index" options={{ headerShown: false }} />
+                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(child)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(parent)" options={{ headerShown: false }} />
+                    <Stack.Screen name="profile" options={{ presentation: 'modal', headerShown: false }} />
+                </Stack>
+            </View>
+        </QueryClientProvider>
     );
 }

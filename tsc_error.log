@@ -1,2 +1,4 @@
-src/components/child/ChoreBoard.tsx(5,27): error TS2307: Cannot find module '@shopify/flash-list' or its corresponding type declarations.
-src/components/parent/ApprovalQueue.tsx(4,27): error TS2307: Cannot find module '@shopify/flash-list' or its corresponding type declarations.
+src/components/child/ChoreBoard.tsx(94,9): error TS2322: Type '{ data: Task[]; keyExtractor: (t: any) => any; estimatedItemSize: number; showsVerticalScrollIndicator: false; ListHeaderComponent: Element; renderItem: ({ item: task }: { item: any; }) => Element; contentContainerStyle: { ...; }; ListFooterComponent: Element | undefined; }' is not assignable to type 'IntrinsicAttributes & FlashListProps<any> & { ref?: Ref<FlashListRef<any>> | undefined; }'.
+  Property 'estimatedItemSize' does not exist on type 'IntrinsicAttributes & FlashListProps<any> & { ref?: Ref<FlashListRef<any>> | undefined; }'.
+src/components/parent/ApprovalQueue.tsx(48,13): error TS2322: Type '{ data: Task[]; keyExtractor: (item: any) => any; estimatedItemSize: number; renderItem: ({ item }: { item: any; }) => Element; }' is not assignable to type 'IntrinsicAttributes & FlashListProps<any> & { ref?: Ref<FlashListRef<any>> | undefined; }'.
+  Property 'estimatedItemSize' does not exist on type 'IntrinsicAttributes & FlashListProps<any> & { ref?: Ref<FlashListRef<any>> | undefined; }'.

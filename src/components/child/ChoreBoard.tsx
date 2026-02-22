@@ -85,9 +85,11 @@ export default function ChoreBoard({ header }: Props) {
     </View>
   );
 
+  const AnyFlashList = FlashList as any;
+
   return (
     <View style={{ flex: 1 }}>
-      <FlashList
+      <AnyFlashList
         data={filteredTasks}
         keyExtractor={(t: any) => t.id}
         estimatedItemSize={120}

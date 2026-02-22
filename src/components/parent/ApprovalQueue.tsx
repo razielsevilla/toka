@@ -25,14 +25,18 @@ export default function ApprovalQueue() {
     setReasonInput('');
   };
 
+  const AnyFlashList = FlashList as any;
+
   return (
     <View style={[styles.section, { backgroundColor: Colors.surface, borderColor: Colors.surfaceLight, flex: 1 }]}>
       <View style={styles.rowBetween}>
         <Text style={[styles.sectionTitle, { fontFamily: Typography.heading, color: Colors.text }]}>Approvals Queue</Text>
         <View style={[styles.countBadge, { backgroundColor: Colors.danger }]}>
-          <Text style={[styles.countText, { color: Colors.white, fontFamily: Typography.bodyBold }]}>{pendingItems.length}</Text>
+          <Text style={{ color: '#FFF', fontSize: 13, fontFamily: Typography.bodyBold }}>{pendingItems.length}</Text>
         </View>
       </View>
+
+      <Text style={[styles.subtitle, { color: Colors.textDim, fontFamily: Typography.body }]}>Needs your review</Text>
 
       {pendingItems.length === 0 ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 20, gap: 5 }}>
@@ -41,7 +45,7 @@ export default function ApprovalQueue() {
         </View>
       ) : (
         <View style={{ flex: 1 }}>
-          <FlashList
+          <AnyFlashList
             data={pendingItems}
             keyExtractor={(item: any) => item.id}
             estimatedItemSize={200}
@@ -128,7 +132,8 @@ const styles = StyleSheet.create({
   section: { padding: 20, borderRadius: 20, marginHorizontal: 15, marginBottom: 15, elevation: 3, borderWidth: 1 },
   sectionTitle: { fontSize: 22, marginBottom: 15 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  countBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  subtitle: { fontSize: 13, marginBottom: 12 },
+  countBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
   countText: { fontSize: 12 },
   emptyText: { textAlign: 'center', fontStyle: 'italic' },
   verifyCard: { borderRadius: 15, padding: 15, marginBottom: 10, borderLeftWidth: 5 },
