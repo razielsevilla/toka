@@ -25,7 +25,7 @@ interface Props {
     Typography: any;
 }
 
-export function ShopItemCard({ item, slot, onBuy, userTokens, Colors, Typography }: Props) {
+export const ShopItemCard = React.memo(function ShopItemCard({ item, slot, onBuy, userTokens, Colors, Typography }: Props) {
     const timeLeft = Math.max(0, slot.expiresAt - Date.now());
     const isExpired = timeLeft === 0;
     const isSoldOut = slot.stock <= 0;
@@ -85,4 +85,4 @@ export function ShopItemCard({ item, slot, onBuy, userTokens, Colors, Typography
             </TouchableOpacity>
         </View>
     );
-}
+});

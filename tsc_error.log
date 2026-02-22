@@ -1,0 +1,2 @@
+src/components/child/ChoreBoard.tsx(5,27): error TS2307: Cannot find module '@shopify/flash-list' or its corresponding type declarations.
+src/components/parent/ApprovalQueue.tsx(4,27): error TS2307: Cannot find module '@shopify/flash-list' or its corresponding type declarations.

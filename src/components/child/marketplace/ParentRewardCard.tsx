@@ -22,7 +22,7 @@ interface Props {
     Typography: any;
 }
 
-export function ParentRewardCard({ item, onBuy, onGoal, isGoal, userTokens, goalSavings, Colors, Typography }: Props) {
+export const ParentRewardCard = React.memo(function ParentRewardCard({ item, onBuy, onGoal, isGoal, userTokens, goalSavings, Colors, Typography }: Props) {
     const onSale = item.saleUntil && item.originalCost && item.saleUntil > Date.now();
     const canAfford = (userTokens + goalSavings) >= item.cost;
 
@@ -67,4 +67,4 @@ export function ParentRewardCard({ item, onBuy, onGoal, isGoal, userTokens, goal
             )}
         </View>
     );
-}
+});

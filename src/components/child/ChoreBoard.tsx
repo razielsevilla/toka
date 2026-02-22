@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, TextInput } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+// @ts-ignore
+import { FlashList } from '@shopify/flash-list';
 import { useTokaStore } from '../../store/useTokaStore';
 import { useTheme } from '../../theme/useTheme';
 
@@ -14,7 +16,9 @@ function getRemainingTime(deadline?: number) {
   return `${hours}h ${minutes}m`;
 }
 
-export default function ChoreBoard() {
+interface Props { header?: React.ReactNode; }
+
+export default function ChoreBoard({ header }: Props) {
   const { Colors, Typography } = useTheme();
   const { currentUser, tasks, acceptTask, submitTask, clearNotifications, notifications, submitCounterOffer } = useTokaStore();
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
@@ -43,93 +47,152 @@ export default function ChoreBoard() {
     setNegotiatingTaskId(null); setCounterAmount(''); setCounterReason('');
   };
 
-  return (
-    <View style={[styles.section, { backgroundColor: Colors.surface, borderColor: Colors.surfaceLight, shadowColor: Colors.primary }]}>
-      <View style={styles.row}>
-        <Text style={[styles.sectionTitle, { fontFamily: Typography.heading, color: Colors.primary }]}>Chore Board</Text>
-        {choreNotifs > 0 && <View style={[styles.badge, { backgroundColor: Colors.danger, borderColor: Colors.background }]}><Text style={[styles.badgeText, { color: Colors.white, fontFamily: Typography.bodyBold }]}>{choreNotifs}</Text></View>}
-      </View>
-
-      <View style={[styles.tabContainer, { backgroundColor: Colors.surfaceLight }]}>
-        {(['daily', 'weekly', 'monthly'] as const).map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => { setActiveTab(tab); clearNotifications('task'); }}
-            style={[styles.tabButton, activeTab === tab && { backgroundColor: Colors.primary }]}
-          >
-            <Text style={[styles.tabText, { fontFamily: Typography.bodyBold, color: activeTab === tab ? Colors.white : Colors.textDim }]}>{tab.toUpperCase()}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {filteredTasks.map(task => (
-        <View key={task.id} style={[styles.taskCard, { backgroundColor: Colors.surfaceLight, borderColor: Colors.surfaceLight }, task.rejectionReason && { borderLeftWidth: 5, borderLeftColor: Colors.danger }]}>
-          <View style={styles.rowBetween}>
-            <View>
-              <Text style={[styles.taskTitle, { fontFamily: Typography.subheading, color: Colors.text }]}>{task.title}</Text>
-              <View style={styles.tagsRow}>
-                {task.type === 'spontaneous' && <Ionicons name="flash" size={10} color={Colors.textDim} />}
-                <Text style={[styles.typeTag, { fontFamily: Typography.bodyBold, color: Colors.textDim }]}>{task.type === 'spontaneous' ? 'INSTANT' : task.frequency?.toUpperCase()}</Text>
-                {task.deadline && (
-                  <View style={styles.deadlineTag}>
-                    <Ionicons name="hourglass" size={10} color="#E17055" />
-                    <Text style={{ fontSize: 9, fontWeight: '800', color: '#E17055' }}>{getRemainingTime(task.deadline)} left</Text>
-                  </View>
-                )}
+  // Define renderItem for standard tasks
+  const renderItem = ({ item: task }: { item: any }) => (
+    <View style={[styles.taskCard, { backgroundColor: Colors.surfaceLight, borderColor: Colors.surfaceLight }, task.rejectionReason && { borderLeftWidth: 5, borderLeftColor: Colors.danger }]}>
+      <View style={styles.rowBetween}>
+        <View>
+          <Text style={[styles.taskTitle, { fontFamily: Typography.subheading, color: Colors.text }]}>{task.title}</Text>
+          <View style={styles.tagsRow}>
+            {task.type === 'spontaneous' && <Ionicons name="flash" size={10} color={Colors.textDim} />}
+            <Text style={[styles.typeTag, { fontFamily: Typography.bodyBold, color: Colors.textDim }]}>{task.type === 'spontaneous' ? 'INSTANT' : task.frequency?.toUpperCase()}</Text>
+            {task.deadline && (
+              <View style={styles.deadlineTag}>
+                <Ionicons name="hourglass" size={10} color="#E17055" />
+                <Text style={{ fontSize: 9, fontWeight: '800', color: '#E17055' }}>{getRemainingTime(task.deadline)} left</Text>
               </View>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Ionicons name="diamond" size={14} color={Colors.primary} />
-              <Text style={[styles.taskReward, { fontFamily: Typography.subheading, color: Colors.primary }]}>{task.reward}</Text>
-            </View>
+            )}
           </View>
-          {task.rejectionReason && (
-            <View style={[styles.rejectionBox, { backgroundColor: Colors.danger + '20', borderColor: Colors.danger }]}>
-              <Ionicons name="chatbubble-ellipses" size={12} color={Colors.danger} />
-              <Text style={[styles.rejectionText, { color: Colors.danger, fontFamily: Typography.subheading }]}>Fix: "{task.rejectionReason}"</Text>
-            </View>
-          )}
-          <TouchableOpacity
-            style={[styles.verifyBtn, { backgroundColor: Colors.primary + '18', borderColor: Colors.primary }, task.status === 'pending' && { backgroundColor: Colors.surfaceLight, borderColor: Colors.surfaceLight }]}
-            onPress={() => handleVerify(task.id)}
-            disabled={task.status === 'pending'}
-          >
-            <Text style={[{ fontFamily: Typography.subheading, fontSize: 14, color: task.status === 'pending' ? Colors.textDim : Colors.primary }]}>{task.status === 'pending' ? 'Reviewing...' : 'Verify  📷'}</Text>
-          </TouchableOpacity>
         </View>
-      ))}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Ionicons name="diamond" size={14} color={Colors.primary} />
+          <Text style={[styles.taskReward, { fontFamily: Typography.subheading, color: Colors.primary }]}>{task.reward}</Text>
+        </View>
+      </View>
+      {task.rejectionReason && (
+        <View style={[styles.rejectionBox, { backgroundColor: Colors.danger + '20', borderColor: Colors.danger }]}>
+          <Ionicons name="chatbubble-ellipses" size={12} color={Colors.danger} />
+          <Text style={[styles.rejectionText, { color: Colors.danger, fontFamily: Typography.subheading }]}>Fix: "{task.rejectionReason}"</Text>
+        </View>
+      )}
+      <TouchableOpacity
+        style={[styles.verifyBtn, { backgroundColor: Colors.primary + '18', borderColor: Colors.primary }, task.status === 'pending' && { backgroundColor: Colors.surfaceLight, borderColor: Colors.surfaceLight }]}
+        onPress={() => handleVerify(task.id)}
+        disabled={task.status === 'pending'}
+      >
+        <Text style={[{ fontFamily: Typography.subheading, fontSize: 14, color: task.status === 'pending' ? Colors.textDim : Colors.primary }]}>{task.status === 'pending' ? 'Reviewing...' : 'Verify  📷'}</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
-      {activeTab === 'daily' && availablePool.map(task => (
-        <View key={task.id} style={[styles.poolCard, { backgroundColor: Colors.primary + '08', borderColor: Colors.primary }]}>
-          {negotiatingTaskId === task.id ? (
-            <View style={{ width: '100%' }}>
-              <Text style={[{ fontSize: 14, fontFamily: Typography.subheading, color: Colors.text, marginBottom: 8 }]}>Negotiating: {task.title}</Text>
-              <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-                <TextInput style={[styles.input, { flex: 0.3, backgroundColor: Colors.surfaceLight, color: Colors.text, borderColor: Colors.primary + '44' }]} placeholder="Amt" keyboardType="numeric" value={counterAmount} onChangeText={setCounterAmount} />
-                <TextInput style={[styles.input, { flex: 0.7, backgroundColor: Colors.surfaceLight, color: Colors.text, borderColor: Colors.primary + '44' }]} placeholder="Reason?" value={counterReason} onChangeText={setCounterReason} />
+  return (
+    <View style={{ flex: 1 }}>
+      <FlashList
+        data={filteredTasks}
+        keyExtractor={(t: any) => t.id}
+        estimatedItemSize={120}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <>
+            {header}
+            <View style={[styles.section, { backgroundColor: Colors.surface, borderColor: Colors.surfaceLight, shadowColor: Colors.primary, paddingBottom: 5, marginBottom: 10, borderBottomWidth: 0, borderRadius: 0, elevation: 0, paddingHorizontal: 15 }]}>
+              <View style={styles.row}>
+                <Text style={[styles.sectionTitle, { fontFamily: Typography.heading, color: Colors.primary }]}>Chore Board</Text>
+                {choreNotifs > 0 && <View style={[styles.badge, { backgroundColor: Colors.danger, borderColor: Colors.background }]}><Text style={[styles.badgeText, { color: Colors.white, fontFamily: Typography.bodyBold }]}>{choreNotifs}</Text></View>}
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
-                <TouchableOpacity style={{ paddingVertical: 12, paddingHorizontal: 15 }} onPress={() => setNegotiatingTaskId(null)}><Text style={{ color: Colors.textDim, fontFamily: Typography.subheading }}>Cancel</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.claimBtn, { backgroundColor: Colors.secondary }]} onPress={() => handleSendOffer(task.id)}><Text style={{ color: Colors.white, fontFamily: Typography.subheading }}>Send Offer ✨</Text></TouchableOpacity>
+
+              <View style={[styles.tabContainer, { backgroundColor: Colors.surfaceLight }]}>
+                {(['daily', 'weekly', 'monthly'] as const).map((tab) => (
+                  <TouchableOpacity
+                    key={tab}
+                    onPress={() => { setActiveTab(tab); clearNotifications('task'); }}
+                    style={[styles.tabButton, activeTab === tab && { backgroundColor: Colors.primary }]}
+                  >
+                    <Text style={[styles.tabText, { fontFamily: Typography.bodyBold, color: activeTab === tab ? Colors.white : Colors.textDim }]}>{tab.toUpperCase()}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-          ) : (
-            <>
-              <View>
-                <Text style={[styles.taskTitle, { fontFamily: Typography.subheading, color: Colors.text }]}>{task.title}</Text>
-                <View style={styles.tagsRow}>
-                  <Ionicons name="diamond" size={14} color={Colors.primary} /><Text style={[styles.taskReward, { fontFamily: Typography.subheading, color: Colors.primary }]}>{task.reward}</Text>
-                  {task.deadline && <View style={styles.deadlineTag}><Ionicons name="hourglass" size={10} color="#E17055" /><Text style={{ fontSize: 9, fontWeight: '800', color: '#E17055' }}>{getRemainingTime(task.deadline)} left</Text></View>}
+          </>
+        }
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 20 }}
+        ListFooterComponent={
+          activeTab === 'daily' && availablePool.length > 0 ? (
+            <View style={{ marginTop: 15 }}>
+              <Text style={{ fontFamily: Typography.subheading, color: Colors.textDim, marginBottom: 10, marginLeft: 5 }}>Open Tasks</Text>
+              {availablePool.map(task => (
+                <View key={task.id} style={[styles.taskCard, { backgroundColor: Colors.surfaceLight, borderColor: Colors.surfaceLight }, task.rejectionReason && { borderLeftWidth: 5, borderLeftColor: Colors.danger }]}>
+                  <View style={styles.rowBetween}>
+                    <View>
+                      <Text style={[styles.taskTitle, { fontFamily: Typography.subheading, color: Colors.text }]}>{task.title}</Text>
+                      <View style={styles.tagsRow}>
+                        {task.type === 'spontaneous' && <Ionicons name="flash" size={10} color={Colors.textDim} />}
+                        <Text style={[styles.typeTag, { fontFamily: Typography.bodyBold, color: Colors.textDim }]}>{task.type === 'spontaneous' ? 'INSTANT' : task.frequency?.toUpperCase()}</Text>
+                        {task.deadline && (
+                          <View style={styles.deadlineTag}>
+                            <Ionicons name="hourglass" size={10} color="#E17055" />
+                            <Text style={{ fontSize: 9, fontWeight: '800', color: '#E17055' }}>{getRemainingTime(task.deadline)} left</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Ionicons name="diamond" size={14} color={Colors.primary} />
+                      <Text style={[styles.taskReward, { fontFamily: Typography.subheading, color: Colors.primary }]}>{task.reward}</Text>
+                    </View>
+                  </View>
+                  {task.rejectionReason && (
+                    <View style={[styles.rejectionBox, { backgroundColor: Colors.danger + '20', borderColor: Colors.danger }]}>
+                      <Ionicons name="chatbubble-ellipses" size={12} color={Colors.danger} />
+                      <Text style={[styles.rejectionText, { color: Colors.danger, fontFamily: Typography.subheading }]}>Fix: "{task.rejectionReason}"</Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={[styles.verifyBtn, { backgroundColor: Colors.primary + '18', borderColor: Colors.primary }, task.status === 'pending' && { backgroundColor: Colors.surfaceLight, borderColor: Colors.surfaceLight }]}
+                    onPress={() => handleVerify(task.id)}
+                    disabled={task.status === 'pending'}
+                  >
+                    <Text style={[{ fontFamily: Typography.subheading, fontSize: 14, color: task.status === 'pending' ? Colors.textDim : Colors.primary }]}>{task.status === 'pending' ? 'Reviewing...' : 'Verify  📷'}</Text>
+                  </TouchableOpacity>
                 </View>
-              </View>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <TouchableOpacity style={[styles.negotiateBtn, { borderColor: Colors.primary }]} onPress={() => setNegotiatingTaskId(task.id)}><Text style={{ color: Colors.primary, fontFamily: Typography.subheading, fontSize: 12 }}>Negotiate</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.claimBtn, { backgroundColor: Colors.primary }]} onPress={() => acceptTask(task.id, currentUser?.id || '')}><Text style={{ color: Colors.white, fontFamily: Typography.subheading }}>Claim</Text></TouchableOpacity>
-              </View>
-            </>
-          )}
-        </View>
-      ))}
+              ))}
+
+              {activeTab === 'daily' && availablePool.map(task => (
+                <View key={task.id} style={[styles.poolCard, { backgroundColor: Colors.primary + '08', borderColor: Colors.primary }]}>
+                  {negotiatingTaskId === task.id ? (
+                    <View style={{ width: '100%' }}>
+                      <Text style={[{ fontSize: 14, fontFamily: Typography.subheading, color: Colors.text, marginBottom: 8 }]}>Negotiating: {task.title}</Text>
+                      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+                        <TextInput style={[styles.input, { flex: 0.3, backgroundColor: Colors.surfaceLight, color: Colors.text, borderColor: Colors.primary + '44' }]} placeholder="Amt" keyboardType="numeric" value={counterAmount} onChangeText={setCounterAmount} />
+                        <TextInput style={[styles.input, { flex: 0.7, backgroundColor: Colors.surfaceLight, color: Colors.text, borderColor: Colors.primary + '44' }]} placeholder="Reason?" value={counterReason} onChangeText={setCounterReason} />
+                      </View>
+                      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+                        <TouchableOpacity style={{ paddingVertical: 12, paddingHorizontal: 15 }} onPress={() => setNegotiatingTaskId(null)}><Text style={{ color: Colors.textDim, fontFamily: Typography.subheading }}>Cancel</Text></TouchableOpacity>
+                        <TouchableOpacity style={[styles.claimBtn, { backgroundColor: Colors.secondary }]} onPress={() => handleSendOffer(task.id)}><Text style={{ color: Colors.white, fontFamily: Typography.subheading }}>Send Offer ✨</Text></TouchableOpacity>
+                      </View>
+                    </View>
+                  ) : (
+                    <>
+                      <View>
+                        <Text style={[styles.taskTitle, { fontFamily: Typography.subheading, color: Colors.text }]}>{task.title}</Text>
+                        <View style={styles.tagsRow}>
+                          <Ionicons name="diamond" size={14} color={Colors.primary} /><Text style={[styles.taskReward, { fontFamily: Typography.subheading, color: Colors.primary }]}>{task.reward}</Text>
+                          {task.deadline && <View style={styles.deadlineTag}><Ionicons name="hourglass" size={10} color="#E17055" /><Text style={{ fontSize: 9, fontWeight: '800', color: '#E17055' }}>{getRemainingTime(task.deadline)} left</Text></View>}
+                        </View>
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <TouchableOpacity style={[styles.negotiateBtn, { borderColor: Colors.primary }]} onPress={() => setNegotiatingTaskId(task.id)}><Text style={{ color: Colors.primary, fontFamily: Typography.subheading, fontSize: 12 }}>Negotiate</Text></TouchableOpacity>
+                        <TouchableOpacity style={[styles.claimBtn, { backgroundColor: Colors.primary }]} onPress={() => acceptTask(task.id, currentUser?.id || '')}><Text style={{ color: Colors.white, fontFamily: Typography.subheading }}>Claim</Text></TouchableOpacity>
+                      </View>
+                    </>
+                  )}
+                </View>
+              ))}
+            </View>
+          ) : undefined
+        }
+      />
     </View>
   );
 }

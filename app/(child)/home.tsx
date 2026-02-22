@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../src/theme/useTheme';
 
 import WishlistHero from '../../src/components/child/WishlistHero';
@@ -9,13 +9,9 @@ export default function ChildHome() {
     const { Colors } = useTheme();
 
     return (
-        <ScrollView
-            style={[styles.container, { backgroundColor: Colors.background }]}
-            contentContainerStyle={styles.scrollContent}
-        >
-            <WishlistHero />
-            <ChoreBoard />
-        </ScrollView>
+        <View style={[styles.container, { backgroundColor: Colors.background, paddingTop: 10 }]}>
+            <ChoreBoard header={<WishlistHero />} />
+        </View>
     );
 }
 
