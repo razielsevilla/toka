@@ -27,7 +27,7 @@ export default function Marketplace() {
   };
 
   const handleAllowanceExchange = () => {
-    Alert.alert('Cash Out', 'Exchange 100 💎 for $10 real cash?', [
+    Alert.alert('Cash Out', 'Exchange 100 💎 for ₱10 real cash?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Send Request', onPress: () => userTokens >= 100 ? requestAllowanceCashout(100) : Alert.alert('Not enough tokens!') }
     ]);
@@ -76,7 +76,7 @@ export default function Marketplace() {
         {/* Allowance */}
         <View style={[styles.card, { backgroundColor: Colors.secondary + '12', borderColor: Colors.secondary }]}>
           <Ionicons name="cash" size={32} color={Colors.secondary} style={{ marginBottom: 10 }} />
-          <Text style={[styles.itemName, { fontFamily: Typography.subheading, color: Colors.text }]}>$10 Allowance</Text>
+          <Text style={[styles.itemName, { fontFamily: Typography.subheading, color: Colors.text }]}>₱10 Allowance</Text>
           <Text style={[{ color: Colors.primary, fontFamily: Typography.subheading, fontSize: 12, marginBottom: 10 }]}>100 Spendable</Text>
           <TouchableOpacity style={[styles.buyBtn, { backgroundColor: Colors.secondary }]} onPress={handleAllowanceExchange}><Text style={[styles.buyBtnText, { color: Colors.white, fontFamily: Typography.subheading }]}>Cash Out</Text></TouchableOpacity>
         </View>

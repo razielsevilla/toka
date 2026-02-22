@@ -11,8 +11,8 @@ export default function BudgetOverview() {
     const [localBudget, setLocalBudget] = useState(monthlyBudget.toString());
 
     const outstandingTokens = mockUsers.filter(u => u.role === 'member').reduce((sum, u) => sum + u.tokens, 0);
-    const outstandingDollarValue = outstandingTokens * conversionRate;
-    const budgetPercentage = monthlyBudget > 0 ? (outstandingDollarValue / monthlyBudget) * 100 : 0;
+    const outstandingPesoValue = outstandingTokens * conversionRate;
+    const budgetPercentage = monthlyBudget > 0 ? (outstandingPesoValue / monthlyBudget) * 100 : 0;
     const barColor = budgetPercentage > 90 ? Colors.danger : (budgetPercentage > 75 ? Colors.secondary : Colors.tertiary);
 
     const handleSave = () => {
@@ -34,12 +34,12 @@ export default function BudgetOverview() {
                 <View style={styles.summaryRow}>
                     <View>
                         <Text style={[styles.summaryLabel, { color: Colors.textDim, fontFamily: Typography.bodyBold }]}>Outstanding Liability</Text>
-                        <Text style={[styles.summaryValue, { color: Colors.text, fontFamily: Typography.heading }]}>${outstandingDollarValue.toFixed(2)}</Text>
+                        <Text style={[styles.summaryValue, { color: Colors.text, fontFamily: Typography.heading }]}>₱{outstandingPesoValue.toFixed(2)}</Text>
                         <Text style={[styles.summarySub, { color: Colors.textDim, fontFamily: Typography.body }]}>({outstandingTokens} tokens)</Text>
                     </View>
                     <View>
                         <Text style={[styles.summaryLabel, { color: Colors.textDim, fontFamily: Typography.bodyBold, textAlign: 'right' }]}>Monthly Budget</Text>
-                        <Text style={[styles.summaryValue, { color: Colors.primary, fontFamily: Typography.heading, textAlign: 'right' }]}>${monthlyBudget.toFixed(2)}</Text>
+                        <Text style={[styles.summaryValue, { color: Colors.primary, fontFamily: Typography.heading, textAlign: 'right' }]}>₱{monthlyBudget.toFixed(2)}</Text>
                     </View>
                 </View>
                 <View style={[styles.progressBarBg, { backgroundColor: Colors.background }]}>
@@ -49,8 +49,8 @@ export default function BudgetOverview() {
             </View>
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                {[{ label: 'Conversion Rate ($)', value: localRate, setter: setLocalRate, helper: 'Ex: 0.01 = 1¢ per token', kb: 'decimal-pad' as const },
-                { label: 'Monthly Cap ($)', value: localBudget, setter: setLocalBudget, helper: '', kb: 'decimal-pad' as const }].map(f => (
+                {[{ label: 'Conversion Rate (₱)', value: localRate, setter: setLocalRate, helper: 'Ex: 0.50 = ₱0.50 per token', kb: 'decimal-pad' as const },
+                { label: 'Monthly Cap (₱)', value: localBudget, setter: setLocalBudget, helper: '', kb: 'decimal-pad' as const }].map(f => (
                     <View key={f.label} style={{ flex: 0.48 }}>
                         <Text style={[styles.miniLabel, { color: Colors.text, fontFamily: Typography.bodyBold }]}>{f.label}</Text>
                         <TextInput style={[styles.input, { backgroundColor: Colors.surfaceLight, color: Colors.text, fontFamily: Typography.body }]} value={f.value} onChangeText={f.setter} keyboardType={f.kb} placeholderTextColor={Colors.textDim} />

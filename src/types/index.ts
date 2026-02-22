@@ -75,7 +75,7 @@ export interface TokaState {
   bills: { id: string; title: string; amount: number; frequency: 'daily' | 'weekly' | 'monthly' }[];
   interestFrequency: 'daily' | 'weekly' | 'monthly';
   lastInterestApplied: number;
-  conversionRate: number; // Real-world value of 1 token (e.g., 0.01 = 1 cent)
+  conversionRate: number; // Philippine Peso value of 1 token (e.g., 0.50 = ₱0.50)
   monthlyBudget: number; // Maximum dollars allowed to distribute per month
   activeTab: string;
 

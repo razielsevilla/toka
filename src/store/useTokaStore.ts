@@ -47,13 +47,13 @@ export const useTokaStore = create<TokaState>()(
       interestRate: 0.05,
       interestFrequency: 'weekly',
       lastInterestApplied: Date.now(),
-      conversionRate: 0.01, // 1 token = $0.01
+      conversionRate: 0.50, // 1 token = ₱0.50
       currentUser: null,
       mockUsers: [
         { id: 'u_parent', name: 'Mom (Admin)', role: 'admin', tokens: 0, streak: 0, householdId: 'house_123', password: '123', wishlist: [], unlockedAchievements: [] },
         { id: 'u_child', name: 'Raziel (Member)', role: 'member', tokens: 150, streak: 5, householdId: 'house_123', password: '123', wishlist: [], xp: 450, level: 1, badges: ['Seedling', 'First Chore!'], unlockedAchievements: [] },
       ],
-      monthlyBudget: 50.00, // Real-world dollars max allowed
+      monthlyBudget: 500.00, // Philippine Peso max allowed per month
       notifications: [],
       bills: [
         { id: 'b1', title: 'WiFi Tax 📶', amount: 10, frequency: 'weekly' }
@@ -487,7 +487,7 @@ export const useTokaStore = create<TokaState>()(
 
         const withdrawalRequest: Task = {
           id: `allowance_${Date.now()}`,
-          title: `Allowance Cash Out: $${(amount / 10).toFixed(2)} (${amount} Tokens)`,
+          title: `Allowance Cash Out: ₱${(amount * 0.5).toFixed(2)} (${amount} Tokens)`,
           reward: amount,
           status: 'pending',
           type: 'spontaneous',
