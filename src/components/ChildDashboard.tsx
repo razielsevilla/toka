@@ -13,6 +13,7 @@ import RpgProfile from './child/RpgProfile';
 import Leaderboard from './child/Leaderboard';
 import Marketplace from './child/Marketplace';
 import MiniGames from './child/MiniGames';
+import UserProfile from './UserProfile';
 
 type Tab = 'home' | 'economy' | 'play';
 
@@ -21,6 +22,8 @@ export default function ChildDashboard() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'profile':
+        return <UserProfile />;
       case 'home':
         return (
           <>

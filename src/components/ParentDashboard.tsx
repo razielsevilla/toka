@@ -12,6 +12,7 @@ import TaskCreator from './parent/TaskCreator';
 import MarketManager from './parent/MarketManager';
 import BankingPolicy from './parent/BankingPolicy';
 import RecurringBills from './parent/RecurringBills';
+import UserProfile from './UserProfile';
 
 type Tab = 'home' | 'review' | 'manage';
 
@@ -20,6 +21,8 @@ export default function ParentDashboard() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'profile':
+        return <UserProfile />;
       case 'home':
         return (
           <>

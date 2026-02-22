@@ -57,7 +57,7 @@ export const useTokaStore = create<TokaState>()(
       bills: [
         { id: 'b1', title: 'WiFi Tax 📶', amount: 10, frequency: 'weekly' }
       ],
-      activeTab: 'home',
+      activeTab: 'profile',
 
       // --- ACTIONS ---
 
@@ -539,14 +539,14 @@ export const useTokaStore = create<TokaState>()(
         );
 
         if (user) {
-          set({ user, currentUser: user });
+          set({ user, currentUser: user, activeTab: 'profile' });
           return true;
         }
         return false;
       },
 
       logout: () => {
-        set({ currentUser: null });
+        set({ currentUser: null, activeTab: 'profile' });
       },
 
       // --- NEW LOGIC IMPLEMENTATIONS ---

@@ -5,7 +5,7 @@ import { useTokaStore } from '../store/useTokaStore';
 import NotificationBoard from './NotificationBoard';
 
 export default function Header() {
-  const { currentUser, logout, notifications } = useTokaStore();
+  const { currentUser, logout, notifications, setActiveTab } = useTokaStore();
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Failsafe in case it renders before auth catches it
@@ -15,10 +15,15 @@ export default function Header() {
 
   return (
     <View style={styles.header}>
-      <View>
-        <Text style={styles.welcome}>Hello, {currentUser.name.split(' ')[0]}!</Text>
-        <Text style={styles.roleTag}>{currentUser.role.toUpperCase()}</Text>
-      </View>
+      <TouchableOpacity style={styles.profileSection} onPress={() => setActiveTab('profile')}>
+        <View style={styles.avatarBox}>
+          <Ionicons name="person" size={20} color="#6C5CE7" />
+        </View>
+        <View>
+          <Text style={styles.welcome}>Hello, {currentUser.name.split(' ')[0]}!</Text>
+          <Text style={styles.roleTag}>{currentUser.role.toUpperCase()}</Text>
+        </View>
+      </TouchableOpacity>
       <View style={styles.actions}>
         <TouchableOpacity style={styles.bellBtn} onPress={() => setShowNotifications(true)}>
           <Ionicons name="notifications-outline" size={24} color="#2D3436" />
@@ -45,6 +50,8 @@ const styles = StyleSheet.create({
   header: { paddingTop: 50, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFF', paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#EEE' },
   welcome: { fontSize: 22, fontWeight: 'bold', color: '#2D3436' },
   roleTag: { fontSize: 10, color: '#6C5CE7', fontWeight: 'bold' },
+  profileSection: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  avatarBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F4F1FF', justifyContent: 'center', alignItems: 'center' },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   bellBtn: { position: 'relative' },
   badge: { position: 'absolute', top: -4, right: -4, backgroundColor: '#D63031', width: 16, height: 16, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
