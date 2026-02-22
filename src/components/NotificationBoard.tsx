@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, SafeAreaView, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../store/useTokaStore';
 import { useTheme } from '../theme/useTheme';
@@ -73,8 +73,13 @@ export default function NotificationBoard({ visible, onClose }: Props) {
                                     <Text style={[styles.emptyText, { color: Colors.textDim, fontFamily: Typography.body }]}>You're all caught up!</Text>
                                 </View>
                             ) : (
-                                <View style={{ gap: 10 }}>
-                                    {myNotifications.slice(0, 10).map((notif, i) => (
+                                <ScrollView
+                                    style={styles.notifScroll}
+                                    showsVerticalScrollIndicator
+                                    nestedScrollEnabled
+                                    keyboardShouldPersistTaps="handled"
+                                >
+                                    {myNotifications.map((notif, i) => (
                                         <TouchableOpacity
                                             key={notif.id || i}
                                             style={[styles.item, { borderBottomColor: Colors.surfaceLight }, notif.read && { opacity: 0.5 }]}
@@ -90,7 +95,7 @@ export default function NotificationBoard({ visible, onClose }: Props) {
                                             {!notif.read && <View style={[styles.dot, { backgroundColor: Colors.primary }]} />}
                                         </TouchableOpacity>
                                     ))}
-                                </View>
+                                </ScrollView>
                             )}
 
                             {myNotifications.length > 0 && (
@@ -107,8 +112,9 @@ export default function NotificationBoard({ visible, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 110 },
-    sheet: { width: '90%', borderRadius: 25, padding: 20, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 },
+    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 80, paddingHorizontal: 16 },
+    sheet: { width: '100%', maxHeight: Dimensions.get('window').height * 0.80, borderRadius: 25, padding: 20, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 },
+    notifScroll: { maxHeight: Dimensions.get('window').height * 0.50 },
     rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
     title: { fontSize: 20 },
     closeBtn: { padding: 6, borderRadius: 12 },
