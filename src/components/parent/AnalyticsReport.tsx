@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { PieChart, BarChart } from 'react-native-chart-kit';
 import { useTokaStore } from '../../store/useTokaStore';
 import { useTheme } from '../../theme/useTheme';
 
@@ -17,6 +18,18 @@ export default function AnalyticsReport() {
     const totalSpent = transactions.filter(tx => tx.type === 'spend').reduce((sum, tx) => sum + tx.amount, 0);
     const spendingRatio = totalEarned > 0 ? (totalSpent / totalEarned) * 100 : 0;
     const topEarner = [...members].sort((a, b) => b.tokens - a.tokens)[0];
+
+    const screenWidth = Dimensions.get('window').width - 70; // Adjust for padding
+
+    const pieData = [
+        { name: 'Earned', tokens: totalEarned - totalSpent, color: Colors.secondary, legendFontColor: Colors.text, legendFontSize: 12 },
+        { name: 'Spent', tokens: totalSpent, color: Colors.danger, legendFontColor: Colors.text, legendFontSize: 12 }
+    ];
+
+    const barData = {
+        labels: members.map(m => m.name.split(' ')[0]),
+        datasets: [{ data: members.map(m => m.tokens) }]
+    };
 
     return (
         <View style={[styles.section, { backgroundColor: Colors.surface, borderColor: Colors.surfaceLight }]}>
@@ -52,6 +65,45 @@ export default function AnalyticsReport() {
                     <Text style={[styles.ribbonSub, { fontFamily: Typography.body, color: Colors.text }]}>{topEarner?.name || 'No one yet'} ({topEarner?.tokens || 0} tokens)</Text>
                 </View>
             </View>
+
+            <View style={{ marginTop: 25, alignItems: 'center' }}>
+                <Text style={{ fontFamily: Typography.subheading, color: Colors.textDim, marginBottom: 10, alignSelf: 'flex-start' }}>Kid Balances</Text>
+                <BarChart
+                    data={barData}
+                    width={screenWidth}
+                    height={220}
+                    yAxisLabel=""
+                    yAxisSuffix=""
+                    fromZero
+                    chartConfig={{
+                        backgroundColor: Colors.surface,
+                        backgroundGradientFrom: Colors.surface,
+                        backgroundGradientTo: Colors.surface,
+                        decimalPlaces: 0,
+                        color: (opacity = 1) => Colors.primary,
+                        labelColor: (opacity = 1) => Colors.textDim,
+                        barPercentage: 0.6,
+                        propsForLabels: { fontFamily: Typography.body }
+                    }}
+                    style={{ borderRadius: 16 }}
+                />
+            </View>
+
+            {totalEarned > 0 && (
+                <View style={{ marginTop: 25, alignItems: 'center' }}>
+                    <Text style={{ fontFamily: Typography.subheading, color: Colors.textDim, marginBottom: 10, alignSelf: 'flex-start' }}>Tokens: Earned vs Spent</Text>
+                    <PieChart
+                        data={pieData}
+                        width={screenWidth}
+                        height={120}
+                        chartConfig={{ color: (opacity = 1) => Colors.text }}
+                        accessor={"tokens"}
+                        backgroundColor={"transparent"}
+                        paddingLeft={"15"}
+                        absolute
+                    />
+                </View>
+            )}
         </View>
     );
 }

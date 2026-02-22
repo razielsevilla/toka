@@ -6,6 +6,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TokaState } from '../types';
+import { sendLocalNotification } from '../utils/pushNotifications';
 
 import { createAuthSlice } from './slices/authSlice';
 import { createTaskSlice } from './slices/taskSlice';
@@ -32,3 +33,24 @@ export const useTokaStore = create<TokaState>()(
     }
   )
 );
+
+// Listen to state changes to trigger push notifications
+useTokaStore.subscribe((state, prevState) => {
+  if (state.notifications.length > prevState.notifications.length) {
+    const diffCount = state.notifications.length - prevState.notifications.length;
+    // New notifications are unshifted to the front
+    for (let i = 0; i < diffCount; i++) {
+      const notif = state.notifications[i];
+
+      // Let's filter pushes if it's meant for someone else, or just simulate it going through to the device.
+      // As a prototype, we'll announce it for testing.
+      const activeRole = state.currentUser?.role || state.user.role;
+      const targetMatched = notif.targetRole === 'all' || notif.targetRole === activeRole;
+
+      // Optionally, we could strictly enforce `targetMatched`, but for local simulation fun, we'll just push any that match our role
+      if (targetMatched) {
+        sendLocalNotification('Toka Update ✨', notif.message);
+      }
+    }
+  }
+});
