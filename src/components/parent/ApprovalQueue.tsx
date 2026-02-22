@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
 
@@ -7,19 +7,10 @@ export default function ApprovalQueue() {
   const { tasks, mockUsers, approveTask, rejectTask, acceptCounterOffer, rejectCounterOffer } = useTokaStore();
   const pendingItems = tasks.filter(t => t.status === 'pending' || t.status === 'negotiating');
 
-  const handleReject = (task: any) => {
-    if (task.status === 'negotiating') {
-      Alert.prompt(
-        "Decline Offer",
-        "Why are you declining this counter-offer?",
-        [
-          { text: "Cancel", style: "cancel" },
-          { text: "Decline Offer", onPress: (reason?: string) => rejectCounterOffer(task.id, reason || "Offer declined.") }
-        ]
-      );
-      return;
-    }
+  const [activeAction, setActiveAction] = useState<{ id: string, type: 'reject' | 'declineOffer' } | null>(null);
+  const [reasonInput, setReasonInput] = useState('');
 
+  const handleRejectClick = (task: any) => {
     if (task.isWithdrawal) {
       Alert.alert(
         "Decline Withdrawal",
@@ -32,14 +23,9 @@ export default function ApprovalQueue() {
       return;
     }
 
-    Alert.prompt(
-      "Send Back Chore",
-      "What needs to be fixed?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Send Back", onPress: (reason?: string) => rejectTask(task.id, reason || "Needs more work!") }
-      ]
-    );
+    // For Chore or Counter Offer, show inline input for reason
+    setActiveAction({ id: task.id, type: task.status === 'negotiating' ? 'declineOffer' : 'reject' });
+    setReasonInput('');
   };
 
   return (
@@ -92,22 +78,54 @@ export default function ApprovalQueue() {
               {item.proofUrl && !isNegotiation && <Image source={{ uri: item.proofUrl }} style={styles.proofPreview} />}
 
               <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.rejectBtn} onPress={() => handleReject(item)}>
-                  <Text style={styles.rejectBtnText}>
-                    {item.isWithdrawal ? "Decline" : isNegotiation ? "Decline Offer" : "Send Back"}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.approveBtn, (item.isWithdrawal || isNegotiation) && { backgroundColor: '#6C5CE7' }]}
-                  onPress={() => isNegotiation ? acceptCounterOffer(item.id) : approveTask(item.id)}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text style={styles.approveBtnText}>
-                      {item.isWithdrawal ? `Release ${item.reward}` : isNegotiation ? 'Accept Offer' : `Approve & Pay`}
-                    </Text>
-                    {item.isWithdrawal ? <Ionicons name="diamond" size={14} color="white" /> : isNegotiation ? <Ionicons name="sparkles" size={14} color="white" /> : <Ionicons name="diamond" size={14} color="white" />}
+                {activeAction?.id === item.id ? (
+                  <View style={{ width: '100%', gap: 10 }}>
+                    <TextInput
+                      style={styles.reasonInput}
+                      placeholder="Why is it sent back? (e.g. Needs more work...)"
+                      value={reasonInput}
+                      onChangeText={setReasonInput}
+                    />
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                      <TouchableOpacity style={[styles.rejectBtn, { flex: 1 }]} onPress={() => setActiveAction(null)}>
+                        <Text style={styles.rejectBtnText}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.approveBtn, { flex: 1, backgroundColor: '#D63031' }]}
+                        onPress={() => {
+                          if (activeAction.type === 'declineOffer') {
+                            rejectCounterOffer(item.id, reasonInput || "Offer declined.");
+                          } else {
+                            rejectTask(item.id, reasonInput || "Needs more work!");
+                          }
+                          setActiveAction(null);
+                          setReasonInput('');
+                        }}
+                      >
+                        <Text style={styles.approveBtnText}>Confirm</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </TouchableOpacity>
+                ) : (
+                  <>
+                    <TouchableOpacity style={styles.rejectBtn} onPress={() => handleRejectClick(item)}>
+                      <Text style={styles.rejectBtnText}>
+                        {item.isWithdrawal ? "Decline" : isNegotiation ? "Decline Offer" : "Send Back"}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.approveBtn, (item.isWithdrawal || isNegotiation) && { backgroundColor: '#6C5CE7' }]}
+                      onPress={() => isNegotiation ? acceptCounterOffer(item.id) : approveTask(item.id)}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Text style={styles.approveBtnText}>
+                          {item.isWithdrawal ? `Release ${item.reward}` : isNegotiation ? 'Accept Offer' : `Approve & Pay`}
+                        </Text>
+                        {item.isWithdrawal ? <Ionicons name="diamond" size={14} color="white" /> : isNegotiation ? <Ionicons name="sparkles" size={14} color="white" /> : <Ionicons name="diamond" size={14} color="white" />}
+                      </View>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
             </View>
           );
@@ -137,4 +155,5 @@ const styles = StyleSheet.create({
   rejectBtnText: { color: '#D63031', fontWeight: 'bold', fontSize: 12 },
   approveBtn: { flex: 0.6, backgroundColor: '#00B894', padding: 12, borderRadius: 10, alignItems: 'center' },
   approveBtnText: { color: 'white', fontWeight: 'bold' },
+  reasonInput: { backgroundColor: '#F1F2F6', borderRadius: 8, padding: 10, fontSize: 13, color: '#2D3436' },
 });
