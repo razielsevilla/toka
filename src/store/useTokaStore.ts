@@ -57,8 +57,11 @@ export const useTokaStore = create<TokaState>()(
       bills: [
         { id: 'b1', title: 'WiFi Tax 📶', amount: 10, frequency: 'weekly' }
       ],
+      activeTab: 'home',
 
       // --- ACTIONS ---
+
+      setActiveTab: (tab) => set({ activeTab: tab }),
 
       setRole: (role) => set((state) => ({ user: { ...state.user, role } })),
 
@@ -128,11 +131,18 @@ export const useTokaStore = create<TokaState>()(
       },
 
       submitTask: (taskId, proofUrl) => {
-        set((state) => ({
-          tasks: state.tasks.map((t) =>
-            t.id === taskId ? { ...t, status: 'pending', proofUrl } : t
-          ),
-        }));
+        set((state) => {
+          const task = state.tasks.find(t => t.id === taskId);
+          return {
+            tasks: state.tasks.map((t) =>
+              t.id === taskId ? { ...t, status: 'pending', proofUrl } : t
+            ),
+            notifications: [
+              { id: Date.now().toString(), type: 'approval', message: `${task?.title || 'A chore'} is ready for review!`, read: false, timestamp: Date.now(), targetRole: 'admin' },
+              ...state.notifications
+            ]
+          };
+        });
       },
 
       approveTask: (taskId) => {
@@ -206,7 +216,11 @@ export const useTokaStore = create<TokaState>()(
             tasks: state.tasks.map((t) =>
               t.id === taskId ? { ...t, status: 'completed', rejectionReason: undefined } : t
             ),
-            mockUsers: updatedMockUsers // Save the updated child balances
+            mockUsers: updatedMockUsers, // Save the updated child balances
+            notifications: [
+              { id: Date.now().toString(), type: 'approval', message: `Chore approved: ${task.title}!`, read: false, timestamp: Date.now(), targetRole: 'member' },
+              ...state.notifications
+            ]
           }));
         }
       },
@@ -234,6 +248,7 @@ export const useTokaStore = create<TokaState>()(
             message: `${activeUser.name.split(' ')[0]} just claimed: ${item.name}!`,
             read: false,
             timestamp: Date.now(),
+            targetRole: 'admin',
           };
 
           let newTokensCount = activeUser.tokens;
@@ -537,10 +552,24 @@ export const useTokaStore = create<TokaState>()(
       // --- NEW LOGIC IMPLEMENTATIONS ---
 
       clearNotifications: (type) => {
+        const role = get().currentUser?.role || get().user.role;
         set((state) => ({
-          notifications: state.notifications.map((n) =>
-            n.type === type ? { ...n, read: true } : n
-          ),
+          notifications: state.notifications.filter((n) => !(n.type === type && (n.targetRole === role || n.targetRole === 'all')))
+        }));
+      },
+
+      markNotificationAsRead: (notifId) => {
+        set((state) => ({
+          notifications: state.notifications.map(n =>
+            n.id === notifId ? { ...n, read: true } : n
+          )
+        }));
+      },
+
+      clearAllNotifications: () => {
+        const role = get().currentUser?.role || get().user.role;
+        set((state) => ({
+          notifications: state.notifications.filter((n) => !(n.targetRole === role || n.targetRole === 'all'))
         }));
       },
 
@@ -557,7 +586,7 @@ export const useTokaStore = create<TokaState>()(
 
         set((state) => {
           const updatedNotifications = newTask.type === 'spontaneous'
-            ? [{ id: Date.now().toString(), type: 'task' as const, message: 'New instant task available!', read: false }, ...state.notifications]
+            ? [{ id: Date.now().toString(), type: 'task' as const, message: 'New claimable chore available!', read: false, timestamp: Date.now(), targetRole: 'member' as const }, ...state.notifications]
             : state.notifications;
 
           return {
@@ -667,12 +696,11 @@ export const useTokaStore = create<TokaState>()(
 
         if (!task) return;
 
-        // 1.5 Handle Allowance Cashout Denials
         if (task.isAllowanceCashout) {
           set((state) => ({
             tasks: state.tasks.filter(t => t.id !== taskId),
             notifications: [
-              { id: Date.now().toString(), type: 'rejection', message: 'Allowance cash out request declined.', read: false },
+              { id: Date.now().toString(), type: 'rejection', message: 'Allowance cash out request declined.', read: false, timestamp: Date.now(), targetRole: 'member' },
               ...state.notifications
             ]
           }));
@@ -686,7 +714,7 @@ export const useTokaStore = create<TokaState>()(
             tasks: state.tasks.filter(t => t.id !== taskId),
             vaultBalance: state.vaultBalance + task.reward,
             notifications: [
-              { id: Date.now().toString(), type: 'rejection', message: 'Withdrawal request declined.', read: false },
+              { id: Date.now().toString(), type: 'rejection', message: 'Withdrawal request declined.', read: false, timestamp: Date.now(), targetRole: 'member' },
               ...state.notifications
             ]
           }));
@@ -707,7 +735,7 @@ export const useTokaStore = create<TokaState>()(
               : t
           ),
           notifications: [
-            { id: Date.now().toString(), type: 'rejection', message: 'A chore was sent back!', read: false },
+            { id: Date.now().toString(), type: 'rejection', message: 'A chore was sent back!', read: false, timestamp: Date.now(), targetRole: 'member' },
             ...state.notifications
           ]
         }));
@@ -719,7 +747,7 @@ export const useTokaStore = create<TokaState>()(
         set((state) => ({
           marketItems: [...state.marketItems, newItem],
           notifications: [
-            { id: Date.now().toString(), type: 'market', message: 'New reward in the market!', read: false },
+            { id: Date.now().toString(), type: 'market', message: 'New reward in the market!', read: false, timestamp: Date.now(), targetRole: 'member' },
             ...state.notifications
           ]
         }));
@@ -796,7 +824,7 @@ export const useTokaStore = create<TokaState>()(
           currentUser: currentUser?.id === updatedActiveUser.id ? updatedActiveUser! : state.currentUser,
           transactions: [...newTransactions, ...state.transactions],
           notifications: [
-            { id: `notif_${Date.now()}`, type: 'market' as const, message: `Bills processed: ${billBreakdown}`, read: false },
+            { id: `notif_${Date.now()}`, type: 'market' as const, message: `Bills processed: ${billBreakdown}`, read: false, timestamp: Date.now(), targetRole: 'member' },
             ...state.notifications
           ]
         }));
@@ -814,7 +842,7 @@ export const useTokaStore = create<TokaState>()(
             counterOfferReason: reason
           } : t),
           notifications: [
-            { id: `notif_${Date.now()}`, type: 'task' as const, message: `Someone is negotiating a chore!`, read: false },
+            { id: `notif_${Date.now()}`, type: 'task' as const, message: `Someone is negotiating a chore!`, read: false, timestamp: Date.now(), targetRole: 'admin' },
             ...state.notifications
           ]
         }));
@@ -850,7 +878,7 @@ export const useTokaStore = create<TokaState>()(
             proposedBy: undefined
           } : t),
           notifications: [
-            { id: `notif_${Date.now()}`, type: 'rejection' as const, message: `Your counter-offer was declined: ${reason}`, read: false },
+            { id: `notif_${Date.now()}`, type: 'rejection' as const, message: `Your counter-offer was declined: ${reason}`, read: false, timestamp: Date.now(), targetRole: 'member' },
             ...state.notifications
           ]
         }));
@@ -896,9 +924,11 @@ export const useTokaStore = create<TokaState>()(
           notifications: [
             {
               id: `notif_${Date.now()}`,
-              type: 'market',
+              type: 'transfer',
               message: `${activeUser.name.split(' ')[0]} sent ${amount} 💎 to ${receiver.name.split(' ')[0]}!`,
-              read: false
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'all'
             },
             ...state.notifications
           ]

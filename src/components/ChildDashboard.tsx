@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTokaStore } from '../store/useTokaStore';
 
 // Subcomponents
 import WishlistHero from './child/WishlistHero';
@@ -16,7 +17,7 @@ import MiniGames from './child/MiniGames';
 type Tab = 'home' | 'economy' | 'play';
 
 export default function ChildDashboard() {
-  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const { activeTab, setActiveTab } = useTokaStore();
 
   const renderContent = () => {
     switch (activeTab) {

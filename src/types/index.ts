@@ -46,10 +46,11 @@ export interface Transaction {
 
 export interface Notification {
   id: string;
-  type: 'task' | 'market' | 'rejection' | 'market_purchase';
+  type: 'task' | 'market' | 'rejection' | 'market_purchase' | 'transfer' | 'achievement' | 'approval';
   message: string;
   read: boolean;
-  timestamp?: number;
+  timestamp: number;
+  targetRole: 'admin' | 'member' | 'all';
 }
 
 export interface TokaState {
@@ -75,8 +76,10 @@ export interface TokaState {
   lastInterestApplied: number;
   conversionRate: number; // Real-world value of 1 token (e.g., 0.01 = 1 cent)
   monthlyBudget: number; // Maximum dollars allowed to distribute per month
+  activeTab: string;
 
   // Actions
+  setActiveTab: (tab: string) => void;
   setRole: (role: UserRole) => void;
   generateInviteCode: () => string;
   joinHousehold: (code: string) => void;
@@ -103,7 +106,9 @@ export interface TokaState {
   rejectTask: (taskId: string, reason: string) => void;
   addMarketItem: (item: { name: string; cost: number; type: string; originalCost?: number; saleUntil?: number }) => void;
   removeMarketItem: (itemId: string) => void;
-  clearNotifications: (type: 'task' | 'market' | 'rejection' | 'market_purchase') => void;
+  clearNotifications: (type: Notification['type']) => void;
+  clearAllNotifications: () => void;
+  markNotificationAsRead: (notifId: string) => void;
   setInterestPolicy: (rate: number, frequency: 'daily' | 'weekly' | 'monthly') => void;
   setBudgetPolicy: (rate: number, budget: number) => void;
   addBill: (bill: { title: string; amount: number; frequency: 'daily' | 'weekly' | 'monthly' }) => void;

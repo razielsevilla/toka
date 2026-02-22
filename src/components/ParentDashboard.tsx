@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTokaStore } from '../store/useTokaStore';
 
 import MarketAlerts from './parent/MarketAlerts';
 import BudgetOverview from './parent/BudgetOverview';
@@ -15,7 +16,7 @@ import RecurringBills from './parent/RecurringBills';
 type Tab = 'home' | 'review' | 'manage';
 
 export default function ParentDashboard() {
-  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const { activeTab, setActiveTab } = useTokaStore();
 
   const renderContent = () => {
     switch (activeTab) {
