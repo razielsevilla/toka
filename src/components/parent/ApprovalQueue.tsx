@@ -11,13 +11,13 @@ export default function ApprovalQueue() {
   const [reasonInput, setReasonInput] = useState('');
 
   const handleRejectClick = (task: any) => {
-    if (task.isWithdrawal) {
+    if (task.isWithdrawal || task.isAllowanceCashout) {
       Alert.alert(
-        "Decline Withdrawal",
-        "Would you like to return these tokens to the child's vault?",
+        task.isAllowanceCashout ? "Decline Cash Out" : "Decline Withdrawal",
+        task.isAllowanceCashout ? "Deny the cash out request?" : "Would you like to return these tokens to the child's vault?",
         [
           { text: "Cancel", style: "cancel" },
-          { text: "Decline", onPress: () => rejectTask(task.id, "Parent declined withdrawal.") }
+          { text: "Decline", onPress: () => rejectTask(task.id, task.isAllowanceCashout ? "Parent declined cash out." : "Parent declined withdrawal.") }
         ]
       );
       return;
@@ -48,13 +48,13 @@ export default function ApprovalQueue() {
           return (
             <View key={item.id} style={[
               styles.verifyCard,
-              item.isWithdrawal ? styles.withdrawalCard : isNegotiation ? styles.negotiationCard : styles.choreCard
+              (item.isWithdrawal || item.isAllowanceCashout) ? styles.withdrawalCard : isNegotiation ? styles.negotiationCard : styles.choreCard
             ]}>
               <View style={styles.verifyInfo}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-                  {item.isWithdrawal ? <Ionicons name="cash" size={18} color="#6C5CE7" /> : isNegotiation ? <Ionicons name="hand-left" size={18} color="#E17055" /> : null}
+                  {(item.isWithdrawal || item.isAllowanceCashout) ? <Ionicons name="cash" size={18} color="#6C5CE7" /> : isNegotiation ? <Ionicons name="hand-left" size={18} color="#E17055" /> : null}
                   <Text style={[styles.verifyTaskName, { marginBottom: 0 }]}>
-                    {item.isWithdrawal ? "Withdrawal Request" : isNegotiation ? "Counter Offer" : item.title}
+                    {item.isWithdrawal ? "Withdrawal Request" : item.isAllowanceCashout ? "Cash Out Request" : isNegotiation ? "Counter Offer" : item.title}
                   </Text>
                 </View>
 
@@ -110,18 +110,18 @@ export default function ApprovalQueue() {
                   <>
                     <TouchableOpacity style={styles.rejectBtn} onPress={() => handleRejectClick(item)}>
                       <Text style={styles.rejectBtnText}>
-                        {item.isWithdrawal ? "Decline" : isNegotiation ? "Decline Offer" : "Send Back"}
+                        {(item.isWithdrawal || item.isAllowanceCashout) ? "Decline" : isNegotiation ? "Decline Offer" : "Send Back"}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[styles.approveBtn, (item.isWithdrawal || isNegotiation) && { backgroundColor: '#6C5CE7' }]}
+                      style={[styles.approveBtn, (item.isWithdrawal || item.isAllowanceCashout || isNegotiation) && { backgroundColor: '#6C5CE7' }]}
                       onPress={() => isNegotiation ? acceptCounterOffer(item.id) : approveTask(item.id)}
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                         <Text style={styles.approveBtnText}>
-                          {item.isWithdrawal ? `Release ${item.reward}` : isNegotiation ? 'Accept Offer' : `Approve & Pay`}
+                          {(item.isWithdrawal || item.isAllowanceCashout) ? `Approve ${item.reward}` : isNegotiation ? 'Accept Offer' : `Approve & Pay`}
                         </Text>
-                        {item.isWithdrawal ? <Ionicons name="diamond" size={14} color="white" /> : isNegotiation ? <Ionicons name="sparkles" size={14} color="white" /> : <Ionicons name="diamond" size={14} color="white" />}
+                        {(item.isWithdrawal || item.isAllowanceCashout) ? <Ionicons name="diamond" size={14} color="white" /> : isNegotiation ? <Ionicons name="sparkles" size={14} color="white" /> : <Ionicons name="diamond" size={14} color="white" />}
                       </View>
                     </TouchableOpacity>
                   </>

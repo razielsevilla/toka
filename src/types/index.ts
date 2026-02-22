@@ -29,6 +29,7 @@ export interface Task {
   proofUrl?: string;
   rejectionReason?: string; // Support rejectTask logic
   isWithdrawal?: boolean; // Flag withdrawal pseudo-tasks
+  isAllowanceCashout?: boolean; // Flag allowance cashout from spendables
   counterOfferAmount?: number;
   counterOfferReason?: string;
   proposedBy?: string;
@@ -90,6 +91,7 @@ export interface TokaState {
   tickAuction: () => void;
   depositToVault: (amount: number) => void;
   withdrawFromVault: (amount: number) => void;
+  requestAllowanceCashout: (amount: number) => void;
   applyInterest: () => void;
   login: (email: string, pass: string) => boolean;
   logout: () => void;

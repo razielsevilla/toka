@@ -13,7 +13,7 @@ function getRemainingTime(deadline?: number) {
 }
 
 export default function Marketplace() {
-  const { currentUser, marketItems, purchaseItem, setWishlistGoal, openMysteryBox, withdrawFromVault, vaultBalance, notifications, clearNotifications, auction, placeBid } = useTokaStore();
+  const { currentUser, marketItems, purchaseItem, setWishlistGoal, openMysteryBox, requestAllowanceCashout, vaultBalance, notifications, clearNotifications, auction, placeBid } = useTokaStore();
 
   const [bidAmount, setBidAmount] = useState('');
 
@@ -29,7 +29,7 @@ export default function Marketplace() {
   const handleAllowanceExchange = () => {
     Alert.alert("Cash Out Allowance", "Exchange 100 💎 for $10 real cash?", [
       { text: "Cancel", style: "cancel" },
-      { text: "Send Request", onPress: () => vaultBalance >= 100 ? withdrawFromVault(100) : Alert.alert("Not enough savings!") }
+      { text: "Send Request", onPress: () => userTokens >= 100 ? requestAllowanceCashout(100) : Alert.alert("Not enough spendable tokens!") }
     ]);
   };
 
@@ -87,7 +87,7 @@ export default function Marketplace() {
           <Text style={styles.itemName}>$10 Allowance</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 10 }}>
             <Ionicons name="diamond" size={12} color="#0984E3" />
-            <Text style={[styles.itemCost, { marginBottom: 0 }]}>100 Vault</Text>
+            <Text style={[styles.itemCost, { marginBottom: 0 }]}>100 Spendables</Text>
           </View>
           <TouchableOpacity style={styles.buyBtn} onPress={handleAllowanceExchange}><Text style={styles.buyBtnText}>Cash Out</Text></TouchableOpacity>
         </View>

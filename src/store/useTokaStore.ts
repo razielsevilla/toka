@@ -139,6 +139,25 @@ export const useTokaStore = create<TokaState>()(
         const { tasks, user, mockUsers } = get();
         const task = tasks.find((t) => t.id === taskId);
 
+        // --- ALLOWANCE CASHOUT APPROVAL LOGIC ---
+        if (task && task.isAllowanceCashout && user.role === 'admin') {
+          const childId = task.assignedTo[0];
+          const childUser = mockUsers.find(u => u.id === childId);
+          if (!childUser || childUser.tokens < task.reward) {
+            Alert.alert("Error", "The child no longer has enough tokens for this cash out. Request cancelled.");
+            set((state) => ({ tasks: state.tasks.filter(t => t.id !== taskId) }));
+            return;
+          }
+
+          set((state) => ({
+            tasks: state.tasks.filter(t => t.id !== taskId), // Remove request
+            mockUsers: state.mockUsers.map(u =>
+              u.id === childId ? { ...u, tokens: u.tokens - task.reward } : u
+            )
+          }));
+          return;
+        }
+
         // --- WITHDRAWAL APPROVAL LOGIC ---
         if (task && task.isWithdrawal && user.role === 'admin') {
           const childId = task.assignedTo[0];
@@ -439,6 +458,32 @@ export const useTokaStore = create<TokaState>()(
         Alert.alert("Request Sent", "Waiting for parent approval to release tokens.");
       },
 
+      requestAllowanceCashout: (amount: number) => {
+        const { currentUser, user } = get();
+        const activeUser = currentUser || user;
+
+        if (!activeUser || amount <= 0 || activeUser.tokens < amount) {
+          Alert.alert("Invalid Amount", "You don't have enough spendable tokens!");
+          return;
+        }
+
+        const withdrawalRequest: Task = {
+          id: `allowance_${Date.now()}`,
+          title: `Allowance Cash Out: $${(amount / 10).toFixed(2)} (${amount} Tokens)`,
+          reward: amount,
+          status: 'pending',
+          type: 'spontaneous',
+          assignedTo: [activeUser.id],
+          isAllowanceCashout: true,
+        };
+
+        set((state) => ({
+          tasks: [...state.tasks, withdrawalRequest],
+        }));
+
+        Alert.alert("Request Sent", "Waiting for parent approval to cash out tokens.");
+      },
+
       applyInterest: () => {
         const { vaultBalance, interestRate, currentUser, user } = get();
         if (vaultBalance <= 0) return;
@@ -621,6 +666,19 @@ export const useTokaStore = create<TokaState>()(
         const task = tasks.find(t => t.id === taskId);
 
         if (!task) return;
+
+        // 1.5 Handle Allowance Cashout Denials
+        if (task.isAllowanceCashout) {
+          set((state) => ({
+            tasks: state.tasks.filter(t => t.id !== taskId),
+            notifications: [
+              { id: Date.now().toString(), type: 'rejection', message: 'Allowance cash out request declined.', read: false },
+              ...state.notifications
+            ]
+          }));
+          Alert.alert("Declined", "The cash out request was denied.");
+          return;
+        }
 
         // 1. Handle Withdrawal Denials (Refund Vault)
         if (task.isWithdrawal) {
