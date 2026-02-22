@@ -1,0 +1,12 @@
+{
+    "greeting": "Hello",
+    "dashboard": "Dashboard",
+    "chores": "Chore Board",
+    "market": "Marketplace",
+    "review": "Review",
+    "settings": "Settings",
+    "theme_toggle": "Toggle Theme",
+    "logout": "Log Out",
+    "claims": "Claims",
+    "savings": "Vault"
+}

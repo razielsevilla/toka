@@ -10,6 +10,7 @@ import { Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-f
 import { useTokaStore } from '../src/store/useTokaStore';
 import { useTheme } from '../src/theme/useTheme';
 import { usePushNotifications } from '../src/hooks/usePushNotifications';
+import '../src/i18n';
 
 import Header from '../src/components/Header';
 

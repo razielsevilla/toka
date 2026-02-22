@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../store/useTokaStore';
 import NotificationBoard from './NotificationBoard';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme/useTheme';
 
 export default function Header() {
@@ -11,6 +12,7 @@ export default function Header() {
   const { Colors, Typography, isDark } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
   const router = useRouter();
+  const { t } = useTranslation();
 
   if (!currentUser) return null;
 
@@ -18,13 +20,19 @@ export default function Header() {
 
   return (
     <View style={[styles.header, { backgroundColor: Colors.background, borderBottomColor: Colors.surfaceLight }]}>
-      <TouchableOpacity style={styles.profileSection} onPress={() => router.push('/profile')}>
+      <TouchableOpacity
+        style={styles.profileSection}
+        onPress={() => router.push('/profile')}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Open user profile settings"
+      >
         <View style={[styles.avatarBox, { backgroundColor: Colors.primary }]}>
           <Ionicons name="person" size={20} color={Colors.white} />
         </View>
         <View>
           <Text style={[styles.welcome, { fontFamily: Typography.heading, color: Colors.primary }]}>
-            Hello, {currentUser.name.split(' ')[0]}!
+            {t('greeting')}, {currentUser.name.split(' ')[0]}!
           </Text>
           <Text style={[styles.roleTag, { fontFamily: Typography.bodyBold, color: Colors.secondary }]}>
             {currentUser.role.toUpperCase()}
@@ -45,7 +53,13 @@ export default function Header() {
           />
         </View>
 
-        <TouchableOpacity style={[styles.bellBtn, { backgroundColor: Colors.surface }]} onPress={() => setShowNotifications(true)}>
+        <TouchableOpacity
+          style={[styles.bellBtn, { backgroundColor: Colors.surface }]}
+          onPress={() => setShowNotifications(true)}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel={`Notifications, ${unreadCount} unread`}
+        >
           <Ionicons name="notifications-outline" size={24} color={Colors.text} />
           {unreadCount > 0 && (
             <View style={[styles.badge, { backgroundColor: Colors.danger, borderColor: Colors.background }]}>
