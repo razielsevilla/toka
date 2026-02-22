@@ -166,7 +166,11 @@ export const useTokaStore = create<TokaState>()(
             tasks: state.tasks.filter(t => t.id !== taskId), // Remove request
             mockUsers: state.mockUsers.map(u =>
               u.id === childId ? { ...u, tokens: u.tokens - task.reward } : u
-            )
+            ),
+            notifications: [
+              { id: `notif_${Date.now()}`, type: 'approval' as const, message: `Your cash out of ${task.reward} 💎 (₱${(task.reward * 0.5).toFixed(2)}) was approved!`, read: false, timestamp: Date.now(), targetRole: 'member' as const },
+              ...state.notifications
+            ]
           }));
           return;
         }
@@ -178,7 +182,11 @@ export const useTokaStore = create<TokaState>()(
             tasks: state.tasks.filter(t => t.id !== taskId), // Remove request
             mockUsers: state.mockUsers.map(u =>
               u.id === childId ? { ...u, tokens: u.tokens + task.reward } : u
-            )
+            ),
+            notifications: [
+              { id: `notif_${Date.now()}`, type: 'approval' as const, message: `Withdrawal of ${task.reward} 💎 from the vault was approved!`, read: false, timestamp: Date.now(), targetRole: 'member' as const },
+              ...state.notifications
+            ]
           }));
           return;
         }
@@ -358,15 +366,26 @@ export const useTokaStore = create<TokaState>()(
       },
 
       startAuction: (itemName: string, durationSeconds: number, startingBid: number) => {
-        set({
+        set((state) => ({
           auction: {
             itemName,
             highestBid: startingBid,
             highestBidder: null,
             timeLeft: durationSeconds,
             isActive: true
-          }
-        });
+          },
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'market' as const,
+              message: `Auction started! Bid on: "${itemName}" — starting at ${startingBid} 💎`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'member' as const
+            },
+            ...state.notifications
+          ]
+        }));
         Alert.alert("Auction Started", `${itemName} is now up for auction!`);
       },
 
@@ -398,6 +417,17 @@ export const useTokaStore = create<TokaState>()(
             highestBidder: activeUser.name,
             timeLeft: newTime,
           },
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'market' as const,
+              message: `${activeUser.name.split(' ')[0]} placed a bid of ${amount} 💎 on "${auction.itemName}"!`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const
+            },
+            ...state.notifications
+          ]
         }));
       },
 
@@ -444,6 +474,17 @@ export const useTokaStore = create<TokaState>()(
           transactions: [
             { id: Date.now().toString(), amount, type: 'spend', reason: 'Vault Deposit', timestamp: Date.now() },
             ...state.transactions
+          ],
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'transfer' as const,
+              message: `${activeUser.name.split(' ')[0]} deposited ${amount} 💎 into the family vault!`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const
+            },
+            ...state.notifications
           ]
         }));
       },
@@ -471,6 +512,17 @@ export const useTokaStore = create<TokaState>()(
         set((state) => ({
           tasks: [...state.tasks, withdrawalRequest],
           vaultBalance: state.vaultBalance - amount,
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'task' as const,
+              message: `${activeUser.name.split(' ')[0]} wants to withdraw ${amount} 💎 from the vault!`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const
+            },
+            ...state.notifications
+          ]
         }));
 
         Alert.alert("Request Sent", "Waiting for parent approval to release tokens.");
@@ -497,6 +549,17 @@ export const useTokaStore = create<TokaState>()(
 
         set((state) => ({
           tasks: [...state.tasks, withdrawalRequest],
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'task' as const,
+              message: `${activeUser.name.split(' ')[0]} wants to cash out ${amount} 💎 (₱${(amount * 0.5).toFixed(2)})!`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const
+            },
+            ...state.notifications
+          ]
         }));
 
         Alert.alert("Request Sent", "Waiting for parent approval to cash out tokens.");
@@ -588,24 +651,43 @@ export const useTokaStore = create<TokaState>()(
         };
 
         set((state) => {
-          const updatedNotifications = newTask.type === 'spontaneous'
-            ? [{ id: Date.now().toString(), type: 'task' as const, message: 'New claimable chore available!', read: false, timestamp: Date.now(), targetRole: 'member' as const }, ...state.notifications]
-            : state.notifications;
+          const notifs: Notification[] = [];
+
+          if (newTask.type === 'spontaneous') {
+            // Claimable chore — notify all members
+            notifs.push({ id: `notif_${Date.now()}`, type: 'task', message: `New claimable chore: "${newTask.title}" (${newTask.reward} 💎)`, read: false, timestamp: Date.now(), targetRole: 'member' });
+          } else if (newTask.assignedTo.length > 0) {
+            // Assigned regular chore — notify assigned members
+            notifs.push({ id: `notif_${Date.now()}`, type: 'task', message: `New chore assigned to you: "${newTask.title}" for ${newTask.reward} 💎`, read: false, timestamp: Date.now(), targetRole: 'member' });
+          }
 
           return {
             tasks: [...state.tasks, newTask],
-            notifications: updatedNotifications
+            notifications: [...notifs, ...state.notifications]
           };
         });
       },
 
       acceptTask: (taskId, userId) => {
+        const task = get().tasks.find(t => t.id === taskId);
+        const acceptingUser = get().mockUsers.find(u => u.id === userId);
         set((state) => ({
           tasks: state.tasks.map((t) =>
             t.id === taskId && t.type === 'spontaneous' && t.status === 'open'
               ? { ...t, status: 'accepted', assignedTo: [...t.assignedTo, userId], rejectionReason: undefined }
               : t
           ),
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'task' as const,
+              message: `${acceptingUser?.name.split(' ')[0] || 'A child'} claimed: "${task?.title || 'a chore'}" (${task?.reward} 💎)`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const
+            },
+            ...state.notifications
+          ]
         }));
       },
 
@@ -666,6 +748,17 @@ export const useTokaStore = create<TokaState>()(
           transactions: [
             { id: `goal_${Date.now()}`, amount, type: 'spend', reason: 'Deposited to Goal', timestamp: Date.now() },
             ...state.transactions
+          ],
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'transfer' as const,
+              message: `${activeUser.name.split(' ')[0]} put ${amount} 💎 toward their savings goal!`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const
+            },
+            ...state.notifications
           ]
         }));
       },
@@ -867,6 +960,17 @@ export const useTokaStore = create<TokaState>()(
             counterOfferReason: undefined,
             proposedBy: undefined
           } : t),
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'approval' as const,
+              message: `Your counter-offer for "${task.title}" was accepted at ${task.counterOfferAmount} 💎!`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'member' as const
+            },
+            ...state.notifications
+          ]
         }));
         Alert.alert("Offer Accepted", "The chore has been assigned to the child at the new rate!");
       },
@@ -980,6 +1084,19 @@ export const useTokaStore = create<TokaState>()(
               timestamp: Date.now()
             },
             ...state.transactions
+          ],
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'achievement' as const,
+              message: isWin
+                ? `${activeUser.name.split(' ')[0]} doubled ${wager} 💎 in Double or Nothing! 🎲`
+                : `${activeUser.name.split(' ')[0]} lost ${wager} 💎 in Double or Nothing.`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const
+            },
+            ...state.notifications
           ]
         }));
 
@@ -1020,6 +1137,17 @@ export const useTokaStore = create<TokaState>()(
               timestamp: Date.now()
             },
             ...state.transactions
+          ],
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'achievement' as const,
+              message: `${activeUser.name.split(' ')[0]} unlocked an achievement and earned ${rewardTokens} 💎! 🏅`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const
+            },
+            ...state.notifications
           ]
         }));
 

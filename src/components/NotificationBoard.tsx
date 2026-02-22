@@ -35,10 +35,19 @@ export default function NotificationBoard({ visible, onClose }: Props) {
     const handlePress = (notif: any) => {
         markNotificationAsRead(notif.id); onClose();
         if (activeRole === 'admin') {
-            setActiveTab(['approval', 'task'].includes(notif.type) ? 'review' : 'home');
+            const adminMap: Record<string, string> = {
+                approval: 'review', task: 'review',
+                market_purchase: 'home', transfer: 'home',
+                achievement: 'home', market: 'home', rejection: 'home',
+            };
+            setActiveTab(adminMap[notif.type] || 'home');
         } else {
-            const map: Record<string, string> = { task: 'home', rejection: 'home', approval: 'home', market: 'economy', transfer: 'economy', achievement: 'play' };
-            setActiveTab(map[notif.type] || 'home');
+            const memberMap: Record<string, string> = {
+                task: 'home', rejection: 'home', approval: 'home',
+                market: 'economy', market_purchase: 'economy',
+                transfer: 'economy', achievement: 'play',
+            };
+            setActiveTab(memberMap[notif.type] || 'home');
         }
     };
 
