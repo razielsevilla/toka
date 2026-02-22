@@ -44,6 +44,17 @@ export interface Transaction {
   timestamp: number;
 }
 
+export interface ShopSlot {
+  itemId: string;
+  stock: number;
+  expiresAt: number;
+}
+
+export interface DailyShop {
+  lastRefresh: number;
+  slots: ShopSlot[];
+}
+
 export interface Notification {
   id: string;
   type: 'task' | 'market' | 'rejection' | 'market_purchase' | 'transfer' | 'achievement' | 'approval';
@@ -78,6 +89,7 @@ export interface TokaState {
   conversionRate: number; // Philippine Peso value of 1 token (e.g., 0.50 = ₱0.50)
   monthlyBudget: number; // Maximum dollars allowed to distribute per month
   activeTab: string;
+  dailyShop: DailyShop;
 
   // Actions
   setTheme: (theme: 'light' | 'dark') => void;
@@ -122,4 +134,7 @@ export interface TokaState {
   transferTokens: (toUserId: string, amount: number, memo: string) => void;
   playDoubleOrNothing: (wager: number) => 'win' | 'lose';
   claimAchievement: (achievementId: string, rewardTokens: number, badgeName?: string) => void;
+  applyGachaPrize: (prizeLabel: string, bonusTokens: number) => boolean;
+  refreshDailyShop: () => void;
+  buyShopItem: (itemId: string) => boolean;
 }

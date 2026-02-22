@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, Task, Transaction, Notification, TokaState, UserRole } from '../types';
+import { generateDailyShop, MERCH_CATALOG, SYSTEM_CATALOG } from '../data/shopCatalog';
 
 // --- THE STORE ENGINE ---
 
@@ -34,7 +35,6 @@ export const useTokaStore = create<TokaState>()(
       marketItems: [
         { id: 'm1', name: '30 Mins Screen Time', cost: 50, type: 'voucher' },
         { id: 'm2', name: 'Pizza Night', cost: 200, type: 'real-world' },
-        { id: 'm3', name: 'Cool Avatar Hat', cost: 15, originalCost: 30, saleUntil: Date.now() + 86400000, type: 'in-app' },
       ],
       auction: {
         itemName: 'Family Trip to the Theme Park',
@@ -59,6 +59,7 @@ export const useTokaStore = create<TokaState>()(
         { id: 'b1', title: 'WiFi Tax 📶', amount: 10, frequency: 'weekly' }
       ],
       activeTab: 'profile',
+      dailyShop: { lastRefresh: 0, slots: [] },
 
       // --- ACTIONS ---
 
@@ -245,8 +246,11 @@ export const useTokaStore = create<TokaState>()(
         const item = marketItems.find((i) => i.id === itemId);
         if (!item) return false;
 
-        // Apply streak discount if applicable
-        const discount = activeUser.streak >= 7 ? 0.9 : 1.0;
+        // Streak discount only applies to full-price items.
+        // If a flash sale is already active on this item, the sale price IS the final price —
+        // stacking another discount would silently under-charge the child.
+        const isOnSale = !!(item.saleUntil && item.originalCost && item.saleUntil > Date.now());
+        const discount = (!isOnSale && activeUser.streak >= 7) ? 0.9 : 1.0;
         const finalCost = Math.floor(item.cost * discount);
 
         const isGoal = activeUser.activeGoal?.itemId === itemId;
@@ -314,42 +318,56 @@ export const useTokaStore = create<TokaState>()(
       },
 
       openMysteryBox: () => {
-        const { currentUser, user, addTokens } = get();
+        const { currentUser, user } = get();
         const activeUser = currentUser || user;
         const cost = 40;
 
         if (activeUser.tokens < cost) return 'Insufficient Tokens';
 
-        const roll = Math.random() * 100;
-        let prize = '';
-        if (roll <= 5) prize = '🌟 LEGENDARY: $10 Allowance!';
-        else if (roll <= 25) prize = '💎 RARE: No Chores for 1 Day!';
-        else prize = '📦 COMMON: 10 Bonus Tokens';
+        // Weighted prize pool
+        const prizes = [
+          { weight: 2, label: '🌟 LEGENDARY: ₱50 Allowance Cash Out!', tokens: 0 },
+          { weight: 3, label: '🌟 LEGENDARY: No Chores for 2 Days!', tokens: 0 },
+          { weight: 10, label: '💎 RARE: XP Booster 3× (10 Chores)', tokens: 0 },
+          { weight: 10, label: '💎 RARE: Streak Shield ×5', tokens: 0 },
+          { weight: 15, label: '🎁 UNCOMMON: 50 Bonus Tokens', tokens: 50 },
+          { weight: 15, label: '🎁 UNCOMMON: Toka Sticker Pack', tokens: 0 },
+          { weight: 25, label: '📦 COMMON: 20 Bonus Tokens', tokens: 20 },
+          { weight: 20, label: '📦 COMMON: 10 Bonus Tokens', tokens: 10 },
+        ];
 
-        const updatedUser = { ...activeUser, tokens: activeUser.tokens - cost };
+        const totalWeight = prizes.reduce((s, p) => s + p.weight, 0);
+        let roll = Math.random() * totalWeight;
+        let prize = prizes[prizes.length - 1];
+        for (const p of prizes) { roll -= p.weight; if (roll <= 0) { prize = p; break; } }
+
+        const updatedUser = { ...activeUser, tokens: activeUser.tokens - cost + prize.tokens };
 
         set((state) => ({
-          user: updatedUser,
-          currentUser: updatedUser,
+          user: state.user.id === activeUser.id ? updatedUser : state.user,
+          currentUser: state.currentUser?.id === activeUser.id ? updatedUser : state.currentUser,
           mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
           transactions: [
-            {
-              id: Date.now().toString(),
-              amount: cost,
-              type: 'spend',
-              reason: `Mystery Box: ${prize}`,
-              timestamp: Date.now(),
-            },
+            { id: Date.now().toString(), amount: cost, type: 'spend', reason: `Gacha Box: ${prize.label}`, timestamp: Date.now() },
+            ...(prize.tokens > 0 ? [{ id: `rew_${Date.now()}`, amount: prize.tokens, type: 'earn' as const, reason: `Gacha Win: ${prize.label}`, timestamp: Date.now() }] : []),
             ...state.transactions,
           ],
+          notifications: [
+            {
+              id: `notif_${Date.now()}`,
+              type: 'achievement' as const,
+              message: `${activeUser.name.split(' ')[0]} opened a Loot Box and got: ${prize.label}!`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const
+            },
+            ...state.notifications
+          ]
         }));
 
-        if (prize.includes('Bonus Tokens')) {
-          addTokens(10, 'Mystery Box Win');
-        }
-
-        return prize;
+        return prize.label;
       },
+
 
       resetStreak: () => {
         const { currentUser, user } = get();
@@ -1155,7 +1173,113 @@ export const useTokaStore = create<TokaState>()(
           "Achievement Unlocked! 🏅",
           `You earned ${rewardTokens} 💎${badgeName ? ` and the '${badgeName}' badge!` : '!'}`
         );
-      }
+      },
+
+      applyGachaPrize: (prizeLabel, bonusTokens) => {
+        const { currentUser, user } = get();
+        const activeUser = currentUser || user;
+        const cost = 40;
+
+        if (activeUser.tokens < cost) return false;
+
+        const updatedUser = { ...activeUser, tokens: activeUser.tokens - cost + bonusTokens };
+
+        set((state) => ({
+          user: state.user.id === activeUser.id ? updatedUser : state.user,
+          currentUser: state.currentUser?.id === activeUser.id ? updatedUser : state.currentUser,
+          mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
+          transactions: [
+            { id: `gacha_cost_${Date.now()}`, amount: cost, type: 'spend' as const, reason: `Gacha Box: ${prizeLabel}`, timestamp: Date.now() },
+            ...(bonusTokens > 0 ? [{ id: `gacha_win_${Date.now()}`, amount: bonusTokens, type: 'earn' as const, reason: `Gacha Win: ${prizeLabel}`, timestamp: Date.now() }] : []),
+            ...state.transactions,
+          ],
+          notifications: [
+            {
+              id: `notif_gacha_${Date.now()}`,
+              type: 'achievement' as const,
+              message: `${activeUser.name.split(' ')[0]} opened a Loot Box and got: ${prizeLabel}!`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const
+            },
+            ...state.notifications
+          ]
+        }));
+
+        return true;
+      },
+
+      // ─── Daily Shop ──────────────────────────────────────────────────────
+
+      refreshDailyShop: () => {
+        const { dailyShop } = get();
+        const now = Date.now();
+        const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+        // Refresh if: never refreshed, or 24h have elapsed since last refresh
+        if (now - dailyShop.lastRefresh < TWENTY_FOUR_HOURS && dailyShop.slots.length > 0) return;
+
+        const slots = generateDailyShop(now);
+        set({ dailyShop: { lastRefresh: now, slots } });
+      },
+
+      buyShopItem: (itemId) => {
+        const { dailyShop, currentUser, user } = get();
+        const activeUser = currentUser || user;
+        const now = Date.now();
+
+        // Find the slot and verify it's still valid + in stock
+        const slotIndex = dailyShop.slots.findIndex(s => s.itemId === itemId);
+        if (slotIndex === -1) { Alert.alert('Item Unavailable', 'This item is no longer in the shop.'); return false; }
+        const slot = dailyShop.slots[slotIndex];
+        if (now > slot.expiresAt) { Alert.alert('Expired', 'This item window has closed! Check back tomorrow.'); return false; }
+        if (slot.stock <= 0) { Alert.alert('Sold Out', 'This item is sold out for today!'); return false; }
+
+        // Find item in catalog for cost & name
+        const allCatalog = [...MERCH_CATALOG, ...SYSTEM_CATALOG];
+        const item = allCatalog.find(i => i.id === itemId);
+        if (!item) return false;
+
+        if (activeUser.tokens < item.cost) {
+          Alert.alert('Not Enough Tokens', `You need ${item.cost} 💎 but only have ${activeUser.tokens} 💎.`);
+          return false;
+        }
+
+        // Bonus tokens for token-reward items
+        const bonusTokens = item.id.includes('tokens') ? parseInt(item.name.match(/\d+/)?.[0] || '0', 10) : 0;
+        const updatedUser = { ...activeUser, tokens: activeUser.tokens - item.cost + bonusTokens };
+
+        // Decrement stock
+        const updatedSlots = dailyShop.slots.map((s, i) =>
+          i === slotIndex ? { ...s, stock: s.stock - 1 } : s
+        );
+
+        set((state) => ({
+          user: state.user.id === activeUser.id ? updatedUser : state.user,
+          currentUser: state.currentUser?.id === activeUser.id ? updatedUser : state.currentUser,
+          mockUsers: state.mockUsers.map(u => u.id === activeUser.id ? updatedUser : u),
+          dailyShop: { ...state.dailyShop, slots: updatedSlots },
+          transactions: [
+            { id: `shop_${Date.now()}`, amount: item.cost, type: 'spend' as const, reason: `Shop: ${item.name}`, timestamp: Date.now() },
+            ...(bonusTokens > 0 ? [{ id: `shop_bonus_${Date.now()}`, amount: bonusTokens, type: 'earn' as const, reason: `Shop Win: ${item.name}`, timestamp: Date.now() }] : []),
+            ...state.transactions,
+          ],
+          notifications: [
+            {
+              id: `notif_shop_${Date.now()}`,
+              type: 'market_purchase' as const,
+              message: `${activeUser.name.split(' ')[0]} bought "${item.name}" from the shop!`,
+              read: false,
+              timestamp: Date.now(),
+              targetRole: 'admin' as const,
+            },
+            ...state.notifications,
+          ],
+        }));
+
+        Alert.alert('Purchased! 🎉', `You got: ${item.name}${bonusTokens > 0 ? `\n+${bonusTokens} tokens added to your wallet!` : ''}`);
+        return true;
+      },
 
     }),
     {
