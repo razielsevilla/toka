@@ -55,6 +55,7 @@ export interface Notification {
 
 export interface TokaState {
   // State
+  theme: 'light' | 'dark';
   user: User;
   tasks: Task[];
   transactions: Transaction[];
@@ -79,6 +80,7 @@ export interface TokaState {
   activeTab: string;
 
   // Actions
+  setTheme: (theme: 'light' | 'dark') => void;
   setActiveTab: (tab: string) => void;
   setRole: (role: UserRole) => void;
   generateInviteCode: () => string;

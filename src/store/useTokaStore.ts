@@ -10,6 +10,7 @@ export const useTokaStore = create<TokaState>()(
   persist(
     (set, get) => ({
       // Initial Mock State
+      theme: 'light' as const,
       user: {
         id: 'user_01',
         name: 'Toka Member',
@@ -60,6 +61,8 @@ export const useTokaStore = create<TokaState>()(
       activeTab: 'profile',
 
       // --- ACTIONS ---
+
+      setTheme: (theme) => set({ theme }),
 
       setActiveTab: (tab) => set({ activeTab: tab }),
 

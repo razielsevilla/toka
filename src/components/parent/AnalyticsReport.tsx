@@ -2,93 +2,71 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
+import { useTheme } from '../../theme/useTheme';
 
 export default function AnalyticsReport() {
+    const { Colors, Typography } = useTheme();
     const { tasks, transactions, mockUsers } = useTokaStore();
-
     const members = mockUsers.filter(u => u.role === 'member');
     if (members.length === 0) return null;
 
-    // 1. Chore Completion Rate
-    // Exclude spontaneous tasks that haven't been accepted yet
     const relevantTasks = tasks.filter(t => t.assignedTo.length > 0 || t.status === 'completed');
     const completedTasks = relevantTasks.filter(t => t.status === 'completed').length;
     const completionRate = relevantTasks.length > 0 ? (completedTasks / relevantTasks.length) * 100 : 0;
-
-    // 2. Earnings vs. Spending
-    const totalEarned = transactions
-        .filter(tx => tx.type === 'earn')
-        .reduce((sum, tx) => sum + tx.amount, 0);
-
-    const totalSpent = transactions
-        .filter(tx => tx.type === 'spend')
-        .reduce((sum, tx) => sum + tx.amount, 0);
-
+    const totalEarned = transactions.filter(tx => tx.type === 'earn').reduce((sum, tx) => sum + tx.amount, 0);
+    const totalSpent = transactions.filter(tx => tx.type === 'spend').reduce((sum, tx) => sum + tx.amount, 0);
     const spendingRatio = totalEarned > 0 ? (totalSpent / totalEarned) * 100 : 0;
-
-    // 3. Finding the Top Hustler (Most tokens)
     const topEarner = [...members].sort((a, b) => b.tokens - a.tokens)[0];
 
     return (
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: Colors.surface, borderColor: Colors.surfaceLight }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 15 }}>
-                <Ionicons name="bar-chart" size={20} color="#2D3436" />
-                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Household Analytics</Text>
+                <Ionicons name="bar-chart" size={20} color={Colors.primary} />
+                <Text style={[styles.sectionTitle, { fontFamily: Typography.heading, color: Colors.text }]}>Household Analytics</Text>
             </View>
 
             <View style={styles.metricsGrid}>
-                {/* Metric 1: Chore Completion */}
-                <View style={styles.metricCard}>
-                    <Text style={styles.metricValue}>{completionRate.toFixed(0)}%</Text>
-                    <Text style={styles.metricLabel}>Chores Completed</Text>
-                    <View style={styles.miniBarBg}>
-                        <View style={[styles.miniBarFill, { width: `${completionRate}%`, backgroundColor: completionRate > 70 ? '#00b894' : '#fdcb6e' }]} />
+                <View style={[styles.metricCard, { backgroundColor: Colors.surfaceLight, borderColor: Colors.surfaceLight }]}>
+                    <Text style={[styles.metricValue, { fontFamily: Typography.heading, color: Colors.primary }]}>{completionRate.toFixed(0)}%</Text>
+                    <Text style={[styles.metricLabel, { fontFamily: Typography.bodyBold, color: Colors.textDim }]}>Chores Completed</Text>
+                    <View style={[styles.miniBarBg, { backgroundColor: Colors.background }]}>
+                        <View style={[styles.miniBarFill, { width: `${completionRate}%` as any, backgroundColor: completionRate > 70 ? Colors.tertiary : Colors.secondary }]} />
                     </View>
                 </View>
-
-                {/* Metric 2: Spending Habit */}
-                <View style={styles.metricCard}>
-                    <Text style={[styles.metricValue, { color: '#E17055' }]}>{spendingRatio.toFixed(0)}%</Text>
-                    <Text style={styles.metricLabel}>Earnings Spent</Text>
+                <View style={[styles.metricCard, { backgroundColor: Colors.surfaceLight, borderColor: Colors.surfaceLight }]}>
+                    <Text style={[styles.metricValue, { fontFamily: Typography.heading, color: Colors.danger }]}>{spendingRatio.toFixed(0)}%</Text>
+                    <Text style={[styles.metricLabel, { fontFamily: Typography.bodyBold, color: Colors.textDim }]}>Earnings Spent</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                        <Text style={styles.helperText}>
-                            {spendingRatio > 80 ? "High Spenders" : "Great Savers"}
-                        </Text>
-                        <Ionicons name={spendingRatio > 80 ? "cash-outline" : "business-outline"} size={12} color="#B2BEC3" />
+                        <Text style={{ fontSize: 10, fontStyle: 'italic', color: Colors.textDim, fontFamily: Typography.body }}>{spendingRatio > 80 ? 'High Spenders' : 'Great Savers'}</Text>
+                        <Ionicons name={spendingRatio > 80 ? 'cash-outline' : 'business-outline'} size={12} color={Colors.textDim} />
                     </View>
                 </View>
             </View>
 
-            {/* Top Performer Ribbon */}
-            <View style={styles.ribbonCard}>
-                <View style={styles.ribbonIcon}>
-                    <Ionicons name="trophy" size={24} color="#D97706" />
+            <View style={[styles.ribbonCard, { backgroundColor: Colors.secondary + '18', borderColor: Colors.secondary + '44' }]}>
+                <View style={[styles.ribbonIcon, { backgroundColor: Colors.surface }]}>
+                    <Ionicons name="trophy" size={24} color={Colors.secondary} />
                 </View>
-                <View style={styles.ribbonContent}>
-                    <Text style={styles.ribbonTitle}>Top Earner</Text>
-                    <Text style={styles.ribbonSub}>{topEarner?.name || 'No one yet'} ({topEarner?.tokens || 0} tokens)</Text>
+                <View style={{ flex: 1 }}>
+                    <Text style={[styles.ribbonTitle, { fontFamily: Typography.subheading, color: Colors.secondary }]}>Top Earner</Text>
+                    <Text style={[styles.ribbonSub, { fontFamily: Typography.body, color: Colors.text }]}>{topEarner?.name || 'No one yet'} ({topEarner?.tokens || 0} tokens)</Text>
                 </View>
             </View>
-
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    section: { backgroundColor: '#FFF', padding: 20, borderRadius: 20, marginHorizontal: 15, marginBottom: 15, elevation: 3 },
-    sectionTitle: { fontSize: 18, fontWeight: '800', color: '#2D3436', marginBottom: 15 },
-
+    section: { padding: 20, borderRadius: 20, marginHorizontal: 15, marginBottom: 15, elevation: 3, borderWidth: 1 },
+    sectionTitle: { fontSize: 22 },
     metricsGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-    metricCard: { flex: 0.48, backgroundColor: '#F8F9FA', padding: 15, borderRadius: 15, alignItems: 'center', borderWidth: 1, borderColor: '#F1F2F6' },
-    metricValue: { fontSize: 24, fontWeight: '900', color: '#0984e3', marginBottom: 5 },
-    metricLabel: { fontSize: 11, fontWeight: '700', color: '#636E72', textAlign: 'center', marginBottom: 8 },
-    miniBarBg: { width: '100%', height: 4, backgroundColor: '#E9ECEF', borderRadius: 2 },
+    metricCard: { flex: 0.48, padding: 15, borderRadius: 15, alignItems: 'center', borderWidth: 1 },
+    metricValue: { fontSize: 24, marginBottom: 5 },
+    metricLabel: { fontSize: 11, textAlign: 'center', marginBottom: 8 },
+    miniBarBg: { width: '100%', height: 4, borderRadius: 2 },
     miniBarFill: { height: '100%', borderRadius: 2 },
-    helperText: { fontSize: 10, fontStyle: 'italic', color: '#B2BEC3' },
-
-    ribbonCard: { flexDirection: 'row', backgroundColor: '#FFF9C4', padding: 15, borderRadius: 15, alignItems: 'center', borderWidth: 1, borderColor: '#FDE047' },
-    ribbonIcon: { width: 40, height: 40, backgroundColor: '#FFF', borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 15, elevation: 2 },
-    ribbonContent: { flex: 1 },
-    ribbonTitle: { fontSize: 13, fontWeight: '800', color: '#D97706' },
-    ribbonSub: { fontSize: 12, fontWeight: '600', color: '#92400E', marginTop: 2 }
+    ribbonCard: { flexDirection: 'row', padding: 15, borderRadius: 15, alignItems: 'center', borderWidth: 1 },
+    ribbonIcon: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 15, elevation: 2 },
+    ribbonTitle: { fontSize: 13 },
+    ribbonSub: { fontSize: 12, marginTop: 2 },
 });

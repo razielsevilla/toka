@@ -2,90 +2,61 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../../store/useTokaStore';
+import { useTheme } from '../../theme/useTheme';
 
 export default function PeerTransfer() {
+    const { Colors, Typography } = useTheme();
     const { currentUser, user, mockUsers, transferTokens } = useTokaStore();
     const activeUser = currentUser || user;
-
     const [selectedSibling, setSelectedSibling] = useState<string | null>(null);
     const [transferAmount, setTransferAmount] = useState('');
     const [memo, setMemo] = useState('');
 
-    // Get other members in the household who are NOT the current user
     const siblings = mockUsers.filter(u => u.role === 'member' && u.id !== activeUser.id);
 
     const handleTransfer = () => {
-        if (!selectedSibling) {
-            Alert.alert("Missing Sibling", "Please select someone to send tokens to!");
-            return;
-        }
-
+        if (!selectedSibling) { Alert.alert('Missing Sibling', 'Select someone to send to!'); return; }
         const amountNum = parseInt(transferAmount, 10);
-        if (!amountNum || isNaN(amountNum) || amountNum <= 0) {
-            Alert.alert("Invalid Amount", "Please enter a valid amount of tokens.");
-            return;
-        }
-
-        if (amountNum > activeUser.tokens) {
-            Alert.alert("Not Enough Tokens", "You don't have enough spendable tokens for this transfer.");
-            return;
-        }
-
+        if (!amountNum || isNaN(amountNum) || amountNum <= 0) { Alert.alert('Invalid Amount'); return; }
+        if (amountNum > activeUser.tokens) { Alert.alert('Not Enough Tokens'); return; }
         transferTokens(selectedSibling, amountNum, memo || 'Just because!');
-
-        setSelectedSibling(null);
-        setTransferAmount('');
-        setMemo('');
+        setSelectedSibling(null); setTransferAmount(''); setMemo('');
     };
 
-    if (siblings.length === 0) return null; // Hide module if they are an only child in the app
+    if (siblings.length === 0) return null;
 
     return (
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: Colors.surface, borderColor: Colors.surfaceLight }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-                <Ionicons name="cash" size={20} color="#2D3436" />
-                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Pay a Sibling</Text>
+                <Ionicons name="cash" size={20} color={Colors.primary} />
+                <Text style={[styles.sectionTitle, { fontFamily: Typography.heading, color: Colors.primary }]}>Pay a Sibling</Text>
             </View>
-            <Text style={styles.sectionSubtitle}>Send tokens from your Wallet Balance.</Text>
+            <Text style={[styles.subtitle, { fontFamily: Typography.body, color: Colors.textDim }]}>Send tokens from your spendable balance.</Text>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.siblingScroller}>
-                {siblings.map(sib => (
-                    <TouchableOpacity
-                        key={sib.id}
-                        style={[styles.siblingCard, selectedSibling === sib.id && styles.siblingCardActive]}
-                        onPress={() => setSelectedSibling(sib.id)}
-                    >
-                        <View style={styles.siblingAvatar}>
-                            <Text style={styles.siblingAvatarText}>{sib.name.charAt(0).toUpperCase()}</Text>
-                        </View>
-                        <Text style={[styles.siblingName, selectedSibling === sib.id && styles.siblingNameActive]}>
-                            {sib.name.split(' ')[0]}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+                {siblings.map(sib => {
+                    const active = selectedSibling === sib.id;
+                    return (
+                        <TouchableOpacity key={sib.id} style={[styles.sibCard, { borderColor: active ? Colors.primary : 'transparent', backgroundColor: active ? Colors.primary + '15' : Colors.surfaceLight }]} onPress={() => setSelectedSibling(sib.id)}>
+                            <View style={[styles.sibAvatar, { backgroundColor: active ? Colors.primary : Colors.surfaceLight }]}>
+                                <Text style={[styles.sibAvatarText, { color: active ? Colors.white : Colors.text }]}>{sib.name.charAt(0).toUpperCase()}</Text>
+                            </View>
+                            <Text style={[styles.sibName, { fontFamily: Typography.bodyBold, color: active ? Colors.primary : Colors.textDim }]}>{sib.name.split(' ')[0]}</Text>
+                        </TouchableOpacity>
+                    );
+                })}
             </ScrollView>
 
             {selectedSibling && (
-                <View style={styles.transferForm}>
-                    <View style={styles.inputRow}>
-                        <TextInput
-                            style={[styles.input, { flex: 0.3 }]}
-                            placeholder="Amt (Tokens)"
-                            keyboardType="numeric"
-                            value={transferAmount}
-                            onChangeText={setTransferAmount}
-                        />
-                        <TextInput
-                            style={[styles.input, { flex: 0.7 }]}
-                            placeholder="What's this for?"
-                            value={memo}
-                            onChangeText={setMemo}
-                        />
+                <View style={[styles.transferForm, { borderTopColor: Colors.surfaceLight }]}>
+                    <View style={{ flexDirection: 'row', gap: 10, marginBottom: 15 }}>
+                        <TextInput style={[styles.input, { flex: 0.3, backgroundColor: Colors.surfaceLight, color: Colors.text, borderColor: Colors.surfaceLight, fontFamily: Typography.body }]} placeholder="Amt" placeholderTextColor={Colors.textDim} keyboardType="numeric" value={transferAmount} onChangeText={setTransferAmount} />
+                        <TextInput style={[styles.input, { flex: 0.7, backgroundColor: Colors.surfaceLight, color: Colors.text, borderColor: Colors.surfaceLight, fontFamily: Typography.body }]} placeholder="What's this for?" placeholderTextColor={Colors.textDim} value={memo} onChangeText={setMemo} />
                     </View>
-                    <TouchableOpacity style={styles.sendBtn} onPress={handleTransfer}>
+                    <TouchableOpacity style={[styles.sendBtn, { backgroundColor: Colors.primary }]} onPress={handleTransfer}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                            <Text style={styles.sendBtnText}>Send Tokens</Text>
-                            <Ionicons name="paper-plane" size={16} color="white" />
+                            <Text style={[styles.sendBtnText, { color: Colors.white, fontFamily: Typography.subheading }]}>Send Tokens</Text>
+                            <Ionicons name="paper-plane" size={16} color={Colors.white} />
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -95,21 +66,15 @@ export default function PeerTransfer() {
 }
 
 const styles = StyleSheet.create({
-    section: { backgroundColor: '#FFF', padding: 20, borderRadius: 25, marginHorizontal: 15, marginBottom: 15, elevation: 2 },
-    sectionTitle: { fontSize: 18, fontWeight: '800', color: '#2D3436' },
-    sectionSubtitle: { fontSize: 12, color: '#636E72', marginBottom: 15 },
-
-    siblingScroller: { marginBottom: 10 },
-    siblingCard: { alignItems: 'center', marginRight: 15, padding: 10, borderRadius: 15, borderWidth: 2, borderColor: 'transparent' },
-    siblingCardActive: { borderColor: '#A29BFE', backgroundColor: '#F4F1FF' },
-    siblingAvatar: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#DFE6E9', justifyContent: 'center', alignItems: 'center', marginBottom: 5 },
-    siblingAvatarText: { fontSize: 20, fontWeight: '800', color: '#2D3436' },
-    siblingName: { fontSize: 12, fontWeight: '700', color: '#636E72' },
-    siblingNameActive: { color: '#6C5CE7' },
-
-    transferForm: { marginTop: 10, borderTopWidth: 1, borderTopColor: '#F1F2F6', paddingTop: 15 },
-    inputRow: { flexDirection: 'row', gap: 10, marginBottom: 15 },
-    input: { backgroundColor: '#F8F9FA', borderRadius: 12, padding: 12, fontSize: 14, borderWidth: 1, borderColor: '#EEE', color: '#2D3436' },
-    sendBtn: { backgroundColor: '#6C5CE7', paddingVertical: 14, borderRadius: 15, alignItems: 'center' },
-    sendBtnText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 }
+    section: { padding: 20, borderRadius: 25, marginHorizontal: 15, marginBottom: 15, elevation: 2, borderWidth: 1 },
+    sectionTitle: { fontSize: 22 },
+    subtitle: { fontSize: 12, marginBottom: 15 },
+    sibCard: { alignItems: 'center', marginRight: 12, padding: 10, borderRadius: 15, borderWidth: 2 },
+    sibAvatar: { width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center', marginBottom: 5 },
+    sibAvatarText: { fontSize: 20, fontWeight: '800' },
+    sibName: { fontSize: 12 },
+    transferForm: { marginTop: 10, borderTopWidth: 1, paddingTop: 15 },
+    input: { borderRadius: 12, padding: 12, fontSize: 14, borderWidth: 1 },
+    sendBtn: { paddingVertical: 14, borderRadius: 15, alignItems: 'center' },
+    sendBtnText: { fontSize: 16 },
 });
