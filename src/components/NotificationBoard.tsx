@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Dimensions
 import { Ionicons } from '@expo/vector-icons';
 import { useTokaStore } from '../store/useTokaStore';
 import { useTheme } from '../theme/useTheme';
+import { useRouter } from 'expo-router';
 
 interface Props { visible: boolean; onClose: () => void; }
 
@@ -27,10 +28,12 @@ const TYPE_ICON: Record<string, string> = {
 };
 
 export default function NotificationBoard({ visible, onClose }: Props) {
-    const { notifications, clearAllNotifications, currentUser, user, setActiveTab, markNotificationAsRead } = useTokaStore();
+    const { notifications, clearAllNotifications, currentUser, user, markNotificationAsRead } = useTokaStore();
     const { Colors, Typography } = useTheme();
     const activeRole = (currentUser || user).role;
     const myNotifications = notifications.filter(n => n.targetRole === activeRole || n.targetRole === 'all');
+
+    const router = useRouter();
 
     const handlePress = (notif: any) => {
         markNotificationAsRead(notif.id); onClose();
@@ -40,14 +43,16 @@ export default function NotificationBoard({ visible, onClose }: Props) {
                 market_purchase: 'home', transfer: 'home',
                 achievement: 'home', market: 'home', rejection: 'home',
             };
-            setActiveTab(adminMap[notif.type] || 'home');
+            const target = adminMap[notif.type] || 'home';
+            router.push(target === 'home' ? '/(parent)/home' : target === 'review' ? '/(parent)/review' : '/(parent)/manage');
         } else {
             const memberMap: Record<string, string> = {
                 task: 'home', rejection: 'home', approval: 'home',
                 market: 'economy', market_purchase: 'economy',
                 transfer: 'economy', achievement: 'play',
             };
-            setActiveTab(memberMap[notif.type] || 'home');
+            const target = memberMap[notif.type] || 'home';
+            router.push(target === 'home' ? '/(child)/home' : target === 'economy' ? '/(child)/economy' : '/(child)/play');
         }
     };
 

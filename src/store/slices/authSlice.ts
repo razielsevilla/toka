@@ -2,13 +2,12 @@ import { StateCreator } from 'zustand';
 import { TokaState } from '../../types';
 
 export const createAuthSlice: StateCreator<TokaState, [], [], Pick<TokaState,
-    | 'theme' | 'user' | 'currentUser' | 'mockUsers' | 'activeTab'
-    | 'setTheme' | 'setActiveTab' | 'setRole' | 'generateInviteCode'
+    | 'theme' | 'user' | 'currentUser' | 'mockUsers'
+    | 'setTheme' | 'setRole' | 'generateInviteCode'
     | 'joinHousehold' | 'login' | 'logout' | 'addMember'
 >> = (set, get) => ({
     // ── State ──────────────────────────────────────────────────────────────────
     theme: 'light' as const,
-    activeTab: 'profile',
 
     user: {
         id: 'user_01',
@@ -35,8 +34,6 @@ export const createAuthSlice: StateCreator<TokaState, [], [], Pick<TokaState,
 
     setTheme: (theme) => set({ theme }),
 
-    setActiveTab: (tab) => set({ activeTab: tab }),
-
     setRole: (role) => set((state) => ({ user: { ...state.user, role } })),
 
     generateInviteCode: () => Math.random().toString(36).substring(2, 8).toUpperCase(),
@@ -59,13 +56,13 @@ export const createAuthSlice: StateCreator<TokaState, [], [], Pick<TokaState,
             u => u.name.toLowerCase().includes(email.toLowerCase()) && u.password === pass
         );
         if (found) {
-            set({ user: found, currentUser: found, activeTab: 'profile' });
+            set({ user: found, currentUser: found });
             return true;
         }
         return false;
     },
 
-    logout: () => set({ currentUser: null, activeTab: 'profile' }),
+    logout: () => set({ currentUser: null }),
 
     addMember: (name, role) => {
         const { Alert } = require('react-native');

@@ -26,8 +26,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "scheme": "toka",
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-router"
     ]
   }
 }

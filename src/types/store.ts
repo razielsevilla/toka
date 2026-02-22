@@ -11,7 +11,6 @@ export interface TokaState {
     user: User;
     currentUser: User | null;
     mockUsers: User[];
-    activeTab: string;
 
     tasks: Task[];
     transactions: Transaction[];
@@ -31,7 +30,6 @@ export interface TokaState {
 
     // ── Auth Actions ───────────────────────────────────────────────────────────
     setTheme: (theme: 'light' | 'dark') => void;
-    setActiveTab: (tab: string) => void;
     setRole: (role: UserRole) => void;
     generateInviteCode: () => string;
     joinHousehold: (code: string) => void;
