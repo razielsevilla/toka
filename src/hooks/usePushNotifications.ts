@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { Platform, LogBox } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+
+LogBox.ignoreLogs(['expo-notifications: Android Push notifications']);
 
 export interface PushNotificationState {
     expoPushToken?: Notifications.ExpoPushToken;
@@ -69,16 +71,19 @@ async function registerForPushNotificationsAsync() {
             return;
         }
         try {
-            const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+            const projectId =
+                Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
             if (!projectId) {
+                console.warn('EAS Project ID is unexpectedly missing. Token fetch may fail.');
                 token = await Notifications.getExpoPushTokenAsync();
             } else {
                 token = await Notifications.getExpoPushTokenAsync({ projectId });
             }
         } catch (e) {
-            token = await Notifications.getExpoPushTokenAsync();
+            console.error('Failed to get push token for push notification!', e);
         }
     }
 
     return token;
 }
+
