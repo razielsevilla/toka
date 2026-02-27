@@ -19,17 +19,7 @@ jest.mock('expo-router', () => ({
 jest.mock('@react-native-async-storage/async-storage', () =>
     require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
-jest.mock('expo-notifications', () => ({
-    setNotificationHandler: jest.fn(),
-    addNotificationReceivedListener: jest.fn(),
-    addNotificationResponseReceivedListener: jest.fn(),
-    removeNotificationSubscription: jest.fn(),
-    setNotificationChannelAsync: jest.fn(),
-    getPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
-    requestPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
-    getExpoPushTokenAsync: jest.fn(() => Promise.resolve({ data: 'mock-token' })),
-    scheduleNotificationAsync: jest.fn(),
-}));
+
 
 jest.mock('expo-device', () => ({
     isDevice: true,

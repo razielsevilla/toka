@@ -9,7 +9,6 @@ import { Chewy_400Regular } from '@expo-google-fonts/chewy';
 import { Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
 import { useTokaStore } from '../src/store/useTokaStore';
 import { useTheme } from '../src/theme/useTheme';
-import { usePushNotifications } from '../src/hooks/usePushNotifications';
 import '../src/i18n';
 
 import Header from '../src/components/Header';
@@ -17,7 +16,6 @@ import Header from '../src/components/Header';
 export default function RootLayout() {
     const { currentUser, tickAuction } = useTokaStore();
     const { Colors, isDark } = useTheme();
-    const { expoPushToken, notification } = usePushNotifications();
 
     const segments = useSegments();
     const router = useRouter();

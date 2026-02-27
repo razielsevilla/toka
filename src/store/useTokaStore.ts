@@ -6,7 +6,6 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TokaState } from '../types';
-import { sendLocalNotification } from '../utils/pushNotifications';
 
 import { createAuthSlice } from './slices/authSlice';
 import { createTaskSlice } from './slices/taskSlice';
@@ -49,7 +48,8 @@ useTokaStore.subscribe((state, prevState) => {
 
       // Optionally, we could strictly enforce `targetMatched`, but for local simulation fun, we'll just push any that match our role
       if (targetMatched) {
-        sendLocalNotification('Toka Update ✨', notif.message);
+        // Removing sendLocalNotification temporarily
+        // sendLocalNotification('Toka Update ✨', notif.message);
       }
     }
   }
