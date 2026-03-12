@@ -1,298 +1,428 @@
-import { Target, Trophy, TrendingUp, Shield, Brain, Zap, PieChart, CheckCircle, Gift, ArrowRight, Activity, Users, Map, Lock, Award, Briefcase } from 'lucide-react';
+import {
+  Target, TrendingUp, Shield, Brain, CheckCircle, Gift, ArrowRight,
+  Users, Map, Lock, Briefcase, Smartphone, Database, Globe, DollarSign,
+  Activity, XCircle, Megaphone, Lightbulb, Rocket, PieChart, Code
+} from 'lucide-react';
+import { motion, type Variants } from 'framer-motion';
 import './App.css';
+
+// Animation Variants
+const fadeInUp: Variants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+};
+
+const staggerContainer: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15
+    }
+  }
+};
+
+const scaleIn: Variants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "backOut" } }
+};
 
 function App() {
   return (
     <div className="app-container">
+      {/* Dynamic Background Orbs */}
+      <div className="orb-container">
+        <div className="orb orb-1"></div>
+        <div className="orb orb-2"></div>
+        <div className="orb orb-3"></div>
+      </div>
+
       <nav className="navbar" role="navigation" aria-label="main navigation">
         <a href="/" className="logo">Toka.</a>
 
         <div className="nav-links">
-          <a href="#problem" className="nav-link">Market Need</a>
-          <a href="#solution" className="nav-link">The Solution</a>
-          <a href="#business-model" className="nav-link">Business Model</a>
-          <a href="#roadmap" className="nav-link">Roadmap</a>
+          <a href="#problem" className="nav-link">The Problem</a>
+          <a href="#solution" className="nav-link">Solution MVP</a>
+          <a href="#market" className="nav-link">Market</a>
+          <a href="#business" className="nav-link">Business Model</a>
+          <a href="#team" className="nav-link">Team</a>
         </div>
 
-        <button className="cta-button" aria-label="View Investor Deck">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="cta-button" aria-label="View Investor Deck"
+        >
           <Briefcase size={16} style={{ marginRight: '8px' }} /> Pitch Deck
-        </button>
+        </motion.button>
       </nav>
 
       <main>
-        {/* HERO SECTION (Investor Focused) */}
+        {/* HERO SECTION */}
         <section className="hero">
-          <div className="hero-content">
-            <div className="badge">Wadhwani Foundation Project</div>
-            <h1 className="hero-title">
-              Redefining family productivity through <br />
-              <span className="text-gradient">behavioral economics.</span>
-            </h1>
-            <p className="hero-subtitle">
-              Toka handles the modern parenting crisis by gamifying chores, introducing early financial literacy, and completely eliminating the friction of household management.
-            </p>
-            <div className="hero-buttons">
-              <button className="cta-button">Try Live Prototype</button>
-              <button className="secondary-button">Watch Pitch Video</button>
-            </div>
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="hero-content"
+          >
+            <motion.div variants={fadeInUp} className="badge">
+              <span className="sparkle">✨</span> Wadhwani Foundation Project
+            </motion.div>
 
-            <div className="quick-metrics">
-              <div className="metric">
-                <span className="metric-val">$10B+</span>
-                <span className="metric-label">Family Tech TAM</span>
-              </div>
-              <div className="metric divider"></div>
-              <div className="metric">
-                <span className="metric-val">85%</span>
-                <span className="metric-label">Target Engagement Rate</span>
-              </div>
-              <div className="metric divider"></div>
-              <div className="metric">
-                <span className="metric-val">B2B2C</span>
-                <span className="metric-label">Scalable Model</span>
-              </div>
-            </div>
-          </div>
-          <div className="hero-image-container">
+            <motion.h2 variants={fadeInUp} className="high-level-concept">
+              "The Duolingo for Family Productivity"
+            </motion.h2>
+
+            <motion.h1 variants={fadeInUp} className="hero-title">
+              Turn daily chores into <br />
+              <span className="text-gradient">magical rewards.</span>
+            </motion.h1>
+
+            <motion.p variants={fadeInUp} className="hero-subtitle">
+              <strong>Why Now?</strong> The digital generation needs digital incentives. Toka bridges the gap between household responsibilities and financial literacy using behavioral economics.
+            </motion.p>
+
+            <motion.div variants={fadeInUp} className="hero-buttons">
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(139, 92, 246, 0.4)" }}
+                className="cta-button pulse-btn"
+              >
+                Try MVP Prototype
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
+                className="secondary-button"
+              >
+                Watch Pitch Video
+              </motion.button>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="hero-image-container"
+          >
+            <div className="glass-ring"></div>
             <img src="/hero.png" alt="Toka App Dashboard Overview" className="hero-image" loading="lazy" />
-          </div>
+          </motion.div>
         </section>
 
-        {/* THE CRISIS (Market Need) */}
-        <section id="problem" className="problem-solution">
-          <div className="section-container text-center">
-            <h2 className="section-title">The Parenting Crisis at Scale</h2>
-            <p className="section-subtitle">
-              Modern parents are burning out. Screen time is surging, financial literacy is rarely taught in primary schools, and managing family responsibilities has become a second full-time job.
-            </p>
-            <div className="stats-grid">
-              <div className="stat-card">
-                <Activity className="stat-icon" />
-                <h3>74%</h3>
-                <p>Of parents report daily arguments over chores and responsibilities.</p>
-              </div>
-              <div className="stat-card">
-                <TrendingUp className="stat-icon" />
-                <h3>$140B</h3>
-                <p>Global "Pocket Money" economy remains entirely un-digitized and untracked.</p>
-              </div>
-              <div className="stat-card">
-                <Brain className="stat-icon" />
-                <h3>#1</h3>
-                <p>Cause of parent burnout is the "mental load" of household management.</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* MODULE 1: PROBLEM IDENTIFICATION */}
+        <section id="problem" className="module-section bg-secondary relative z-10">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="section-container"
+          >
+            <motion.div variants={fadeInUp} className="text-center mb-4">
+              <h2 className="section-title">The Problem & The Gap</h2>
+              <p className="section-subtitle">
+                <strong>Problem Statement:</strong> Modern parents face constant friction and burnout when managing children's chores, while kids lack engaging incentives and financial literacy.
+              </p>
+            </motion.div>
 
-        {/* THE SOLUTION (Product Walkthrough) */}
-        <section id="solution" className="features">
-          <h2 className="section-title text-center">The Toka Solution</h2>
-          <div className="feature-grid">
-            <article className="feature-card">
-              <div className="feature-content">
-                <div className="icon-wrapper tasks-icon">
-                  <CheckCircle size={28} />
+            <div className="grid-2 gap-4 mt-4">
+              <motion.div
+                variants={fadeInUp}
+                whileHover={{ y: -5, borderColor: "rgba(139, 92, 246, 0.4)" }}
+                className="glass-card interactive-card"
+              >
+                <h3 className="card-title text-purple"><Activity className="icon-purple" /> Empathy Evidence</h3>
+                <p>During our <em>Customer Discovery</em> phase, the core insight was jarring: <strong>74% of parents report the "mental load" of nagging is worse than doing the chore themselves.</strong></p>
+                <div className="quote-box mt-2 float-anim-slow">
+                  "Existing solutions like fridge whiteboards or basic list apps feel like homework to kids. There's a massive engagement gap."
                 </div>
-                <div className="feature-badge">Phase 1 Active</div>
-                <h3>Frictionless Gamification</h3>
-                <p>We replace nagging with agency. Toka’s dual-interface allows parents to architect digital chore templates, while giving children a gamified, autonomous dashboard to execute them.</p>
-                <ul className="feature-list">
-                  <li><CheckCircle size={16} /> Instant dopamine hits via visual progress tracking</li>
-                  <li><CheckCircle size={16} /> Automated recurring chore pipelines</li>
-                  <li><CheckCircle size={16} /> Real-time parental oversight dashboard</li>
+              </motion.div>
+
+              <motion.div
+                variants={fadeInUp}
+                whileHover={{ y: -5, borderColor: "rgba(59, 130, 246, 0.4)" }}
+                className="glass-card interactive-card"
+              >
+                <h3 className="card-title text-blue"><Users className="icon-blue" /> Customer Personas</h3>
+                <motion.div whileHover={{ scale: 1.02 }} className="persona-box">
+                  <strong className="text-blue">Primary: Tech-Savvy Parents (Age 28-45)</strong>
+                  <p>Seeking to reduce household friction and teach kids responsibility without constant nagging.</p>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.02 }} className="persona-box mt-2">
+                  <strong className="text-cyan">Secondary: Children (Age 6-12)</strong>
+                  <p>Digital natives who respond to gamification, instant feedback, and digital currency.</p>
+                </motion.div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* MODULE 2: VALUE PROPOSITION */}
+        <section className="module-section relative z-10">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="section-container text-center"
+          >
+            <motion.h2 variants={fadeInUp} className="section-title">Value Proposition Design</motion.h2>
+            <motion.p variants={fadeInUp} className="section-subtitle">
+              <strong>Unique Value Proposition (UVP):</strong> A frictionless, dual-interface platform that transforms chores into an engaging micro-economy.
+            </motion.p>
+
+            <div className="grid-3 mt-4">
+              <motion.div variants={scaleIn} whileHover={{ y: -10 }} className="glass-card text-left tilt-card">
+                <div className="icon-wrapper bounce-icon bg-pink-light"><XCircle className="text-pink" /></div>
+                <h4 className="mt-2 text-pink">Pain Relievers</h4>
+                <ul className="benefit-list mt-2">
+                  <li>Eliminates verbal nagging</li>
+                  <li>Automates allowance tracking</li>
+                  <li>Reduces parent-child conflict</li>
                 </ul>
-              </div>
-              <img src="/tasks.png" alt="Gamified Tasks" className="feature-image" loading="lazy" />
-            </article>
+              </motion.div>
 
-            <article className="feature-card">
-              <div className="feature-content">
-                <div className="icon-wrapper rewards-icon">
-                  <Gift size={28} />
-                </div>
-                <div className="feature-badge">Phase 1 Active</div>
-                <h3>The "Micro-Economy" Engine</h3>
-                <p>We transform completed tasks into internal currency (Coins), introducing fundamental financial literacy. Kids learn the connection between effort and earning in a safe, closed-loop marketplace.</p>
-                <ul className="feature-list">
-                  <li><CheckCircle size={16} /> Flexible reward structures (Screen time, goods, allowance)</li>
-                  <li><CheckCircle size={16} /> Goal-setting and savings mechanics</li>
-                  <li><CheckCircle size={16} /> Delayed gratification training</li>
+              <motion.div variants={scaleIn} whileHover={{ y: -10 }} className="glass-card text-left tilt-card border-glow">
+                <div className="icon-wrapper bounce-icon bg-green-light"><CheckCircle className="text-green" /></div>
+                <h4 className="mt-2 text-green">Gain Creators</h4>
+                <ul className="benefit-list mt-2">
+                  <li>Instills financial literacy early</li>
+                  <li>Builds consistent habits</li>
+                  <li>Fosters child independence</li>
                 </ul>
+              </motion.div>
+
+              <motion.div variants={scaleIn} whileHover={{ y: -10 }} className="glass-card text-left tilt-card">
+                <div className="icon-wrapper bounce-icon bg-yellow-light"><Brain className="text-yellow" /></div>
+                <h4 className="mt-2 text-yellow">Behavioral Engine</h4>
+                <ul className="benefit-list mt-2">
+                  <li>Visual progress tracking</li>
+                  <li>Immediate coin reinforcement</li>
+                  <li>Delayed gratification training</li>
+                </ul>
+              </motion.div>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* MODULE 3: SOLUTION MVP */}
+        <section id="solution" className="module-section bg-secondary relative z-10 overflow-hidden">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="section-container"
+          >
+            <motion.h2 variants={fadeInUp} className="section-title text-center">Solution & The MVP</motion.h2>
+            <div className="feature-grid mt-4">
+              <article className="feature-card">
+                <motion.div variants={fadeInUp} className="feature-content">
+                  <div className="badge pulse-border">MVP Active Showcase</div>
+                  <h3 className="text-gradient">Frictionless Gamification Loop</h3>
+                  <p>Our Minimum Viable Product solves the core problem through a synchronized dual-interface network.</p>
+
+                  <motion.ul variants={staggerContainer} className="feature-list">
+                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><CheckCircle className="text-purple" size={18} /> <strong>Gamified Task Engine:</strong> Kids complete chores to earn virtual 'Coins'.</motion.li>
+                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><Gift className="text-purple" size={18} /> <strong>Rewards Marketplace:</strong> Parents set custom rewards purchased with earned Coins.</motion.li>
+                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><Shield className="text-purple" size={18} /> <strong>Real-time Sync:</strong> Cloud-based parent approval dashboard.</motion.li>
+                  </motion.ul>
+
+                  <div className="tech-stack mt-2">
+                    <strong>Tech Stack Foundation:</strong>
+                    <div className="tech-icons">
+                      <motion.span whileHover={{ scale: 1.1 }} className="tech-pill bg-blue-dark text-blue-light"><Smartphone size={14} /> React Native</motion.span>
+                      <motion.span whileHover={{ scale: 1.1 }} className="tech-pill bg-purple-dark text-purple-light"><Code size={14} /> TypeScript</motion.span>
+                      <motion.span whileHover={{ scale: 1.1 }} className="tech-pill bg-yellow-dark text-yellow-light"><Database size={14} /> Firebase</motion.span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  variants={fadeInUp}
+                  whileHover={{ scale: 1.02 }}
+                  className="interactive-mockup"
+                >
+                  <img src="/tasks.png" alt="MVP Tasks" className="feature-image float-anim" loading="lazy" />
+                </motion.div>
+              </article>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* MODULE 4: MARKET VALIDATION */}
+        <section id="market" className="module-section relative z-10">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="section-container text-center"
+          >
+            <motion.h2 variants={fadeInUp} className="section-title">Market Validation</motion.h2>
+            <motion.p variants={fadeInUp} className="section-subtitle mb-4">A massive, un-digitized market ripe for gamified disruption.</motion.p>
+
+            <div className="grid-3">
+              <motion.div variants={scaleIn} whileHover={{ y: -5 }} className="market-card stat-tilt">
+                <Globe size={40} className="text-blue mx-auto mb-1 stat-icon" />
+                <h3 className="counter-text text-blue">$140B</h3>
+                <p className="label">TAM</p>
+                <p className="desc">Total Addressable Market (Global pocket money economy)</p>
+              </motion.div>
+              <motion.div variants={scaleIn} whileHover={{ y: -5 }} className="market-card stat-tilt">
+                <Target size={40} className="text-purple mx-auto mb-1 stat-icon" />
+                <h3 className="counter-text text-purple">$4.2B</h3>
+                <p className="label">SAM</p>
+                <p className="desc">Serviceable Addressable Market (Family tech productivity)</p>
+              </motion.div>
+              <motion.div variants={scaleIn} whileHover={{ y: -5 }} className="market-card stat-tilt">
+                <PieChart size={40} className="text-green mx-auto mb-1 stat-icon" />
+                <h3 className="counter-text text-green">$42M</h3>
+                <p className="label">SOM</p>
+                <p className="desc">Serviceable Obtainable Market (First 3 years, 1% capture)</p>
+              </motion.div>
+            </div>
+
+            <motion.div variants={fadeInUp} className="competitive-matrix mt-5 glass-card interactive-card mx-auto" style={{ maxWidth: '900px' }}>
+              <h3 className="text-gradient">Competitive Analysis</h3>
+              <div className="matrix-table-container mt-2">
+                <table className="matrix-table">
+                  <thead>
+                    <tr>
+                      <th>Feature</th>
+                      <th><span className="text-purple font-bold" style={{ fontSize: '1.2rem' }}>Toka</span></th>
+                      <th>Physical Boards</th>
+                      <th>Basic To-Do Apps</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <motion.tr whileHover={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
+                      <td>Child-Centric Gaming UI</td>
+                      <td><div className="icon-wrapper matrix-icon mx-auto bg-green-light"><CheckCircle className="text-green" size={20} /></div></td>
+                      <td><XCircle className="text-red mx-auto" size={20} /></td>
+                      <td><XCircle className="text-red mx-auto" size={20} /></td>
+                    </motion.tr>
+                    <motion.tr whileHover={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
+                      <td>Virtual Economy Engine</td>
+                      <td><div className="icon-wrapper matrix-icon mx-auto bg-green-light"><CheckCircle className="text-green" size={20} /></div></td>
+                      <td><XCircle className="text-red mx-auto" size={20} /></td>
+                      <td><XCircle className="text-red mx-auto" size={20} /></td>
+                    </motion.tr>
+                    <motion.tr whileHover={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
+                      <td>Automated Tracking</td>
+                      <td><div className="icon-wrapper matrix-icon mx-auto bg-green-light"><CheckCircle className="text-green" size={20} /></div></td>
+                      <td><XCircle className="text-red mx-auto" size={20} /></td>
+                      <td><CheckCircle className="text-green mx-auto" size={20} /></td>
+                    </motion.tr>
+                  </tbody>
+                </table>
               </div>
-              <img src="/rewards.png" alt="Rewards Marketplace" className="feature-image" loading="lazy" />
-            </article>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* MODULE 6: BUSINESS MODEL */}
+        <section id="business" className="module-section bg-secondary relative z-10">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="section-container"
+          >
+            <motion.h2 variants={fadeInUp} className="section-title text-center">Business Model & Lean Canvas</motion.h2>
+
+            <div className="grid-2 mt-4 gap-4 staggered-masonry">
+              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card green-glow">
+                <h3 className="card-title text-green"><DollarSign className="icon-green bounce-icon" /> Revenue Streams</h3>
+                <ul className="business-list">
+                  <li><strong className="text-green">Freemium Model:</strong> Core task features free for user acquisition.</li>
+                  <li><strong className="text-green">Toka+ SaaS ($4.99/mo):</strong> AI chore generation, advanced learning models.</li>
+                  <li><strong className="text-green">Future B2B2C:</strong> Fintech API integrations for youth debit cards.</li>
+                </ul>
+              </motion.div>
+
+              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card pink-glow mt-offset">
+                <h3 className="card-title text-pink"><Megaphone className="icon-pink bounce-icon" /> Channels</h3>
+                <ul className="business-list">
+                  <li><strong className="text-pink">Organic Social:</strong> Targeting parenting communities online.</li>
+                  <li><strong className="text-pink">ASO:</strong> Intent optimization for "chore apps for kids".</li>
+                  <li><strong className="text-pink">B2B Partnerships:</strong> Pilot programs with elementary PTAs.</li>
+                </ul>
+              </motion.div>
+
+              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card blue-glow">
+                <h3 className="card-title text-blue"><Activity className="icon-blue bounce-icon" /> Cost Structure</h3>
+                <ul className="business-list">
+                  <li><strong className="text-blue">Infrastructure:</strong> Firebase Database/Auth scale up.</li>
+                  <li><strong className="text-blue">Development:</strong> Continuous feature iteration.</li>
+                  <li><strong className="text-blue">CAC:</strong> Targeted acquisition marketing spend.</li>
+                </ul>
+              </motion.div>
+
+              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card yellow-glow mt-offset border-glow">
+                <h3 className="card-title text-yellow"><Shield className="icon-yellow bounce-icon" /> Unfair Advantage</h3>
+                <p><strong>Proprietary Behavioral Loop:</strong> Competitors build dry utility tools for parents. Toka is designed natively as a gamified behavioral economics game for children, achieving unmatched Daily Active User (DAU) stickiness.</p>
+              </motion.div>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* TEAM & CTA SECTION */}
+        <section id="team" className="module-section relative z-10 text-center">
+          <motion.h2
+            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            className="section-title"
+          >
+            The Founding Team
+          </motion.h2>
+
+          <div className="team-grid mt-4">
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} whileHover={{ y: -10 }} className="team-card glow-card border-glow">
+              <div className="team-avatar pulse-anim"><Users size={40} className="text-purple" /></div>
+              <h3>Raziel Sevilla</h3>
+              <p className="team-role">Team Lead & Technical Founder</p>
+              <p className="team-bio">Executing rapid full-stack deployment. Leading UI logic, backend DB structuring, and project management.</p>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} viewport={{ once: true }} whileHover={{ y: -10 }} className="team-card empty-state">
+              <div className="team-avatar"><Lightbulb size={40} className="text-secondary" /></div>
+              <h3 className="text-secondary">Wadhwani Mentors</h3>
+              <p className="team-role text-secondary">Advisory</p>
+              <p className="team-bio text-secondary">Supported by Wadhwani Foundation academic and industry advisors.</p>
+            </motion.div>
           </div>
         </section>
 
-        {/* THE SECRET SAUCE */}
-        <section className="secret-sauce">
-          <div className="section-container text-center">
-            <h2 className="section-title">The Behavioral Science Edge</h2>
-            <p className="section-subtitle">Why Toka works where traditional methods fail.</p>
-            <div className="sauce-grid">
-              <div className="sauce-item">
-                <div className="sauce-icon"><Zap size={24} /></div>
-                <h4>Immediate Reinforcement</h4>
-                <p>Digital coins bridge the gap between long-term habits and short-term attention spans.</p>
-              </div>
-              <div className="sauce-item">
-                <div className="sauce-icon"><Shield size={24} /></div>
-                <h4>Autonomy Paradigm</h4>
-                <p>Kids shift from being managed to becoming independent economic actors within the family unit.</p>
-              </div>
-              <div className="sauce-item">
-                <div className="sauce-icon"><PieChart size={24} /></div>
-                <h4>Data-Driven Parenting</h4>
-                <p>Parents gain actionable insights into which incentives drive the highest compliance rates.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* BUSINESS MODEL */}
-        <section id="business-model" className="business-model">
-          <h2 className="section-title text-center">How We Scale Revenue</h2>
-          <div className="model-grid section-container">
-            <div className="model-card free">
-              <div className="model-header">
-                <h3>Toka Basic</h3>
-                <div className="price">Free</div>
-                <p>Acquisition Engine</p>
-              </div>
-              <ul className="model-features">
-                <li><CheckCircle size={16} /> Up to 2 child profiles</li>
-                <li><CheckCircle size={16} /> Basic task templates</li>
-                <li><CheckCircle size={16} /> Standard virtual rewards</li>
-              </ul>
-            </div>
-
-            <div className="model-card premium">
-              <div className="popular-badge">High Margin SaaS</div>
-              <div className="model-header">
-                <h3>Toka+ (Premium)</h3>
-                <div className="price">$4.99<span>/mo</span></div>
-                <p>Core Revenue Stream</p>
-              </div>
-              <ul className="model-features">
-                <li><CheckCircle size={16} /> Unlimited child profiles</li>
-                <li><CheckCircle size={16} /> AI-assisted chore schedules</li>
-                <li><CheckCircle size={16} /> Advanced financial literacy modules</li>
-                <li><CheckCircle size={16} /> Direct allowances & chore linking</li>
-              </ul>
-            </div>
-
-            <div className="model-card enterprise">
-              <div className="model-header">
-                <h3>Toka B2B2C</h3>
-                <div className="price">Fintech/Edu</div>
-                <p>Future Expansion</p>
-              </div>
-              <ul className="model-features">
-                <li><CheckCircle size={16} /> White-label APIs for youth debit cards</li>
-                <li><CheckCircle size={16} /> School district integrations</li>
-                <li><CheckCircle size={16} /> Brand partnerships in Rewards Store</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* PRODUCT ROADMAP */}
-        <section id="roadmap" className="roadmap">
-          <div className="section-container">
-            <h2 className="section-title text-center">The Path to Scale</h2>
-            <div className="timeline">
-              <div className="timeline-item">
-                <div className="timeline-marker complete"><CheckCircle size={20} /></div>
-                <div className="timeline-content">
-                  <h3>Phase 1: Gamified Chores (Current)</h3>
-                  <p>Establish the core behavioral loop. Launch the React Native dual-interface prototype. Validate user stickiness and task completion metrics.</p>
-                </div>
-              </div>
-              <div className="timeline-item">
-                <div className="timeline-marker active"><Map size={20} /></div>
-                <div className="timeline-content">
-                  <h3>Phase 2: Toka+ Subscriptions</h3>
-                  <p>Introduce AI chore generation, advanced reporting, and unlimited profiles. Begin monetizing highly engaged "super-user" families.</p>
-                </div>
-              </div>
-              <div className="timeline-item">
-                <div className="timeline-marker"><Lock size={20} /></div>
-                <div className="timeline-content">
-                  <h3>Phase 3: The Family Fintech Layer</h3>
-                  <p>Integrate real debit cards for older children. Chores auto-fund allowances via ACH. Toka becomes the OS for the family economy.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* TEAM SECTION */}
-        <section id="team" className="team">
-          <div className="section-container text-center">
-            <h2 className="section-title">The Founding Team</h2>
-            <p className="section-subtitle">We possess the technical capability and domain passion to execute this vision.</p>
-            <div className="team-grid">
-              <div className="team-card">
-                <div className="team-avatar">
-                  <Users size={40} className="avatar-placeholder" />
-                </div>
-                <h3>Raziel Sevilla</h3>
-                <p className="team-role">Lead Developer & Visionary</p>
-                <p className="team-bio">Executing rapid full-stack deployment using React Native, Expo, and Firebase. Focused on scalable, gamified architectures.</p>
-              </div>
-              {/* Note: Add more Wadhwani team members here as needed */}
-              <div className="team-card empty-state">
-                <div className="team-avatar">
-                  <Users size={40} className="avatar-placeholder" />
-                </div>
-                <h3>Team Member 2</h3>
-                <p className="team-role">Product / Marketing</p>
-                <p className="team-bio">Insert team member expertise and role here.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FINAL INVESTOR CTA */}
-        <section className="final-cta">
-          <div className="cta-container">
-            <h2>Ready to back the future of Family Tech?</h2>
-            <p>We are actively seeking feedback, mentorship, and seed opportunities.</p>
+        {/* FINAL CTA */}
+        <section className="final-cta pb-0 relative z-10 overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="cta-container"
+          >
+            <h2>Ready to scale family productivity?</h2>
+            <p>Join our waitlist for the Beta launch or contact the team for investment opportunities.</p>
             <div className="hero-buttons" style={{ justifyContent: 'center' }}>
-              <button className="cta-button large-cta">
-                <Target size={20} className="inline-icon" style={{ marginRight: '8px', marginLeft: 0 }} /> Review Pitch Deck
-              </button>
-              <button className="secondary-button large-cta">
-                <ArrowRight size={20} className="inline-icon" style={{ marginRight: '8px', marginLeft: 0 }} /> Try Prototype
-              </button>
+              <motion.button whileHover={{ scale: 1.05 }} className="cta-button large-cta pulse-btn">
+                <Briefcase size={20} className="inline-icon" style={{ marginRight: '8px', marginLeft: 0 }} /> Contact Team
+              </motion.button>
+              <motion.button whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }} className="secondary-button large-cta">
+                Join Beta Waitlist <ArrowRight size={20} className="inline-icon" />
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         </section>
+
       </main>
 
-      <footer className="footer" role="contentinfo">
+      <footer className="footer relative z-10 mt-5" role="contentinfo">
         <div className="footer-content">
           <div className="footer-brand">
             <div className="logo" style={{ fontSize: '1.8rem' }}>Toka.</div>
-            <p className="footer-text mt-2">A Wadhwani Foundation Hackathon Project.</p>
+            <p className="footer-text mt-1">A Wadhwani Foundation Project.</p>
           </div>
-          <div className="footer-links">
-            <div className="link-column">
-              <h4>Pitch Materials</h4>
-              <a href="#">Executive Summary</a>
-              <a href="#">Investor Deck (PDF)</a>
-              <a href="#">Demo Video</a>
-            </div>
-            <div className="link-column">
-              <h4>Contact</h4>
-              <a href="#">Email the Team</a>
-              <a href="#">LinkedIn</a>
-              <a href="#">GitHub Repo</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
           <p className="footer-text">© {new Date().getFullYear()} Toka. Built for the Wadhwani Foundation.</p>
         </div>
       </footer>
