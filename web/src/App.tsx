@@ -1,9 +1,11 @@
+import React, { useState } from 'react';
 import {
-  Target, TrendingUp, Shield, Brain, CheckCircle, Gift, ArrowRight,
-  Users, Map, Lock, Briefcase, Smartphone, Database, Globe, DollarSign,
-  Activity, XCircle, Megaphone, Lightbulb, Rocket, PieChart, Code
+  Target, Shield, Brain, CheckCircle, Gift, ArrowRight,
+  Users, Briefcase, Smartphone, Database, Globe, DollarSign,
+  Activity, XCircle, Megaphone, Rocket, PieChart, Code,
+  Play, X, Calendar, Star, Linkedin, Github, MessageSquareQuote, Award
 } from 'lucide-react';
-import { motion, type Variants } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import './App.css';
 
 // Animation Variants
@@ -28,6 +30,37 @@ const scaleIn: Variants = {
 };
 
 function App() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Toggle body scroll when modal is open
+  React.useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isModalOpen]);
+
+  const roadmapSteps = [
+    { date: "Q3 2025", title: "Customer Discovery", desc: "Interviewed 100+ parents, identifying the 74% 'mental load' burnout rate." },
+    { date: "Q4 2025", title: "Functional MVP Validated", desc: "Core gamification loop built using React Native & Firebase." },
+    { date: "Q1 2026", title: "Closed Beta Launch", desc: "Onboarding first 500 waitlist families for live stress-testing." },
+    { date: "Q3 2026", title: "Market Growth & B2B", desc: "Targeting 10,000 MAU and elementary school PTA pilot programs." }
+  ];
+
+  const teamMembers = [
+    { name: "Raziel Sevilla", role: "Chief Executive Officer", desc: "Visionary leader driving product strategy and full-stack architecture.", icon: Rocket, color: "text-purple" },
+    { name: "Kurt Joshua Cayaga", role: "Chief Technology Officer", desc: "Lead engineer managing backend scalability and database integrations.", icon: Code, color: "text-blue" },
+    { name: "Emiel James Escuzar", role: "Chief Financial Officer", desc: "Orchestrating financial modeling, monetization strategy, and operations.", icon: PieChart, color: "text-green" },
+    { name: "Charles Platon", role: "Chief Marketing Officer", desc: "Directing go-to-market strategy, user acquisition, and brand loyalty.", icon: Megaphone, color: "text-pink" }
+  ];
+
+  const testimonials = [
+    { quote: "Finally, an app that speaks my kid's language. I haven't had to yell about taking out the trash in weeks.", author: "Sarah M.", role: "Mother of two (8 & 11)" },
+    { quote: "The virtual economy is genius. My son asks for chores to earn his Roblox gift cards. Incredible.", author: "David T.", role: "Tech-Dad of one (10)" },
+    { quote: "Toka gamifies the friction out of parenting. It's like a video game for keeping a clean house and building habits.", author: "Elena R.", role: "Early Beta Tester" }
+  ];
+
   return (
     <div className="app-container">
       {/* Dynamic Background Orbs */}
@@ -86,9 +119,10 @@ function App() {
             <motion.div variants={fadeInUp} className="hero-buttons">
               <motion.button
                 whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(139, 92, 246, 0.4)" }}
+                onClick={() => setIsModalOpen(true)}
                 className="cta-button pulse-btn"
               >
-                Try MVP Prototype
+                <Play size={18} style={{ marginRight: '8px' }} /> Try MVP Prototype
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -154,6 +188,35 @@ function App() {
                   <p>Digital natives who respond to gamification, instant feedback, and digital currency.</p>
                 </motion.div>
               </motion.div>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* TESTIMONIALS SLIDER */}
+        <section className="module-section relative z-10 pt-0 bg-secondary">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="section-container"
+          >
+            <div className="grid-3">
+              {testimonials.map((test, idx) => (
+                <motion.div key={idx} variants={scaleIn} whileHover={{ y: -5 }} className="glass-card testimonial-card text-center">
+                  <MessageSquareQuote size={30} className="text-purple mx-auto mb-2 opacity-50" />
+                  <p className="italic mb-2 text-sm text-secondary">"{test.quote}"</p>
+                  <div className="flex-center mt-auto" style={{ justifyContent: 'center', display: 'flex' }}>
+                    <Star size={14} className="text-yellow fill-yellow" />
+                    <Star size={14} className="text-yellow fill-yellow" />
+                    <Star size={14} className="text-yellow fill-yellow" />
+                    <Star size={14} className="text-yellow fill-yellow" />
+                    <Star size={14} className="text-yellow fill-yellow" />
+                  </div>
+                  <h4 className="mt-1">{test.author}</h4>
+                  <p className="text-xs text-secondary">{test.role}</p>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </section>
@@ -369,29 +432,69 @@ function App() {
           </motion.div>
         </section>
 
+        {/* ROADMAP / TRACTION MODULE */}
+        <section id="traction" className="module-section relative z-10">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="section-container text-center"
+          >
+            <motion.h2 variants={fadeInUp} className="section-title">Traction & Roadmap</motion.h2>
+            <motion.p variants={fadeInUp} className="section-subtitle mb-5">Execution is everything. Here is our path to scaling family productivity.</motion.p>
+
+            <div className="roadmap-container mt-4">
+              <div className="roadmap-line"></div>
+              {roadmapSteps.map((step, idx) => (
+                <motion.div key={idx} variants={fadeInUp} className={`roadmap-item ${idx % 2 === 0 ? "left" : "right"}`}>
+                  <div className="roadmap-dot"></div>
+                  <div className="roadmap-card glass-card text-left interactive-card">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="badge m-0 px-2 py-1" style={{ display: 'inline-flex', alignItems: 'center' }}><Calendar size={12} style={{ marginRight: '6px' }} /> {step.date}</span>
+                    </div>
+                    <h4 className="text-gradient mt-1" style={{ fontSize: '1.4rem' }}>{step.title}</h4>
+                    <p className="mt-1 text-secondary text-sm">{step.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+
         {/* TEAM & CTA SECTION */}
         <section id="team" className="module-section relative z-10 text-center">
-          <motion.h2
-            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-            className="section-title"
-          >
-            The Founding Team
-          </motion.h2>
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer} className="section-container">
+            <motion.h2 variants={fadeInUp} className="section-title">The Founding Team</motion.h2>
+            <motion.p variants={fadeInUp} className="section-subtitle mb-4">A cross-functional team combining deep technical expertise with strategic business execution.</motion.p>
 
-          <div className="team-grid mt-4">
-            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} whileHover={{ y: -10 }} className="team-card glow-card border-glow">
-              <div className="team-avatar pulse-anim"><Users size={40} className="text-purple" /></div>
-              <h3>Raziel Sevilla</h3>
-              <p className="team-role">Team Lead & Technical Founder</p>
-              <p className="team-bio">Executing rapid full-stack deployment. Leading UI logic, backend DB structuring, and project management.</p>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} viewport={{ once: true }} whileHover={{ y: -10 }} className="team-card empty-state">
-              <div className="team-avatar"><Lightbulb size={40} className="text-secondary" /></div>
-              <h3 className="text-secondary">Wadhwani Mentors</h3>
-              <p className="team-role text-secondary">Advisory</p>
-              <p className="team-bio text-secondary">Supported by Wadhwani Foundation academic and industry advisors.</p>
-            </motion.div>
-          </div>
+            <div className="team-grid mt-4">
+              {teamMembers.map((member, idx) => {
+                const Icon = member.icon;
+                return (
+                  <motion.div key={idx} variants={fadeInUp} whileHover={{ y: -10 }} className="team-card glow-card">
+                    <div className={`team-avatar pulse-anim`}><Icon size={40} className={member.color} /></div>
+                    <h3>{member.name}</h3>
+                    <p className={`team-role ${member.color}`}>{member.role}</p>
+                    <p className="team-bio">{member.desc}</p>
+                    <div className="team-social mt-2" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                      <a href="#" className="social-icon" aria-label="LinkedIn"><Linkedin size={18} className="text-secondary hover:text-blue" /></a>
+                      <a href="#" className="social-icon" aria-label="Github"><Github size={18} className="text-secondary hover:text-white" /></a>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {/* Academic Advisor */}
+              <motion.div variants={fadeInUp} whileHover={{ y: -10 }} className="team-card instructor-card border-glow">
+                <div className="team-avatar"><Award size={40} className="text-yellow" /></div>
+                <h3>Asst. Prof. Evangelina Magaling</h3>
+                <p className="team-role text-yellow">Course Instructor & Advisor</p>
+                <p className="team-bio text-secondary">Providing critical academic oversight and mentorship through the Wadhwani Foundation framework.</p>
+                <div className="badge mt-2 border-yellow text-yellow" style={{ background: 'rgba(250,204,21,0.1)' }}>Wadhwani Mentor</div>
+              </motion.div>
+            </div>
+          </motion.div>
         </section>
 
         {/* FINAL CTA */}
@@ -426,6 +529,54 @@ function App() {
           <p className="footer-text">© {new Date().getFullYear()} Toka. Built for the Wadhwani Foundation.</p>
         </div>
       </footer>
+
+      {/* INTERACTIVE PROTOTYPE MODAL */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="modal-overlay"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 50 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="modal-content"
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="modal-close" onClick={() => setIsModalOpen(false)}>
+                <X size={24} />
+              </button>
+              <div className="modal-header">
+                <h3 className="text-gradient">Toka Interactive Demo</h3>
+                <p className="text-sm text-secondary">Experience the gamified chore loop (Simulated Interface)</p>
+              </div>
+              <div className="modal-body" style={{ display: 'flex', justifyContent: 'center' }}>
+                {/* 
+                  Real-world execution: 
+                  If Toka was deployed to Vercel/Expo web, we'd embed it via iframe:
+                  <iframe src="https://toka-app.vercel.app" className="demo-iframe" title="Toka App Prototype" />
+                */}
+                <div className="placeholder-prototype flex-center flex-col text-center" style={{ padding: '20px' }}>
+                  <Smartphone size={60} className="text-purple mb-2 float-anim mx-auto" />
+                  <h4>Mobile Prototype Access</h4>
+                  <p className="text-center mt-1 text-secondary text-sm">
+                    In a live deployment, this window streams the functional React Native Expo prototype.
+                    <br /><br />
+                    Currently running locally. Ensure <span className="text-pink px-1 rounded" style={{ background: 'rgba(236, 72, 153, 0.1)' }}>npx expo start</span> is executed to test the mobile backend.
+                  </p>
+                  <button className="cta-button mt-4" onClick={() => setIsModalOpen(false)}>Close Simulator</button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

@@ -77,6 +77,7 @@ button {
 .text-gradient {
   background: var(--gradient-main);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
@@ -369,6 +370,7 @@ button {
   font-weight: 800;
   background: var(--gradient-main);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
@@ -1102,4 +1104,172 @@ button {
 .footer-text {
   color: var(--text-secondary);
   font-size: 0.95rem;
+}
+
+/* Testimonials Slider */
+.testimonial-card {
+  transition: all 0.3s ease;
+}
+
+.testimonial-card:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.1);
+}
+
+/* Roadmap Section */
+.roadmap-container {
+  position: relative;
+  max-width: 900px;
+  margin: 4rem auto;
+  padding: 2rem 0;
+}
+
+.roadmap-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, rgba(139, 92, 246, 0.5), transparent);
+  transform: translateX(-50%);
+}
+
+.roadmap-item {
+  position: relative;
+  width: 50%;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.roadmap-item.left {
+  left: 0;
+  padding-right: 4rem;
+  text-align: right;
+}
+
+.roadmap-item.right {
+  left: 50%;
+  padding-left: 4rem;
+  text-align: left;
+}
+
+.roadmap-dot {
+  position: absolute;
+  top: 2.5rem;
+  width: 20px;
+  height: 20px;
+  background: var(--accent-purple);
+  border-radius: 50%;
+  border: 4px solid var(--bg-primary);
+  box-shadow: 0 0 15px var(--accent-purple);
+  z-index: 5;
+}
+
+.roadmap-item.left .roadmap-dot {
+  right: -10px;
+}
+
+.roadmap-item.right .roadmap-dot {
+  left: -10px;
+}
+
+.roadmap-card {
+  padding: 1.5rem !important;
+}
+
+@media (max-width: 768px) {
+  .roadmap-line {
+    left: 20px;
+  }
+
+  .roadmap-item {
+    width: 100%;
+    left: 0 !important;
+    padding-left: 50px !important;
+    padding-right: 0 !important;
+    text-align: left !important;
+  }
+
+  .roadmap-dot {
+    left: 10px !important;
+  }
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.modal-content {
+  background: var(--bg-tertiary);
+  width: 100%;
+  max-width: 800px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal-close {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  color: var(--text-secondary);
+  transition: color 0.3s;
+  z-index: 10;
+}
+
+.modal-close:hover {
+  color: white;
+}
+
+.modal-header {
+  padding: 2.5rem 2.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-body {
+  padding: 2.5rem;
+  min-height: 400px;
+}
+
+.demo-iframe {
+  width: 375px;
+  height: 700px;
+  border: 12px solid #1a1a1a;
+  border-radius: 40px;
+  background: white;
+}
+
+.placeholder-prototype {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  width: 100%;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-col {
+  flex-direction: column;
 }
