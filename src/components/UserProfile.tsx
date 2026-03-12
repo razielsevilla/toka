@@ -12,7 +12,7 @@ export default function UserProfile() {
     const isAdmin = activeUser.role === 'admin';
 
     return (
-        <View style={{ padding: 20 }}>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
             {/* Profile Header */}
             <View style={[styles.headerBox, { backgroundColor: Colors.surface, borderColor: Colors.surfaceLight }]}>
                 <View style={[styles.avatarCircle, { backgroundColor: Colors.primary }]}>
@@ -95,7 +95,7 @@ export default function UserProfile() {
                 <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
                 <Text style={[styles.signOutText, { color: Colors.danger, fontFamily: Typography.subheading }]}>Sign Out</Text>
             </TouchableOpacity>
-        </View>
+        </ScrollView>
     );
 }
 
