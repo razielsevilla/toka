@@ -2,12 +2,16 @@
 
 :root {
   /* Fresh Investor Theme - Light & Engaging */
-  --bg-primary: #F8FAFF;    /* Soft lavender-white fresh canvas */
-  --bg-secondary: #FFFFFF;  /* Pure white sections */
-  --bg-tertiary: #FFFFFF;   /* Card surfaces */
+  --bg-primary: #F8FAFF;
+  /* Soft lavender-white fresh canvas */
+  --bg-secondary: #FFFFFF;
+  /* Pure white sections */
+  --bg-tertiary: #FFFFFF;
+  /* Card surfaces */
   --bg-glass: rgba(0, 137, 255, 0.04);
 
-  --accent-cyan: #15D9C7;      /* Vivid, high-contrast cyan */
+  --accent-cyan: #15D9C7;
+  /* Vivid, high-contrast cyan */
   --accent-blue: #0089ff;
   --accent-yellow: #ffc107;
   --accent-pink: #FF00E5;
@@ -61,11 +65,20 @@ a {
   text-decoration: none;
 }
 
-h1, h2, h3, .section-title, .logo {
+h1,
+h2,
+h3,
+.section-title,
+.logo {
   font-family: var(--font-heading);
 }
 
-.section-subtitle, .badge, .cta-button, .secondary-button, .team-role, h4 {
+.section-subtitle,
+.badge,
+.cta-button,
+.secondary-button,
+.team-role,
+h4 {
   font-family: var(--font-subheading);
   font-weight: 700;
 }
@@ -190,7 +203,8 @@ button {
 }
 
 .bg-secondary {
-  background: #f1f5ff; /* Extremely light blue section background */
+  background: #f1f5ff;
+  /* Extremely light blue section background */
 }
 
 .relative {
@@ -393,7 +407,7 @@ button {
   font-size: clamp(1.5rem, 5vw, 2.2rem);
   font-weight: 800;
   color: var(--accent-cyan);
-  -webkit-text-stroke: 1.5px #003B44;
+  -webkit-text-stroke: 3px #003B44;
   paint-order: stroke fill;
   display: inline-block;
   line-height: 1;
@@ -401,15 +415,16 @@ button {
 
 .logo-accent {
   color: #FFC107;
-  -webkit-text-fill-color: #FFC107; /* Force solid fill */
-  -webkit-text-stroke: 1.5px #003B44;
+  -webkit-text-fill-color: #FFC107;
+  /* Force solid fill */
+  -webkit-text-stroke: 3px #003B44;
 }
 
 .logo-inline {
   font-family: var(--font-heading);
   font-weight: 800;
   color: var(--accent-cyan);
-  -webkit-text-stroke: 0.8px #003B44;
+  -webkit-text-stroke: 1.8px #003B44;
   paint-order: stroke fill;
   display: inline-block;
   vertical-align: middle;
@@ -419,7 +434,7 @@ button {
 .logo-accent-inline {
   color: #FFC107;
   -webkit-text-fill-color: #FFC107;
-  -webkit-text-stroke: 0.8px #003B44;
+  -webkit-text-stroke: 1.8px #003B44;
 }
 
 .nav-links {
@@ -799,7 +814,8 @@ button {
 .feature-content h3 {
   font-size: clamp(1.8rem, 5vw, 2.2rem);
   margin: 1rem 0;
-  display: block; /* Ensure it starts below badge */
+  display: block;
+  /* Ensure it starts below badge */
   clear: both;
 }
 
@@ -1279,7 +1295,8 @@ button {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(15, 23, 42, 0.4); /* Darker backdrop blur for focus */
+  background: rgba(15, 23, 42, 0.4);
+  /* Darker backdrop blur for focus */
   backdrop-filter: blur(10px);
   z-index: 1000;
   display: flex;
@@ -1361,7 +1378,8 @@ button {
   margin: 0 auto 1.5rem;
   padding: 5px;
   border-radius: 50%;
-  background: white; /* Clean white base like mascot */
+  background: white;
+  /* Clean white base like mascot */
   box-shadow: 0 10px 30px rgba(0, 137, 255, 0.1);
   border: 1px solid rgba(0, 137, 255, 0.05);
 }
@@ -1381,8 +1399,13 @@ button {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Floating Token Economy Visual */
@@ -1405,22 +1428,34 @@ button {
   font-family: var(--font-heading);
   font-size: 2.5rem;
   color: white;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  box-shadow: 
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow:
     0 10px 20px rgba(255, 193, 7, 0.3),
-    inset 0 -5px 10px rgba(0,0,0,0.1),
-    inset 0 5px 10px rgba(255,255,255,0.4);
+    inset 0 -5px 10px rgba(0, 0, 0, 0.1),
+    inset 0 5px 10px rgba(255, 255, 255, 0.4);
   animation: float-coin 4s ease-in-out infinite, rotate-coin 8s linear infinite;
 }
 
 @keyframes float-coin {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 @keyframes rotate-coin {
-  0% { transform: perspective(1000px) rotateY(0deg); }
-  100% { transform: perspective(1000px) rotateY(360deg); }
+  0% {
+    transform: perspective(1000px) rotateY(0deg);
+  }
+
+  100% {
+    transform: perspective(1000px) rotateY(360deg);
+  }
 }
 
 /* Interactive Comparison Table */
