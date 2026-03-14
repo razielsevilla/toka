@@ -58,7 +58,7 @@ function App() {
   const testimonials = [
     { quote: "Finally, an app that speaks my kid's language. I haven't had to yell about taking out the trash in weeks.", author: "Sarah M.", role: "Mother of two (8 & 11)" },
     { quote: "The virtual economy is genius. My son asks for chores to earn his Roblox gift cards. Incredible.", author: "David T.", role: "Tech-Dad of one (10)" },
-    { quote: "Toka gamifies the friction out of parenting. It's like a video game for keeping a clean house and building habits.", author: "Elena R.", role: "Early Beta Tester" }
+    { quote: <><span className="logo-inline">Tok<span className="logo-accent-inline">a</span></span> gamifies the friction out of parenting. It's like a video game for keeping a clean house and building habits.</>, author: "Elena R.", role: "Early Beta Tester" }
   ];
 
   return (
@@ -113,7 +113,7 @@ function App() {
             </motion.h1>
 
             <motion.p variants={fadeInUp} className="hero-subtitle">
-              <strong>Why Now?</strong> The digital generation needs digital incentives. Toka bridges the gap between household responsibilities and financial literacy using behavioral economics.
+              <strong>Why Now?</strong> The digital generation needs digital incentives. <span className="logo-inline">Tok<span className="logo-accent-inline">a</span></span> bridges the gap between household responsibilities and financial literacy using behavioral economics.
             </motion.p>
 
             <motion.div variants={fadeInUp} className="hero-buttons">
@@ -356,7 +356,7 @@ function App() {
                   <thead>
                     <tr>
                       <th>Feature</th>
-                      <th><span className="text-cyan font-bold" style={{ fontSize: '1.2rem' }}>Toka</span></th>
+                      <th><span className="logo-inline" style={{ fontSize: '1.2rem', marginBottom: '4px' }}>Tok<span className="logo-accent-inline">a</span></span></th>
                       <th>Physical Boards</th>
                       <th>Basic To-Do Apps</th>
                     </tr>
@@ -433,7 +433,7 @@ function App() {
 
               <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card yellow-glow mt-offset border-glow text-left">
                 <h3 className="card-title text-yellow"><Shield className="icon-yellow bounce-icon" /> Unfair Advantage</h3>
-                <p><strong>Proprietary Behavioral Loop:</strong> Competitors build dry utility tools for parents. Toka is designed natively as a gamified behavioral economics game for children, achieving unmatched Daily Active User (DAU) stickiness.</p>
+                <p><strong>Proprietary Behavioral Loop:</strong> Competitors build dry utility tools for parents. <span className="logo-inline">Tok<span className="logo-accent-inline">a</span></span> is designed natively as a gamified behavioral economics game for children, achieving unmatched Daily Active User (DAU) stickiness.</p>
               </motion.div>
             </div>
           </motion.div>
@@ -541,7 +541,7 @@ function App() {
             <div className="logo" style={{ fontSize: '1.8rem' }}>Tok<span className="logo-accent">a</span></div>
             <p className="footer-text mt-1">A Wadhwani Foundation Project.</p>
           </div>
-          <p className="footer-text">© {new Date().getFullYear()} Toka. Built for the Wadhwani Foundation.</p>
+          <p className="footer-text">© {new Date().getFullYear()} <span className="logo-inline" style={{ fontSize: '0.9rem' }}>Tok<span className="logo-accent-inline">a</span></span>. Built for the Wadhwani Foundation.</p>
         </div>
       </footer>
 
@@ -567,14 +567,14 @@ function App() {
                 <X size={24} />
               </button>
               <div className="modal-header">
-                <h3 className="text-gradient">Toka Interactive Demo</h3>
+                <h3 className="text-gradient"><span className="logo-inline">Tok<span className="logo-accent-inline">a</span></span> Interactive Demo</h3>
                 <p className="text-sm text-secondary">Experience the gamified chore loop (Simulated Interface)</p>
               </div>
               <div className="modal-body" style={{ display: 'flex', justifyContent: 'center' }}>
                 {/* 
                   Real-world execution: 
                   If Toka was deployed to Vercel/Expo web, we'd embed it via iframe:
-                  <iframe src="https://toka-app.vercel.app" className="demo-iframe" title="Toka App Prototype" />
+                  <iframe src="https://toka-app.vercel.app" className="demo-iframe" title="Toka Interactive Demo" />
                 */}
                 <div className="placeholder-prototype flex-center flex-col text-center" style={{ padding: '20px' }}>
                   <Smartphone size={60} className="text-cyan mb-2 float-anim mx-auto" />

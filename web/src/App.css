@@ -405,6 +405,23 @@ button {
   -webkit-text-stroke: 1.5px #003B44;
 }
 
+.logo-inline {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  color: var(--accent-cyan);
+  -webkit-text-stroke: 0.8px #003B44;
+  paint-order: stroke fill;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.logo-accent-inline {
+  color: #FFC107;
+  -webkit-text-fill-color: #FFC107;
+  -webkit-text-stroke: 0.8px #003B44;
+}
+
 .nav-links {
   display: flex;
   gap: 2rem;
