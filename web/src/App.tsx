@@ -49,7 +49,7 @@ function App() {
   ];
 
   const teamMembers = [
-    { name: "Raziel Sevilla", role: "Chief Executive Officer", desc: "Visionary leader driving product strategy and full-stack architecture.", icon: Rocket, color: "text-purple" },
+    { name: "Raziel Sevilla", role: "Chief Executive Officer", desc: "Visionary leader driving product strategy and full-stack architecture.", icon: Rocket, color: "text-cyan" },
     { name: "Kurt Joshua Cayaga", role: "Chief Technology Officer", desc: "Lead engineer managing backend scalability and database integrations.", icon: Code, color: "text-blue" },
     { name: "Emiel James Escuzar", role: "Chief Financial Officer", desc: "Orchestrating financial modeling, monetization strategy, and operations.", icon: PieChart, color: "text-green" },
     { name: "Charles Platon", role: "Chief Marketing Officer", desc: "Directing go-to-market strategy, user acquisition, and brand loyalty.", icon: Megaphone, color: "text-pink" }
@@ -71,7 +71,7 @@ function App() {
       </div>
 
       <nav className="navbar" role="navigation" aria-label="main navigation">
-        <a href="/" className="logo">Toka.</a>
+        <a href="/" className="logo">Tok<span className="logo-accent">a</span></a>
 
         <div className="nav-links">
           <a href="#problem" className="nav-link">The Problem</a>
@@ -108,8 +108,8 @@ function App() {
             </motion.h2>
 
             <motion.h1 variants={fadeInUp} className="hero-title">
-              Turn daily chores into <br />
-              <span className="text-gradient">magical rewards.</span>
+              Turn daily chores into
+              <span className="text-gradient"> magical rewards.</span>
             </motion.h1>
 
             <motion.p variants={fadeInUp} className="hero-subtitle">
@@ -118,14 +118,14 @@ function App() {
 
             <motion.div variants={fadeInUp} className="hero-buttons">
               <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(139, 92, 246, 0.4)" }}
+                whileHover={{ scale: 1.05, boxShadow: "0px 10px 25px rgba(0, 137, 255, 0.3)" }}
                 onClick={() => setIsModalOpen(true)}
                 className="cta-button pulse-btn"
               >
                 <Play size={18} style={{ marginRight: '8px' }} /> Try MVP Prototype
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
+                whileHover={{ scale: 1.05, backgroundColor: "rgba(0, 137, 255, 0.05)" }}
                 className="secondary-button"
               >
                 Watch Pitch Video
@@ -140,7 +140,7 @@ function App() {
             className="hero-image-container"
           >
             <div className="glass-ring"></div>
-            <img src="/hero.png" alt="Toka App Dashboard Overview" className="hero-image" loading="lazy" />
+            <img src="/mascot-hero.png" alt="Toka App Dashboard Overview" className="hero-image" loading="lazy" />
           </motion.div>
         </section>
 
@@ -163,10 +163,10 @@ function App() {
             <div className="grid-2 gap-4 mt-4">
               <motion.div
                 variants={fadeInUp}
-                whileHover={{ y: -5, borderColor: "rgba(139, 92, 246, 0.4)" }}
+                whileHover={{ y: -5, borderColor: "rgba(49, 255, 236, 0.4)" }}
                 className="glass-card interactive-card"
               >
-                <h3 className="card-title text-purple"><Activity className="icon-purple" /> Empathy Evidence</h3>
+                <h3 className="card-title text-cyan"><Activity className="icon-cyan" /> Empathy Evidence</h3>
                 <p>During our <em>Customer Discovery</em> phase, the core insight was jarring: <strong>74% of parents report the "mental load" of nagging is worse than doing the chore themselves.</strong></p>
                 <div className="quote-box mt-2 float-anim-slow">
                   "Existing solutions like fridge whiteboards or basic list apps feel like homework to kids. There's a massive engagement gap."
@@ -204,7 +204,7 @@ function App() {
             <div className="grid-3">
               {testimonials.map((test, idx) => (
                 <motion.div key={idx} variants={scaleIn} whileHover={{ y: -5 }} className="glass-card testimonial-card text-center">
-                  <MessageSquareQuote size={30} className="text-purple mx-auto mb-2 opacity-50" />
+                  <MessageSquareQuote size={30} className="text-cyan mx-auto mb-2 opacity-50" />
                   <p className="italic mb-2 text-sm text-secondary">"{test.quote}"</p>
                   <div className="flex-center mt-auto" style={{ justifyContent: 'center', display: 'flex' }}>
                     <Star size={14} className="text-yellow fill-yellow" />
@@ -230,6 +230,7 @@ function App() {
             variants={staggerContainer}
             className="section-container text-center"
           >
+
             <motion.h2 variants={fadeInUp} className="section-title">Value Proposition Design</motion.h2>
             <motion.p variants={fadeInUp} className="section-subtitle">
               <strong>Unique Value Proposition (UVP):</strong> A frictionless, dual-interface platform that transforms chores into an engaging micro-economy.
@@ -276,9 +277,10 @@ function App() {
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={staggerContainer}
-            className="section-container"
+            className="section-container text-center"
           >
-            <motion.h2 variants={fadeInUp} className="section-title text-center">Solution & The MVP</motion.h2>
+
+            <motion.h2 variants={fadeInUp} className="section-title">Solution & The MVP</motion.h2>
             <div className="feature-grid mt-4">
               <article className="feature-card">
                 <motion.div variants={fadeInUp} className="feature-content">
@@ -287,16 +289,16 @@ function App() {
                   <p>Our Minimum Viable Product solves the core problem through a synchronized dual-interface network.</p>
 
                   <motion.ul variants={staggerContainer} className="feature-list">
-                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><CheckCircle className="text-purple" size={18} /> <strong>Gamified Task Engine:</strong> Kids complete chores to earn virtual 'Coins'.</motion.li>
-                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><Gift className="text-purple" size={18} /> <strong>Rewards Marketplace:</strong> Parents set custom rewards purchased with earned Coins.</motion.li>
-                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><Shield className="text-purple" size={18} /> <strong>Real-time Sync:</strong> Cloud-based parent approval dashboard.</motion.li>
+                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><CheckCircle className="text-cyan" size={18} /> <strong className="text-left">Gamified Task Engine:</strong> Kids complete chores to earn virtual 'Coins'.</motion.li>
+                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><Gift className="text-cyan" size={18} /> <strong className="text-left">Rewards Marketplace:</strong> Parents set custom rewards purchased with earned Coins.</motion.li>
+                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><Shield className="text-cyan" size={18} /> <strong className="text-left">Real-time Sync:</strong> Cloud-based parent approval dashboard.</motion.li>
                   </motion.ul>
 
                   <div className="tech-stack mt-2">
                     <strong>Tech Stack Foundation:</strong>
                     <div className="tech-icons">
                       <motion.span whileHover={{ scale: 1.1 }} className="tech-pill bg-blue-dark text-blue-light"><Smartphone size={14} /> React Native</motion.span>
-                      <motion.span whileHover={{ scale: 1.1 }} className="tech-pill bg-purple-dark text-purple-light"><Code size={14} /> TypeScript</motion.span>
+                      <motion.span whileHover={{ scale: 1.1 }} className="tech-pill bg-cyan-dark text-cyan-light"><Code size={14} /> TypeScript</motion.span>
                       <motion.span whileHover={{ scale: 1.1 }} className="tech-pill bg-yellow-dark text-yellow-light"><Database size={14} /> Firebase</motion.span>
                     </div>
                   </div>
@@ -334,8 +336,8 @@ function App() {
                 <p className="desc">Total Addressable Market (Global pocket money economy)</p>
               </motion.div>
               <motion.div variants={scaleIn} whileHover={{ y: -5 }} className="market-card stat-tilt">
-                <Target size={40} className="text-purple mx-auto mb-1 stat-icon" />
-                <h3 className="counter-text text-purple">$4.2B</h3>
+                <Target size={40} className="text-cyan mx-auto mb-1 stat-icon" />
+                <h3 className="counter-text text-cyan">$4.2B</h3>
                 <p className="label">SAM</p>
                 <p className="desc">Serviceable Addressable Market (Family tech productivity)</p>
               </motion.div>
@@ -354,30 +356,30 @@ function App() {
                   <thead>
                     <tr>
                       <th>Feature</th>
-                      <th><span className="text-purple font-bold" style={{ fontSize: '1.2rem' }}>Toka</span></th>
+                      <th><span className="text-cyan font-bold" style={{ fontSize: '1.2rem' }}>Toka</span></th>
                       <th>Physical Boards</th>
                       <th>Basic To-Do Apps</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <motion.tr whileHover={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
+                    <tr>
                       <td>Child-Centric Gaming UI</td>
                       <td><div className="icon-wrapper matrix-icon mx-auto bg-green-light"><CheckCircle className="text-green" size={20} /></div></td>
                       <td><XCircle className="text-red mx-auto" size={20} /></td>
                       <td><XCircle className="text-red mx-auto" size={20} /></td>
-                    </motion.tr>
-                    <motion.tr whileHover={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
+                    </tr>
+                    <tr>
                       <td>Virtual Economy Engine</td>
                       <td><div className="icon-wrapper matrix-icon mx-auto bg-green-light"><CheckCircle className="text-green" size={20} /></div></td>
                       <td><XCircle className="text-red mx-auto" size={20} /></td>
                       <td><XCircle className="text-red mx-auto" size={20} /></td>
-                    </motion.tr>
-                    <motion.tr whileHover={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
+                    </tr>
+                    <tr>
                       <td>Automated Tracking</td>
                       <td><div className="icon-wrapper matrix-icon mx-auto bg-green-light"><CheckCircle className="text-green" size={20} /></div></td>
                       <td><XCircle className="text-red mx-auto" size={20} /></td>
                       <td><CheckCircle className="text-green mx-auto" size={20} /></td>
-                    </motion.tr>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -392,12 +394,17 @@ function App() {
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={staggerContainer}
-            className="section-container"
+            className="section-container text-center"
           >
-            <motion.h2 variants={fadeInUp} className="section-title text-center">Business Model & Lean Canvas</motion.h2>
+            <motion.h2 variants={fadeInUp} className="section-title relative">
+              Business Model & Lean Canvas
+              <div className="token-economy-container">
+                <div className="animated-coin">T</div>
+              </div>
+            </motion.h2>
 
             <div className="grid-2 mt-4 gap-4 staggered-masonry">
-              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card green-glow">
+              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card green-glow text-left">
                 <h3 className="card-title text-green"><DollarSign className="icon-green bounce-icon" /> Revenue Streams</h3>
                 <ul className="business-list">
                   <li><strong className="text-green">Freemium Model:</strong> Core task features free for user acquisition.</li>
@@ -406,7 +413,7 @@ function App() {
                 </ul>
               </motion.div>
 
-              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card pink-glow mt-offset">
+              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card pink-glow mt-offset text-left">
                 <h3 className="card-title text-pink"><Megaphone className="icon-pink bounce-icon" /> Channels</h3>
                 <ul className="business-list">
                   <li><strong className="text-pink">Organic Social:</strong> Targeting parenting communities online.</li>
@@ -415,7 +422,7 @@ function App() {
                 </ul>
               </motion.div>
 
-              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card blue-glow">
+              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card blue-glow text-left">
                 <h3 className="card-title text-blue"><Activity className="icon-blue bounce-icon" /> Cost Structure</h3>
                 <ul className="business-list">
                   <li><strong className="text-blue">Infrastructure:</strong> Firebase Database/Auth scale up.</li>
@@ -424,7 +431,7 @@ function App() {
                 </ul>
               </motion.div>
 
-              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card yellow-glow mt-offset border-glow">
+              <motion.div variants={fadeInUp} whileHover={{ scale: 1.02 }} className="glass-card yellow-glow mt-offset border-glow text-left">
                 <h3 className="card-title text-yellow"><Shield className="icon-yellow bounce-icon" /> Unfair Advantage</h3>
                 <p><strong>Proprietary Behavioral Loop:</strong> Competitors build dry utility tools for parents. Toka is designed natively as a gamified behavioral economics game for children, achieving unmatched Daily Active User (DAU) stickiness.</p>
               </motion.div>
@@ -473,7 +480,11 @@ function App() {
                 const Icon = member.icon;
                 return (
                   <motion.div key={idx} variants={fadeInUp} whileHover={{ y: -10 }} className="team-card glow-card">
-                    <div className={`team-avatar pulse-anim`}><Icon size={40} className={member.color} /></div>
+                    <div className="team-avatar-frame">
+                      <div className="team-avatar" style={{ width: '100%', height: '100%', margin: 0 }}>
+                        <Icon size={40} className={member.color} />
+                      </div>
+                    </div>
                     <h3>{member.name}</h3>
                     <p className={`team-role ${member.color}`}>{member.role}</p>
                     <p className="team-bio">{member.desc}</p>
@@ -487,7 +498,11 @@ function App() {
 
               {/* Academic Advisor */}
               <motion.div variants={fadeInUp} whileHover={{ y: -10 }} className="team-card instructor-card border-glow">
-                <div className="team-avatar"><Award size={40} className="text-yellow" /></div>
+                <div className="team-avatar-frame">
+                  <div className="team-avatar" style={{ width: '100%', height: '100%', margin: 0 }}>
+                    <Award size={40} className="text-yellow" />
+                  </div>
+                </div>
                 <h3>Asst. Prof. Evangelina Magaling</h3>
                 <p className="team-role text-yellow">Course Instructor & Advisor</p>
                 <p className="team-bio text-secondary">Providing critical academic oversight and mentorship through the Wadhwani Foundation framework.</p>
@@ -523,7 +538,7 @@ function App() {
       <footer className="footer relative z-10 mt-5" role="contentinfo">
         <div className="footer-content">
           <div className="footer-brand">
-            <div className="logo" style={{ fontSize: '1.8rem' }}>Toka.</div>
+            <div className="logo" style={{ fontSize: '1.8rem' }}>Tok<span className="logo-accent">a</span></div>
             <p className="footer-text mt-1">A Wadhwani Foundation Project.</p>
           </div>
           <p className="footer-text">© {new Date().getFullYear()} Toka. Built for the Wadhwani Foundation.</p>
@@ -562,7 +577,7 @@ function App() {
                   <iframe src="https://toka-app.vercel.app" className="demo-iframe" title="Toka App Prototype" />
                 */}
                 <div className="placeholder-prototype flex-center flex-col text-center" style={{ padding: '20px' }}>
-                  <Smartphone size={60} className="text-purple mb-2 float-anim mx-auto" />
+                  <Smartphone size={60} className="text-cyan mb-2 float-anim mx-auto" />
                   <h4>Mobile Prototype Access</h4>
                   <p className="text-center mt-1 text-secondary text-sm">
                     In a live deployment, this window streams the functional React Native Expo prototype.
