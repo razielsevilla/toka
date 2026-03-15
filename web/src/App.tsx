@@ -95,61 +95,77 @@ const Counter = ({ value, duration = 2, suffix = '' }: { value: number, duration
 };
 
 const TokaBokaToggle = () => {
-  const [isToka, setIsToka] = useState(true);
+  const [sliderPos, setSliderPos] = useState(20);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleDrag = (_: any, info: any) => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = info.point.x - rect.left;
+      const percentage = (x / rect.width) * 100;
+      setSliderPos(Math.max(0, Math.min(100, percentage)));
+    }
+  };
 
   return (
-    <section className={`toka-boka-section ${isToka ? 'mode-toka' : 'mode-boka'}`}>
+    <section className="toka-boka-section">
       <div className="section-container">
-        <div className="toggle-wrapper">
-          <span className={`toggle-label ${!isToka ? 'active' : ''}`}>Boka (Nagging)</span>
-          <div className="main-toggle" onClick={() => setIsToka(!isToka)}>
-            <motion.div
-              className="toggle-handle"
-              animate={{ x: isToka ? 40 : 0 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            />
-          </div>
-          <span className={`toggle-label ${isToka ? 'active' : ''}`}>Toka (Kusa)</span>
+        <div className="text-center mb-4">
+          <h2 className="transformation-header">The Transformation</h2>
+          <p className="transformation-sub">Observe the shift from friction to independence.</p>
         </div>
 
-        <div className="comparison-display mt-4">
-          <AnimatePresence mode="wait">
-            {isToka ? (
-              <motion.div
-                key="toka"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="comparison-card toka-card"
-              >
-                <div className="comparison-icon"><CheckCircle size={48} className="text-green" /></div>
-                <h3>The "Toka" Way</h3>
-                <p>"Ma, tapos na po yung toka ko! Check niyo na sa app."</p>
-                <ul className="comparison-list">
-                  <li>✨ Positive reinforcement</li>
-                  <li>✨ Self-driven discipline</li>
-                  <li>✨ Kids earn Tokash</li>
-                </ul>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="boka"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="comparison-card boka-card"
-              >
-                <div className="comparison-icon"><XCircle size={48} className="text-red" /></div>
-                <h3>The "Boka" Way</h3>
-                <p>"WASH THE DISHES! How many times do I have to ask?!"</p>
-                <ul className="comparison-list">
-                  <li>💢 Constant verbal friction</li>
-                  <li>💢 High parental mental load</li>
-                  <li>💢 Kids feel like it's a chore</li>
-                </ul>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        <div className="comparison-wrapper" ref={containerRef}>
+          {/* BOKA SIDE (The "Before") */}
+          <div className="side-boka">
+            <div className="boka-visuals" />
+            <div className="comparison-card-v2">
+              <div className="comparison-icon"><XCircle size={48} className="text-red" /></div>
+              <h3 className="comparison-title text-red">The "Boka" Way</h3>
+              <p className="comparison-subtitle">"How many times do I have to ask? Wash the dishes now!"</p>
+              <ul className="comparison-feature-list" style={{ display: 'inline-block', textAlign: 'left' }}>
+                <li><X size={18} className="text-red" /> Constant verbal friction</li>
+                <li><X size={18} className="text-red" /> High parental mental load</li>
+                <li><X size={18} className="text-red" /> Kids feel chores are punishment</li>
+                <li><X size={18} className="text-red" /> Zero financial literacy growth</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* TOKA SIDE (The "After") */}
+          <motion.div
+            className="side-toka"
+            style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+          >
+            <div className="toka-visuals" />
+            <div className="comparison-card-v2">
+              <div className="comparison-icon"><CheckCircle size={48} className="text-green" /></div>
+              <h3 className="comparison-title text-green">The "Toka" Way</h3>
+              <p className="comparison-subtitle">"Ma, I finished my Toka! Can I check my Tokash balance?"</p>
+              <ul className="comparison-feature-list" style={{ display: 'inline-block', textAlign: 'left' }}>
+                <li><CheckCircle size={18} className="text-green" /> Positive reinforcement loop</li>
+                <li><CheckCircle size={18} className="text-green" /> Self-driven responsibility</li>
+                <li><CheckCircle size={18} className="text-green" /> Kids earn while they learn</li>
+                <li><CheckCircle size={18} className="text-green" /> Foundation for real-world finance</li>
+              </ul>
+            </div>
+          </motion.div>
+
+          {/* DRAGGABLE HANDLE */}
+          <motion.div
+            className="slider-handle-v2"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }} // Logic handled by onDrag
+            dragElastic={0}
+            onDrag={handleDrag}
+            style={{ left: `${sliderPos}%` }}
+          >
+            <div className="slider-circle">
+              <ChevronLeft size={16} />
+              <ChevronRight size={16} />
+            </div>
+            <div className="slider-indicator">Slide to Transform</div>
+          </motion.div>
         </div>
       </div>
     </section>
@@ -318,6 +334,37 @@ const InteractiveChore = () => {
     </div>
   );
 };
+// --- Impact Components ---
+const StressSphere = ({ value }: { value: number }) => {
+  return (
+    <div className="stress-sphere-container">
+      <motion.div
+        className="stress-sphere"
+        animate={{
+          scale: [1, 1.05, 1],
+          boxShadow: [
+            "0 0 40px rgba(239, 68, 68, 0.2)",
+            "0 0 80px rgba(239, 68, 68, 0.4)",
+            "0 0 40px rgba(239, 68, 68, 0.2)"
+          ]
+        }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <div className="sphere-core">
+          <motion.span
+            className="sphere-value"
+            initial={{ opacity: 0, scale: 0.5 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+          >
+            {value}%
+          </motion.span>
+          <span className="sphere-label">Mental Load</span>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -353,10 +400,10 @@ function App() {
     const idx = keys.indexOf(section);
     const prevThreshold = idx === 0 ? 0 : thresholds[keys[idx - 1]];
     const currentThreshold = thresholds[section];
-    
+
     if (sessionTokash >= currentThreshold) return 100;
     if (sessionTokash <= prevThreshold) return 0;
-    
+
     return ((sessionTokash - prevThreshold) / (currentThreshold - prevThreshold)) * 100;
   };
 
@@ -476,10 +523,10 @@ function App() {
   ];
 
   const teamMembers = [
-    { name: "Raziel Sevilla", role: "Chief Executive Officer", desc: "Driving the vision and product strategy to revolutionize Filipino household productivity.", icon: Rocket, color: "text-cyan" },
-    { name: "Kurt Joshua Cayaga", role: "Chief Technology Officer", desc: "Leading technical architecture and full-stack development for the Toka ecosystem.", icon: Code, color: "text-blue" },
-    { name: "Emiel James Escuzar", role: "Chief Financial Officer", desc: "Managing financial sustainability, monetization strategies, and operational growth.", icon: PieChart, color: "text-green" },
-    { name: "Charles Platon", role: "Chief Marketing Officer", desc: "Developing community-driven growth and go-to-market strategies for local impact.", icon: Megaphone, color: "text-pink" }
+    { name: "Raziel Sevilla", role: "Chief Executive Officer", roleFull: "Chief Executive Officer", desc: "Driving the vision and product strategy to revolutionize Filipino household productivity.", icon: Rocket, color: "text-cyan" },
+    { name: "Kurt Joshua Cayaga", role: "Chief Technology Officer", roleFull: "Chief Technology Officer", desc: "Leading technical architecture and full-stack development for the Toka ecosystem.", icon: Code, color: "text-blue" },
+    { name: "Emiel James Escuzar", role: "Chief Financial Officer", roleFull: "Chief Financial Officer", desc: "Managing financial sustainability, monetization strategies, and operational growth.", icon: PieChart, color: "text-green" },
+    { name: "Charles Platon", role: "Chief Marketing Officer", roleFull: "Chief Marketing Officer", desc: "Developing community-driven growth and go-to-market strategies for local impact.", icon: Megaphone, color: "text-pink" }
   ];
 
   const testimonials = [
@@ -497,8 +544,8 @@ function App() {
           x: mousePos.x - 75, // Centered for 150px
           y: mousePos.y - 75,
           scale: isHoveringLink ? 0.7 : 1,
-          rotateY: direction === 'right' ? 180 : 0, 
-          rotateZ: direction === 'left' ? -5 : 5 
+          rotateY: direction === 'right' ? 180 : 0,
+          rotateZ: direction === 'left' ? -5 : 5
         }}
         transition={{
           type: "spring",
@@ -541,9 +588,9 @@ function App() {
             const label = key === 'problem' ? 'Impact' : key === 'solution' ? 'Product' : key === 'market' ? 'Strategy' : key === 'traction' ? 'Roadmap' : 'Team';
             const progress = getSectionProgress(key as keyof typeof thresholds);
             return (
-              <a 
+              <a
                 key={key}
-                href={`#${key}`} 
+                href={`#${key}`}
                 className={`nav-link ${activeSection === key ? 'active' : ''} ${isUnlocked(key as keyof typeof thresholds) ? 'unlocked' : ''}`}
               >
                 {!isUnlocked(key as keyof typeof thresholds) && (
@@ -702,116 +749,124 @@ function App() {
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
             className="hero-image-container"
-            style={{ 
-              y: mascotY, 
+            style={{
+              y: mascotY,
               rotate: mascotRotate,
               x: heroParallax.x,
               translateY: heroParallax.y
             }}
           >
             <div className="glass-ring"></div>
-            <img src="/mascot-front.png" alt="Toka App Dashboard Overview" className="hero-image" loading="lazy" />
+            <img src="/mascot-front.jpg" alt="Toka App Dashboard Overview" className="hero-image" loading="lazy" />
           </motion.div>
         </section>
 
         {/* INTERACTIVE MODULE: TOKA VS BOKA */}
         <TokaBokaToggle />
-
-        {/* MODULE 1: FAMILY IMPACT (Merged Problem + Testimonials) */}
-        <section id="problem" className={`module-section bg-secondary relative z-10 ${!isUnlocked('problem') ? 'section-locked' : ''}`}>
+        {/* MODULE 1: IMPACT DASHBOARD (100vh) */}
+        <section id="problem" className={`vibrant-impact-section relative z-10 ${!isUnlocked('problem') ? 'section-locked-v2' : ''}`}>
           {!isUnlocked('problem') && (
-            <div className="unlock-overlay">
-              <div className="unlock-card challenge-card">
+            <div className="unlock-trigger">
+              <motion.div
+                className="glass-lock flex-center flex-col"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+              >
                 <div className="lock-icon-container"><Lock size={32} /></div>
-                <div className="challenge-badge">Tokash Challenge #1</div>
-                <h3>Impact Section Locked</h3>
-                <p>Collect <b>{thresholds.problem} Tokash</b> by catching bubbles in the <b>Hero Section</b> to unlock this data.</p>
-                <div className="text-secondary mt-2">Current Balance: <b>{sessionTokash} Tokash</b></div>
-                <a href="#home" className="challenge-link mt-2">Go to Hero Section ↑</a>
-              </div>
+                <div className="challenge-badge">Impact Data Locked</div>
+                <h3>The Cost of Nagging</h3>
+                <p className="mb-2">Collect {thresholds.problem - sessionTokash} more Tokash to see our empathy research.</p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="cta-button"
+                >
+                  Join the Hunt
+                </motion.button>
+              </motion.div>
             </div>
           )}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-            className="section-container"
-          >
-            <motion.div variants={fadeInUp} className="text-center mb-4">
-              <h2 className="section-title">The Problem & Family Impact</h2>
-              <p className="section-subtitle">
-                Modern parents face constant friction and burnout, but there's a better way.
-              </p>
-            </motion.div>
 
-            <div className="grid-2 gap-4 mt-4">
+          <div className="section-container">
+            <div className="impact-immersion-wrapper">
+              {/* Left Column: The Narrative */}
               <motion.div
-                variants={fadeInUp}
-                whileHover={{ y: -5, borderColor: "rgba(49, 255, 236, 0.4)" }}
-                className="glass-card interactive-card"
+                className="impact-narrative"
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
               >
-                <h3 className="card-title text-cyan"><Activity className="icon-cyan" /> Empathy Evidence</h3>
-                <p><strong>74% of parents report the "mental load" of nagging is worse than doing the chore themselves.</strong></p>
-                <div className="quote-box mt-2 float-anim-slow">
-                  "Existing solutions like fridge whiteboards or basic list apps feel like homework to kids."
+                <h3 className="immersive-quote">
+                  "I love my kids, but the <span>endless nagging</span> makes me feel like a broken record."
+                </h3>
+                <p className="text-secondary mb-2" style={{ fontSize: '1.1rem' }}>
+                  We interviewed 100+ Filipino households where productivity had become a daily battlefield of friction.
+                </p>
+                <div className="logo-strip">
+                  <div className="logo-item" style={{ background: 'rgba(239, 68, 68, 0.05)', color: '#ef4444' }}>
+                    <Activity size={16} /> 74% Burnout
+                  </div>
+                  <div className="logo-item" style={{ background: 'rgba(59, 130, 246, 0.05)', color: '#3b82f6' }}>
+                    <Users size={16} /> 100+ Parents
+                  </div>
                 </div>
               </motion.div>
 
-              <motion.div
-                variants={fadeInUp}
-                whileHover={{ y: -5, borderColor: "rgba(59, 130, 246, 0.4)" }}
-                className="glass-card interactive-card"
-              >
-                <h3 className="card-title text-blue"><Users className="icon-blue" /> Target Segments</h3>
-                <div className="persona-box">
-                  <strong className="text-blue">B2C: Working Families</strong>
-                  <p className="text-sm">Reducing household friction through a micro-economy.</p>
-                </div>
-                <div className="persona-box mt-1">
-                  <strong className="text-cyan">B2B: Schools</strong>
-                  <p className="text-sm">Gamified classroom management tools.</p>
-                </div>
-              </motion.div>
-            </div>
+              {/* Right Column: Visualization + Cards */}
+              <div className="impact-visualizer">
+                <StressSphere value={74} />
 
-            {/* Testimonials Carousel (Option C) */}
-            <div className="carousel-nav-container mt-4">
-              <div className="carousel-arrow arrow-left"><ChevronLeft size={24} /></div>
-              <div className="carousel-arrow arrow-right"><ChevronRight size={24} /></div>
+                <div className="cards-row">
+                  <motion.div
+                    className="problem-card"
+                    whileHover={{ y: -5 }}
+                  >
+                    <span className="card-tag tag-red">B2C Target</span>
+                    <h4 className="card-title">Working Parents</h4>
+                    <p className="text-secondary text-xs">Managing full-time jobs and the 'second shift' friction.</p>
+                  </motion.div>
 
-              <div className="carousel-container">
-                <div className="carousel-track">
-                  {testimonials.map((test, idx) => (
-                    <motion.div key={idx} variants={scaleIn} className="carousel-item">
-                      <div className="glass-card testimonial-card text-center" style={{ height: '100%' }}>
-                        <MessageSquareQuote size={30} className="text-cyan mx-auto mb-2 opacity-50" />
-                        <p className="italic mb-2 text-sm text-secondary">"{test.quote}"</p>
-                        <h4 className="mt-1">{test.author}</h4>
-                        <p className="text-xs text-secondary">{test.role}</p>
-                      </div>
-                    </motion.div>
-                  ))}
+                  <motion.div
+                    className="problem-card"
+                    whileHover={{ y: -5 }}
+                  >
+                    <span className="card-tag tag-blue">B2B Opportunity</span>
+                    <h4 className="card-title">Local Schools</h4>
+                    <p className="text-secondary text-xs">Class tools that translate into better home habits.</p>
+                  </motion.div>
                 </div>
               </div>
-              <div className="scroll-indicator">
-                {testimonials.map((_, i) => <div key={i} className={`dot ${i === 0 ? 'active' : ''}`} />)}
-              </div>
             </div>
-          </motion.div>
+
+            {/* Testimonials Strip (Bottom of 100vh) */}
+            <div className="impact-testimonials-strip">
+              {testimonials.map((test, idx) => (
+                <div key={idx} className="mini-testimonial">
+                  <p className="italic text-secondary" style={{ fontSize: '0.8rem' }}>"{test.quote}"</p>
+                  <div className="mt-1" style={{ fontSize: '0.7rem' }}>
+                    <strong>{test.author}</strong> — <span className="opacity-70">{test.role}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
-        {/* MODULE 2: VALUE PROPOSITION */}
-        <section id="solution" className={`module-section relative z-10 ${!isUnlocked('solution') ? 'section-locked' : ''}`}>
+        {/* MODULE 2: VALUE PROPOSITION & MVP */}
+        <section id="solution" className={`module-section relative z-10 ${!isUnlocked('solution') ? 'section-locked-v2' : ''}`}>
           {!isUnlocked('solution') && (
-            <div className="unlock-overlay">
-              <div className="unlock-card challenge-card">
+            <div className="unlock-trigger">
+              <div className="glass-lock flex-center flex-col">
                 <div className="lock-icon-container"><Lock size={32} /></div>
-                <div className="challenge-badge">Tokash Challenge #2</div>
-                <h3>Product Section Locked</h3>
-                <p>Reach <b>{thresholds.solution} Tokash</b> to see how the Toka APP actually works.</p>
-                <div className="text-secondary mt-2">Current Balance: <b>{sessionTokash} Tokash</b></div>
-                <a href="#home" className="challenge-link mt-2">Go to Hero Section ↑</a>
+                <div className="challenge-badge">Product Blueprint Locked</div>
+                <h3>Behold the Toka MVP</h3>
+                <p className="mb-2">Collect {thresholds.solution - sessionTokash} more Tokash to unlock the product reveal.</p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="cta-button"
+                >
+                  Return to Hunt
+                </motion.button>
               </div>
             </div>
           )}
@@ -822,10 +877,9 @@ function App() {
             variants={staggerContainer}
             className="section-container text-center"
           >
-
-            <motion.h2 variants={fadeInUp} className="section-title">Value Proposition Design</motion.h2>
+            <motion.h2 variants={fadeInUp} className="section-title">Solution & MVP Design</motion.h2>
             <motion.p variants={fadeInUp} className="section-subtitle">
-              <strong>Unique Value Proposition (UVP):</strong> A frictionless, dual-interface platform that transforms chores into an engaging micro-economy.
+              A frictionless platform that transforms chores into an engaging micro-economy.
             </motion.p>
 
             <div className="grid-3 mt-4">
@@ -860,68 +914,35 @@ function App() {
               </motion.div>
             </div>
 
-            <motion.div variants={fadeInUp} className="mt-5 mx-auto" style={{ maxWidth: '600px' }}>
-              <SavingsCalculator />
-            </motion.div>
-          </motion.div>
-        </section>
-
-        {/* MODULE 3: SOLUTION MVP */}
-        <section id="solution" className={`module-section bg-secondary relative z-10 overflow-hidden ${!isUnlocked('solution') ? 'section-locked' : ''}`}>
-          {!isUnlocked('solution') && (
-            <div className="unlock-overlay">
-              <div className="unlock-card">
-                <div className="lock-icon-container"><Lock size={32} /></div>
-                <h3>Product Section Locked</h3>
-                <p>Collect <b>{thresholds.solution} Tokash</b> to unlock the full product details and value proposition.</p>
-                <div className="text-secondary mt-2">Current Balance: {sessionTokash} Tokash</div>
-              </div>
-            </div>
-          )}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-            className="section-container text-center"
-          >            <motion.h2 variants={fadeInUp} className="section-title">Solution & The MVP</motion.h2>
-            <div className="feature-grid mt-4">
+            <div className="feature-grid mt-5">
               <article className="feature-card">
                 <motion.div variants={fadeInUp} className="feature-content">
-                  <div className="badge pulse-border">Functional MVP Foundation</div>
-                  <h3 className="text-gradient">The Tokash Economy</h3>
-                  <p>Our platform transforms chores into an engaging micro-economy that rewards discipline and patience.</p>
-
-                  <motion.ul variants={staggerContainer} className="feature-list">
-                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><CheckCircle className="text-cyan" size={18} /> <strong className="text-left">Gamified Task Engine:</strong> Kids earn 'Tokash' for every completed 'Toka'.</motion.li>
-                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><Activity className="text-cyan" size={18} /> <strong className="text-left">Savings Vault:</strong> Earn interest on saved Tokash, teaching delayed gratification.</motion.li>
-                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><Briefcase className="text-cyan" size={18} /> <strong className="text-left">Auction House:</strong> Compete for premium family rewards with bidding mechanics.</motion.li>
-                    <motion.li variants={fadeInUp} whileHover={{ x: 5 }}><Shield className="text-cyan" size={18} /> <strong className="text-left">Parent Dashboard:</strong> Real-time approval and budget tracking (₱).</motion.li>
+                  <div className="badge pulse-border">MVP Core</div>
+                  <h3 className="text-gradient">Tech Stack & Tools</h3>
+                  <motion.ul variants={staggerContainer} className="feature-list mt-1">
+                    <motion.li variants={fadeInUp}><CheckCircle className="text-cyan" size={18} /> <strong>Hybrid Platform:</strong> Built with React Native & Firebase.</motion.li>
+                    <motion.li variants={fadeInUp}><Activity className="text-cyan" size={18} /> <strong>Real-time Sync:</strong> Instant task approval for parents.</motion.li>
                   </motion.ul>
-
                   <div className="tech-stack mt-2">
-                    <strong>Tech Stack Foundation:</strong>
                     <div className="tech-icons">
-                      <motion.span whileHover={{ scale: 1.1 }} className="tech-pill bg-blue-dark text-blue-light"><Smartphone size={14} /> React Native</motion.span>
-                      <motion.span whileHover={{ scale: 1.1 }} className="tech-pill bg-cyan-dark text-cyan-light"><Code size={14} /> TypeScript</motion.span>
-                      <motion.span whileHover={{ scale: 1.1 }} className="tech-pill bg-yellow-dark text-yellow-light"><Database size={14} /> Firebase</motion.span>
+                      <span className="tech-pill bg-blue-dark text-blue-light"><Smartphone size={14} /> React Native</span>
+                      <span className="tech-pill bg-cyan-dark text-cyan-light"><Code size={14} /> TypeScript</span>
+                      <span className="tech-pill bg-yellow-dark text-yellow-light"><Database size={14} /> Firebase</span>
                     </div>
                   </div>
-
                   <div className="interactive-demo-container mt-4">
                     <InteractiveChore />
                   </div>
                 </motion.div>
-
-                <motion.div
-                  variants={fadeInUp}
-                  whileHover={{ scale: 1.02 }}
-                  className="interactive-mockup"
-                >
+                <motion.div variants={fadeInUp} className="interactive-mockup">
                   <img src="/tasks.png" alt="MVP Tasks" className="feature-image float-anim" loading="lazy" />
                 </motion.div>
               </article>
             </div>
+
+            <motion.div variants={fadeInUp} className="mt-5 mx-auto" style={{ maxWidth: '600px' }}>
+              <SavingsCalculator />
+            </motion.div>
           </motion.div>
         </section>
 
@@ -1287,11 +1308,6 @@ function App() {
                 <p className="text-sm text-secondary">Experience the gamified chore loop (Simulated Interface)</p>
               </div>
               <div className="modal-body" style={{ display: 'flex', justifyContent: 'center' }}>
-                {/* 
-                  Real-world execution: 
-                  If Toka was deployed to Vercel/Expo web, we'd embed it via iframe:
-                  <iframe src="https://toka-app.vercel.app" className="demo-iframe" title="Toka Interactive Demo" />
-                */}
                 <div className="placeholder-prototype flex-center flex-col text-center" style={{ padding: '20px' }}>
                   <Smartphone size={60} className="text-cyan mb-2 float-anim mx-auto" />
                   <h4>Mobile Prototype Access</h4>
